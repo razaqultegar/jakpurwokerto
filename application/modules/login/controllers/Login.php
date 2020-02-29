@@ -40,7 +40,7 @@ class Login extends MX_Controller {
 				$this->session->set_userdata('password', $password);
 				
 				$result = 1;
-				redirect('beranda/view');
+				redirect('beranda');
 			}else{
 				// jika form yang di isi salah
 				$result = 1;
@@ -49,7 +49,7 @@ class Login extends MX_Controller {
 				redirect('login');
 			}
 		}
-  }
+	}
   
   function logout(){
     $this->session->sess_destroy();

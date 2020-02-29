@@ -166,7 +166,7 @@ a {
 
 a:hover {
   color: #224abe;
-  text-decoration: underline;
+  text-decoration: none;
 }
 
 a:not([href]):not([tabindex]) {
@@ -9521,37 +9521,13 @@ a:focus {
 
 #wrapper #content-wrapper #content {
   flex: 1 0 auto;
+  margin-bottom: 50px;
 }
 
 .container,
 .container-fluid {
   padding-left: 1.5rem;
   padding-right: 1.5rem;
-}
-
-.scroll-to-top {
-  position: fixed;
-  right: 1rem;
-  bottom: 1rem;
-  display: none;
-  width: 2.75rem;
-  height: 2.75rem;
-  text-align: center;
-  color: #fff;
-  background: rgba(90, 92, 105, 0.5);
-  line-height: 46px;
-}
-
-.scroll-to-top:focus, .scroll-to-top:hover {
-  color: white;
-}
-
-.scroll-to-top:hover {
-  background: #5a5c69;
-}
-
-.scroll-to-top i {
-  font-weight: 800;
 }
 
 @-webkit-keyframes growIn {
@@ -9865,7 +9841,13 @@ a:focus {
   position: relative;
 }
 
-.sidebar .nav-item .nav-link .badge-counter,
+.sidebar .nav-item .nav-link .badge-counter {
+  position: absolute;
+  transform: scale(0.7);
+  transform-origin: top right;
+  margin-top: -.25rem;
+}
+
 .topbar .nav-item .nav-link .badge-counter {
   position: absolute;
   transform: scale(0.7);
@@ -10090,7 +10072,7 @@ a:focus {
   padding: 0.5rem 1rem;
   margin: 0 0.5rem;
   display: block;
-  color: #3a3b45;
+  color: rgba(255, 255, 255, 0.8);
   text-decoration: none;
   border-radius: 0.35rem;
   white-space: nowrap;
@@ -10098,17 +10080,12 @@ a:focus {
 
 .sidebar .nav-item .collapse .collapse-inner .collapse-item:hover,
 .sidebar .nav-item .collapsing .collapse-inner .collapse-item:hover {
-  background-color: #eaecf4;
-}
-
-.sidebar .nav-item .collapse .collapse-inner .collapse-item:active,
-.sidebar .nav-item .collapsing .collapse-inner .collapse-item:active {
-  background-color: #dddfeb;
+  color: #fff;
 }
 
 .sidebar .nav-item .collapse .collapse-inner .collapse-item.active,
 .sidebar .nav-item .collapsing .collapse-inner .collapse-item.active {
-  color: #4e73df;
+  color: #fff;
   font-weight: 700;
 }
 
@@ -10368,7 +10345,9 @@ a:focus {
 }
 
 .card .card-header .dropdown {
-  line-height: 1;
+  position: absolute;
+  right: 15px;
+  top: 8px;
 }
 
 .card .card-header .dropdown .dropdown-menu {
@@ -10443,7 +10422,6 @@ form.user .custom-checkbox.small label {
 
 form.user .form-control-user {
   font-size: 0.8rem;
-  border-radius: 10rem;
   padding: 1.5rem 1rem;
 }
 
@@ -10820,7 +10798,7 @@ form.user .btn-user {
 }
 
 footer.sticky-footer {
-  padding: 2rem 0;
+  padding: 1.5rem 0;
   flex-shrink: 0;
 }
 
@@ -10834,7 +10812,7 @@ body.sidebar-toggled footer.sticky-footer {
 }
 
 /* Custom */
-.bg-token {
+.bg-token, .bg-login {
   background-image: url('../img/background.png');
   background-size: cover;
   background-repeat: no-repeat;
@@ -10843,4 +10821,86 @@ body.sidebar-toggled footer.sticky-footer {
 .logo-default {
   max-width: 100%;
   height: auto !important;
+}
+
+.row-foto {
+  float: left;
+  margin-right: 24px;
+  position: relative;
+}
+
+.header-anggota {
+  font-weight: 400;
+  font-size: 22px;
+  line-height: 28px;
+}
+
+.nama-anggota {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nokta-anggota {
+  font-weight: 300;
+  font-size: 16px;
+  line-height: 20px;
+  display: block;
+}
+
+.row-anggota {
+  margin-top: 15px;
+}
+
+.row-list > li  {
+  min-height: 48px;
+  padding: 8px 4px;
+  box-sizing: border-box;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  position: relative;
+  list-style: none;
+  margin: 0;
+}
+
+.row-list > li:last-child {
+  border-bottom: none;
+}
+
+.section-list {
+  overflow: hidden;
+}
+
+.header-list {
+  display: block;
+  font-size: 12px !important;
+}
+
+.content-list {
+  margin: 0;
+  font-weight: 500;
+  display: block;
+  overflow: hidden;
+  padding-bottom: 1px;
+}
+
+@media (max-width: 992px) {
+  .sidebar .nav-item .collapse {
+    background-color: #222d32;
+  }
+  
+  .sidebar .nav-item .collapse .collapse-inner, .sidebar .nav-item .collapsing .collapse-inner {
+    margin: 0px;
+  }
+
+  .row-foto {
+    float: none;
+  }
+
+  .center {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 50%;
+  }
 }

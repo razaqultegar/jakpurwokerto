@@ -13,12 +13,6 @@ class MY_Controller extends CI_Controller {
       redirect('login');
     }
 
-    $this->nama_app = $this->personalisasi('S001')[0]['setValue'];
-    $this->versi_aplikasi = $this->personalisasi('S002')[0]['setValue'];
-    $this->logo_app = $this->personalisasi('S003')[0]['setValue'];
-    $this->tahun_pembuatan = $this->personalisasi('S005')[0]['setValue'];
-    $this->hak_cipta = $this->personalisasi('S006')[0]['setValue'];
-
     //data header statis
     $this->user_id = $this->session->userId;
     $this->username = $this->user_active()->username;
@@ -34,7 +28,7 @@ class MY_Controller extends CI_Controller {
     date_default_timezone_set('Asia/Jakarta');
     $this->now = date("Y-m-d");
 
-    $this->url_profil = site_url('profil/view');
+    $this->url_profil = site_url('profil');
     $this->foto_profil = base_url().'files/akun/default.jpg';
   }
 
@@ -73,12 +67,6 @@ class MY_Controller extends CI_Controller {
   public function replace_spt($angka) {
     $str = str_replace('.', '', $angka);
     return $str;
-  }
-    
-  private function personalisasi($kode) {
-    $this->load->model('setting/m_setting');
-    $result = $this->m_setting->getDataPersonalisasi($kode);
-    return $result;
   }
 
   private function user_active() {

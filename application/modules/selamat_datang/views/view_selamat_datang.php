@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <meta name="description" content="">
   <meta name="author" content="">
-  <title><?php echo $title; ?> - Jakmania Purwokerto App</title>
+  <title><?php echo $title; ?> -The Jakmania App</title>
   <link href="<?php echo base_url().'assets/vendor/fontawesome-free/css/all.min.css'?>" rel="stylesheet" type="text/css">
   <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
   <link href="<?php echo base_url().'assets/css/sb-admin-2.css'?>" rel="stylesheet">
@@ -27,6 +27,13 @@
                   </div>
                   <form method="POST" action="<?php echo site_url('selamat_datang/validate_token'); ?>" class="user">
                     <div class="form-group">
+                      <select name="jenis" class="form-control">
+                        <option value="" class="option">- Pilih Jenis Pengisian-</option>
+                        <option value="pendaftaran" class="option">Pendaftaran</option>
+                        <option value="pendataan" class="option">Pendataan</option>
+                      </select>
+                    </div>
+                    <div class="form-group">
                       <input type="password" class="form-control form-control-user" name="token" placeholder="Masukkan Token...">
                     </div>
                     <button type="submit" class="btn btn-danger btn-user btn-block">VERIFIKASI</button>
@@ -42,7 +49,7 @@
   <script src="<?php echo base_url().'assets/vendor/jquery/jquery.min.js'?>"></script>
   <script src="<?php echo base_url().'assets/vendor/bootstrap/js/bootstrap.bundle.min.js'?>"></script>
   <script src="<?php echo base_url().'assets/vendor/jquery-easing/jquery.easing.min.js'?>"></script>
-  <script src="<?php echo base_url().'assets/js/sb-admin-2.min.js'?>"></script>
+  <script src="<?php echo base_url().'assets/js/sb-admin-2.js'?>"></script>
   <script src="<?php echo base_url().'assets/vendor/toastr/toastr.min.js'?>"></script>
   <?php if($msg[0] == '1'){ ?>
     <script>
@@ -51,7 +58,10 @@
           "closeButton": true,
           "progressBar": true,
           "positionClass": "toast-top-right",
-          "showDuration": "500"
+          "showDuration": "3000",
+          "hideDuration": "3000",
+          "timeOut": "3000",
+          "extendedTimeOut": "3000"
         }
         toastr['<?php echo $msg[1];?>']('<?php echo $msg[2];?>')
         <?php unset($_SESSION['pesan']); echo $msg[3];?>

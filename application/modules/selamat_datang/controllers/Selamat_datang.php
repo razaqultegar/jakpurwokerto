@@ -28,6 +28,7 @@ class Selamat_datang extends MX_Controller {
 			redirect('/');
 		}else{
 			// jika form yang di isi benar
+			$jenis = $this->input->post('jenis');
 			$token = $this->input->post('token');
 			  
 			$cek = $this->m_selamat_datang->validate($token);
@@ -36,8 +37,11 @@ class Selamat_datang extends MX_Controller {
 				$this->session->set_userdata('tokenId', $cek->tokenId);  
 				$this->session->set_userdata('token', $token);  
 				
-				$result = 1;
-				redirect('beranda/view');
+				if($jenis == 'pendaftaran'){
+					redirect('pendaftaran');
+				}else{
+					redirect('pendataan');
+				}
 			}else{
 				// jika form yang di isi salah
 				$result = 1;

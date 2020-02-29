@@ -1,14 +1,48 @@
 <div class="row">
   <div class="col-xl-3 col-md-6 mb-4">
+    <div class="card border-left-warning shadow h-100 py-2">
+      <div class="card-body">
+        <div class="row no-gutters align-items-center">
+          <div class="col mr-2">
+            <div class="text-xs font-weight-bold text-gray-800 text-uppercase mb-1">Jumlah Anggota</div>
+            <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo $total_anggota?></div>
+          </div>
+          <div class="col-auto">
+            <i class="fas fa-users fa-2x text-gray-300"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-3 col-md-6 mb-4">
     <div class="card border-left-primary shadow h-100 py-2">
       <div class="card-body">
         <div class="row no-gutters align-items-center">
           <div class="col mr-2">
-            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Earnings (Monthly)</div>
-            <div class="h5 mb-0 font-weight-bold text-gray-800">$40,000</div>
+            <div class="text-xs font-weight-bold text-gray-800 text-uppercase mb-1">Jumlah Laki-laki</div>
+            <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo $total_laki?></div>
           </div>
           <div class="col-auto">
-            <i class="fas fa-calendar fa-2x text-gray-300"></i>
+            <i class="fas fa-mars fa-2x text-gray-300"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-3 col-md-6 mb-4">
+    <div class="card border-left-danger shadow h-100 py-2">
+      <div class="card-body">
+        <div class="row no-gutters align-items-center">
+          <div class="col mr-2">
+            <div class="text-xs font-weight-bold text-gray-800 text-uppercase mb-1">Jumlah Perempuan</div>
+            <div class="row no-gutters align-items-center">
+              <div class="col-auto">
+                <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800"><?php echo $total_perempuan?></div>
+              </div>
+            </div>
+          </div>
+          <div class="col-auto">
+            <i class="fas fa-venus fa-2x text-gray-300"></i>
           </div>
         </div>
       </div>
@@ -19,50 +53,11 @@
       <div class="card-body">
         <div class="row no-gutters align-items-center">
           <div class="col mr-2">
-            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Earnings (Annual)</div>
-            <div class="h5 mb-0 font-weight-bold text-gray-800">$215,000</div>
+            <div class="text-xs font-weight-bold text-uppercase mb-1">Jumlah Kas</div>
+            <div class="h5 mb-0 font-weight-bold"><?php // echo $total_kas?></div>
           </div>
           <div class="col-auto">
-            <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="col-xl-3 col-md-6 mb-4">
-    <div class="card border-left-info shadow h-100 py-2">
-      <div class="card-body">
-        <div class="row no-gutters align-items-center">
-          <div class="col mr-2">
-            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Tasks</div>
-            <div class="row no-gutters align-items-center">
-              <div class="col-auto">
-                <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">50%</div>
-              </div>
-              <div class="col">
-                <div class="progress progress-sm mr-2">
-                  <div class="progress-bar bg-info" role="progressbar" style="width: 50%" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="col-auto">
-            <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="col-xl-3 col-md-6 mb-4">
-    <div class="card border-left-warning shadow h-100 py-2">
-      <div class="card-body">
-        <div class="row no-gutters align-items-center">
-          <div class="col mr-2">
-            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Pending Requests</div>
-            <div class="h5 mb-0 font-weight-bold text-gray-800">18</div>
-          </div>
-          <div class="col-auto">
-            <i class="fas fa-comments fa-2x text-gray-300"></i>
+            <i class="fas fa-money-bill-wave fa-2x text-gray-300"></i>
           </div>
         </div>
       </div>
@@ -73,46 +68,90 @@
   <div class="col-xl-6 col-lg-6">
     <div class="card shadow mb-4">
       <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-        <h6 class="m-0 font-weight-bold text-primary">Earnings Overview</h6>
-        <div class="dropdown no-arrow">
-          <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
-          </a>
-        </div>
+        <h6 class="m-0 font-weight-bold">Anggota Berdasarkan Usia</h6>
       </div>
       <div class="card-body">
-        <div class="chart-area">
-          <canvas id="myAreaChart"></canvas>
-        </div>
+        <div id="usia-bar"></div>
       </div>
     </div>
   </div>
   <div class="col-xl-6 col-lg-6">
     <div class="card shadow mb-4">
       <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-        <h6 class="m-0 font-weight-bold text-primary">Revenue Sources</h6>
-        <div class="dropdown no-arrow">
-          <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
-          </a>
-        </div>
+        <h6 class="m-0 font-weight-bold">Pertambahan Anggota</h6>
       </div>
       <div class="card-body">
-        <div class="chart-pie pt-4 pb-2">
-          <canvas id="myPieChart"></canvas>
-        </div>
-        <div class="mt-4 text-center small">
-          <span class="mr-2">
-            <i class="fas fa-circle text-primary"></i> Direct
-          </span>
-          <span class="mr-2">
-            <i class="fas fa-circle text-success"></i> Social
-          </span>
-          <span class="mr-2">
-            <i class="fas fa-circle text-info"></i> Referral
-          </span>
-        </div>
+        <div id="anggota"></div>
       </div>
     </div>
   </div>
 </div>
+<script type="text/javascript">
+var date = new Date();
+var yearNow = date.getFullYear();
+var total_anggota = '<?php echo $total_anggota?>';
+graph= $(function () {
+  $.ajax({
+    type: "GET",
+    url: '<?php echo $json_agt?>',
+    dataType: "json",
+    contentType: "application/json",
+    crossDomain: true,
+    success: function (data) {
+      var d = data;
+      var name = Array();
+      var data = Array();
+      var dataArrayFinal = Array();
+      for(i=0;i<d.length;i++) { 
+        name[i] = d[i].name; 
+        data[i] = d[i].data;  
+      }
+      for(j=0;j<name.length;j++) { 
+        var temp = new Array(name[j],data[j]); 
+        dataArrayFinal[j] = temp;     
+      }
+      var chart = new Highcharts.Chart({
+        chart: {
+          renderTo: 'anggota',
+          type: 'column',
+        },
+        colors: ['#4e73df', '#e74a3b'],
+        title: {
+          text: 'Pertambahan Anggota'
+        },
+        subtitle: {
+          text: 'Total Anggota : '+ total_anggota
+        },
+        plotOptions: {
+          column: {
+            depth: 25,
+          }
+        },
+        xAxis: {
+          categories: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
+        },
+        yAxis: {
+          title: {
+            text: 'Jumlah'
+          }
+        },
+        credits: {
+          enabled: false
+        },
+        series: d
+      });
+      function showValues() {
+        $('#alpha-value').html(chart.options.chart.options3d.alpha);
+        $('#beta-value').html(chart.options.chart.options3d.beta);
+        $('#depth-value').html(chart.options.chart.options3d.depth);
+      }
+      $('#sliders input').on('input change', function () {
+        chart.options.chart.options3d[this.id] = this.value;
+        showValues();
+        chart.redraw(false);
+      });
+      showValues();
+    }
+  });
+});
+</script>

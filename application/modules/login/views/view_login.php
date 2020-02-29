@@ -6,13 +6,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <meta name="description" content="">
   <meta name="author" content="">
-  <title><?php echo $title; ?> - Jakmania Purwokerto App</title>
+  <title><?php echo $title; ?> - The Jakmania App</title>
   <link href="<?php echo base_url().'assets/vendor/fontawesome-free/css/all.min.css'?>" rel="stylesheet" type="text/css">
   <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
   <link href="<?php echo base_url().'assets/css/sb-admin-2.css'?>" rel="stylesheet">
   <link href="<?php echo base_url().'assets/vendor/toastr/toastr.min.css'?>" rel="stylesheet">
+  <style>
+    .logo-default {
+      max-width: 70%;
+      height: auto !important;
+      margin-bottom: 30px;
+    }
+  </style>
 </head>
-<body>
+<body class="bg-login">
   <div class="container">
     <div class="row justify-content-center">
       <div class="col-xl-6 col-lg-6 col-md-6">
@@ -22,7 +29,7 @@
               <div class="col-lg-12">
                 <div class="p-5">
                   <div class="text-center">
-                    <h1 class="h4 text-gray-900 mb-4">Selamat Datang</h1>
+                    <img class="logo-default" src="<?php echo base_url('assets/img/logo.png'); ?>">
                   </div>
                   <form method="POST" action="<?php echo site_url('login/validate_login'); ?>" class="user">
                     <div class="form-group">
@@ -34,7 +41,7 @@
                     <button type="submit" class="btn btn-danger btn-user btn-block">Masuk</button>
                     <hr>
                     <div class="text-center">
-                      <p>© 2018 Jakmania Purwokerto App<br>dikembangkan oleh <a href="https://razaqultegar.com" target="_blank">Razaqul Tegar</a>.</p>
+                      <p>Hak Cipta &copy; 2018 oleh <a href="https://razaqultegar.com" target="_blank">Razaqul Tegar</a>.</p>
                     </div>
                   </form>
                 </div>
@@ -57,7 +64,10 @@
           "closeButton": true,
           "progressBar": true,
           "positionClass": "toast-top-right",
-          "showDuration": "500"
+          "showDuration": "3000",
+          "hideDuration": "3000",
+          "timeOut": "3000",
+          "extendedTimeOut": "3000"
         }
         toastr['<?php echo $msg[1];?>']('<?php echo $msg[2];?>')
         <?php unset($_SESSION['pesan']); echo $msg[3];?>
