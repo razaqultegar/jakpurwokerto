@@ -2,7 +2,11 @@
   <div class="card-header py-3 flex-row align-items-center">
     <div class="row-foto">
       <div class="foto-anggota">
-        <img class="center" src="<?php echo base_url('files/anggota/'.$agtFoto); ?>" data-toggle="modal" data-target="#exampleModal" style="width:80px;height:auto;border-radius:50%;cursor:zoom-in;">
+        <?php if($agtFoto != NULL) {?>
+          <img class="center" src="<?php echo base_url('files/anggota/'.$agtFoto); ?>" data-toggle="modal" data-target="#exampleModal" style="width:100px;height:auto;border-radius:2%;cursor:zoom-in;">
+        <?php } else { ?>
+          <img class="center" src="<?php echo base_url('files/anggota/default.jpg'); ?>" data-toggle="modal" data-target="#exampleModal" style="width:100px;height:auto;border-radius:2%;cursor:zoom-in;">
+        <?php } ?>
       </div>
     </div>
     <div class="row-anggota">
@@ -131,7 +135,11 @@
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-body">
-        <img src="<?php echo base_url('files/anggota/'.$agtFoto); ?>" style="display:block;margin-right: auto;margin-left:auto;width:100%;">
+        <?php if($agtFoto != NULL) {?>
+          <img src="<?php echo base_url('files/anggota/'.$agtFoto); ?>" style="display:block;margin-right: auto;margin-left:auto;">
+        <?php } else { ?>
+          <img src="<?php echo base_url('files/anggota/default.jpg'); ?>" style="display:block;margin-right: auto;margin-left:auto;">
+        <?php } ?>
       </div>
     </div>
   </div>

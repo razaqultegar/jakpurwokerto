@@ -1,3 +1,11 @@
+<?php if($msg[0] == '1'){ ?>
+<div class="alert alert-<?php echo $msg[1];?> alert-dismissible fade show" role="alert">
+  <i class="fas fa-check mr-2"></i><?php echo $msg[2];?>
+  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+    <span aria-hidden="true">&times;</span>
+  </button>
+</div>
+<?php } unset($_SESSION['pesan']); ?>
 <div class="card shadow mb-4">
   <div class="card-header py-3">
     <a href="#" class="btn btn-success btn-icon-split btn-sm">
@@ -24,18 +32,19 @@
     </div>
   </div>
 </div>
+<a href="<?php echo $url_add;?>" class="float" title="Tambah Data Anggota"><i class="fas fa-plus fa-2x my-float"></i></a>
 <script type="text/javascript">
 $(document).ready(function(){
-    var table = $('#table-anggota').DataTable({
+  var table = $('#table-anggota').DataTable({
     "processing": true,
     "serverSide": true,
     columns: [
-      { "data": "no", "class" : "text-left", "width":"5%", 'sortable' : true },
+      { "data": "no", "class" : "text-left", "width":"5%", 'sortable' : false },
       { "data": "aksi", "class" : "text-center", "width":"10%", 'sortable' : false },
       { "data": "noKta", "class" : "text-left",  "width":"20%",'sortable' : false},
-      { "data": "agtNama", "class" : "text-left",  "width":"30%",'sortable' : true},
+      { "data": "agtNama", "class" : "text-left",  "width":"35%",'sortable' : true},
       { "data": "jnsKelamin", "class" : "text-left",  "width":"15%",'sortable' : false},
-      { "data": "wilNama", "class" : "text-left",  "width":"30%",'sortable' : false}
+      { "data": "wilNama", "class" : "text-left",  "width":"25%",'sortable' : false}
     ],
     "order" : [],
     "ajax": {

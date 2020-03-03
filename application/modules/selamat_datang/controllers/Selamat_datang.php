@@ -4,7 +4,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 class Selamat_datang extends MX_Controller {
 	public function __construct() {
 		parent::__construct();
-		$this->load->model('m_selamat_datang');
+		$this->load->model('selamat_datang/m_selamat_datang');
 		// message
 		$this->pesanTokenWarning = "Silahkan Isi Token Terlebih Dahulu";
 		$this->pesanColorWarning = "warning";

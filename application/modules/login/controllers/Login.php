@@ -4,11 +4,11 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 class Login extends MX_Controller {
 	public function __construct() {
 		parent::__construct();
-		$this->load->model('m_login');
+		$this->load->model('login/m_login');
 		// message
-		$this->pesanTokenWarning = "Username dan Password Tidak Boleh Kosong";
+		$this->pesanLoginWarning = "Username dan Password Tidak Boleh Kosong";
 		$this->pesanColorWarning = "warning";
-		$this->pesanTokenError = "Login Gagal, Username atau Password Tidak Sesuai";
+		$this->pesanLoginError = "Login Gagal, Username atau Password Tidak Sesuai";
 		$this->pesanColorError = "error";
 	}
 
@@ -24,7 +24,7 @@ class Login extends MX_Controller {
 		// jika form yang di isi kosong
 		if($this->form_validation->run()==FALSE){
 			$result = 1;
-			$params = array($result, $this->pesanColorWarning, $this->pesanTokenWarning, '');
+			$params = array($result, $this->pesanColorWarning, $this->pesanLoginWarning, '');
 			$this->session->set_userdata('pesan', $params); 
 			redirect('login');
 		}else{
@@ -44,7 +44,7 @@ class Login extends MX_Controller {
 			}else{
 				// jika form yang di isi salah
 				$result = 1;
-				$params = array($result, $this->pesanColorError, $this->pesanTokenError, '');
+				$params = array($result, $this->pesanColorError, $this->pesanLoginError, '');
 				$this->session->set_userdata('pesan', $params); 
 				redirect('login');
 			}

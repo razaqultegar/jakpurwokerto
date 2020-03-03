@@ -14,7 +14,7 @@ class Pendaftaran extends MX_Controller {
 		$this->pesanColorWarning = "warning";
 	}
 
-	private function data_construct(){
+	private function data_construct() {
 		$this->load->model('ref_pekerjaan/m_ref_pekerjaan');
 		$this->load->model('ref_pendidikan/m_ref_pendidikan');
 		$this->load->model('ref_wilayah/m_ref_wilayah');
@@ -29,12 +29,11 @@ class Pendaftaran extends MX_Controller {
 	public function index() {
 		$data = $this->data_construct();
 		$data['msg'] = $this->session->userdata('pesan');
-		$data['session'] = $this->session->sess_destroy();
 		$data['title'] = 'Pendaftaran';
 		$this->load->view('pendaftaran/view_pendaftaran', $data);
 	}
 
-	public function addAction(){
+	public function addAction() {
 		$this->form_validation->set_rules('agtIdWilayah', 'Koordinator Wilayah', 'required');
 		$this->form_validation->set_rules('agtNama', 'Nama Lengkap', 'required|min_length[2]');
 		$this->form_validation->set_rules('agtNmPendek', 'Nama Panggilan', 'required|trim|min_length[2]');

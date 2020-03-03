@@ -102,10 +102,10 @@ class M_anggota extends MY_Model {
     return $result;
   }
     
-  // public function delete($reason = 1, $where){
-  //   $result= $this->db->update($this->table_name, array('pdStatusAktif' => '0', 'pdAlasanHapus' => $reason), $where);
-  //   return $result;
-  // }
+  public function delete($where){
+    $result= $this->db->where($where)->delete($this->table_name);
+    return $result;
+  }
 
   public function getDataExcel($options = []){
     $where_like = empty($options['where_like']) ? '1 = 1' : '('.implode(' AND ', $options['where_like']).')'; 

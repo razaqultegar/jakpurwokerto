@@ -54,7 +54,7 @@
         <div class="row no-gutters align-items-center">
           <div class="col mr-2">
             <div class="text-xs font-weight-bold text-uppercase mb-1">Jumlah Kas</div>
-            <div class="h5 mb-0 font-weight-bold"><?php // echo $total_kas?></div>
+            <div class="h5 mb-0 font-weight-bold"><?php echo $this->format_angka($total_kas); ?></div>
           </div>
           <div class="col-auto">
             <i class="fas fa-money-bill-wave fa-2x text-gray-300"></i>
@@ -63,7 +63,7 @@
       </div>
     </div>
   </div>
-</div>
+</div>=
 <div class="row">
   <div class="col-xl-6 col-lg-6">
     <div class="card shadow mb-4">
@@ -151,6 +151,82 @@ graph= $(function () {
         chart.redraw(false);
       });
       showValues();
+    }
+  });
+});
+$(function () {
+  var categories = ['0-5', '5-17', '17-30', '30-60', '60+'];
+  $.ajax({
+    type: "GET",
+    url: '<?php echo $json_agt_usia?>',
+    dataType: "json",
+    contentType: "application/json",
+    crossDomain: true,
+    success: function (data) {
+      var d = data;
+      var name = Array();
+      var data = Array();
+      var dataArrayFinal = Array();
+      for(i=0;i<d.length;i++) { 
+        name[i] = d[i].name; 
+        data[i] = d[i].data;  
+      }
+      for(j=0;j<name.length;j++) { 
+        var temp = new Array(name[j],data[j]); 
+        dataArrayFinal[j] = temp;     
+      }
+      var chart = new Highcharts.Chart({
+        chart: {
+          renderTo: 'usia-bar',
+          type: 'bar',
+        },
+        colors: ['#4e73df', '#e74a3b'],
+        title: {
+          text: 'Anggota Berdasarkan Usia'
+        },
+        subtitle: {
+          text: 'Total Anggota : '+ total_anggota
+        },
+        plotOptions: {
+          column: {
+            depth: 25,
+          }
+        },
+        xAxis: [{
+          categories: categories,
+          reversed: false,
+          labels: {
+            step: 1
+          }
+        }, {
+          opposite: true,
+          reversed: false,
+          categories: categories,
+          linkedTo: 0,
+          labels: {
+            step: 1
+          }
+        }],
+        yAxis: {
+          title: {
+            text: null
+          },
+        },
+        credits: {
+          enabled: false
+        },
+        plotOptions: {
+          series: {
+            stacking: 'normal'
+          }
+        },
+        tooltip: {
+          formatter: function () {
+            return '<b>' + this.series.name + ', Umur ' + this.point.category + '</b><br/>' + 'Jumlah: ' + Highcharts.numberFormat(Math.abs(this.point.y), 0) + ' ('+Highcharts.numberFormat(Math.abs((this.point.y / total_anggota)*100),1)+'%)';
+          }
+        },
+        series: d
+      });
     }
   });
 });
