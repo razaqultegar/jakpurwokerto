@@ -29,14 +29,13 @@
       <li class="nav-item <?=$this->uri->segment(1) == 'kas' ? 'active' : ''?>">
         <a class="nav-link" href="<?php echo base_url('kas'); ?>"><i class="fas fa-fw fa-money-bill-wave"></i><span>Kas Umum</span></a>
       </li>
-      <li class="nav-item <?=$this->uri->segment(1) == 'wilayah' || $this->uri->segment(1) == 'pengguna' ? 'active' : ''?>">
-        <a class="nav-link <?=$this->uri->segment(1) == 'wilayah' || $this->uri->segment(1) == 'pengguna' ? '' : 'collapsed'?>" href="#" data-toggle="collapse" data-target="#pengaturan"><i class="fas fa-fw fa-cog"></i><span>Pengaturan</span>
+      <li class="nav-item <?=$this->uri->segment(1) == 'wilayah' || $this->uri->segment(1) == 'token' ? 'active' : ''?>">
+        <a class="nav-link <?=$this->uri->segment(1) == 'wilayah' || $this->uri->segment(1) == 'token' ? '' : 'collapsed'?>" href="#" data-toggle="collapse" data-target="#pengaturan"><i class="fas fa-fw fa-cog"></i><span>Pengaturan</span>
         </a>
-        <div id="pengaturan" class="collapse <?=$this->uri->segment(1) == 'wilayah' || $this->uri->segment(1) == 'pengguna' ? 'show' : ''?>">
+        <div id="pengaturan" class="collapse <?=$this->uri->segment(1) == 'ref_wilayah' || $this->uri->segment(1) == 'token' ? 'show' : ''?>">
           <div class="py-2 collapse-inner rounded">
-            <a class="collapse-item <?=$this->uri->segment(1) == 'pengguna' ? 'active' : ''?>" href="<?php echo base_url('pengguna'); ?>">Pengguna</a>
             <a class="collapse-item <?=$this->uri->segment(1) == 'token' ? 'active' : ''?>" href="<?php echo base_url('token'); ?>">Token</a>
-            <a class="collapse-item <?=$this->uri->segment(1) == 'wilayah' ? 'active' : ''?>" href="<?php echo base_url('wilayah'); ?>">Wilayah</a>
+            <a class="collapse-item <?=$this->uri->segment(1) == 'ref_wilayah' ? 'active' : ''?>" href="<?php echo base_url('ref_wilayah'); ?>">Wilayah</a>
           </div>
         </div>
       </li>
@@ -58,9 +57,6 @@
                 <span class="ml-2 d-none d-lg-inline text-gray-600 small"><?php echo $this->realname;?></span>
               </a>
               <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in">
-                <a class="dropdown-item" href="<?php echo $this->url_profil ?>"><i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>Profil Saya</a>
-                <a class="dropdown-item" href="#"><i class="fas fa-key fa-sm fa-fw mr-2 text-gray-400"></i>Ubah Kata Sandi</a>
-                <div class="dropdown-divider"></div>
                 <a class="dropdown-item" href="<?php echo site_url('login/logout');?>"><i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>Keluar</a>
               </div>
             </li>
@@ -112,6 +108,17 @@
 
     // Date Picker
     var dp1 = $('#dp1').datepicker().data('datepicker');
+
+    function random_all() {
+        var campur = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz!@#$%^&*()_+{};:'/?.<>,/";
+        var panjang = 15;
+        var random_all = '';
+        for (var i=0; i<panjang; i++) {
+            var hasil = Math.floor(Math.random() * campur.length);
+            random_all += campur.substring(hasil,hasil+1);
+        }
+		  document.tokenform.token.value = random_all;
+		}
   </script>
 </body>
 </html>

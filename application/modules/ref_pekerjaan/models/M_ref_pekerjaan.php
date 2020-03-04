@@ -41,7 +41,7 @@ class M_ref_pekerjaan extends CI_Model {
   }
 
   public function getSearchPekerjaan($q){
-    $sql = "SELECT pkjNama AS text, pkjIdPekerjaan AS id FROM nagari_ref_pekerjaan WHERE 1=1 AND (pkjNama LIKE '%".$q."%')";
+    $sql = "SELECT pkjNama AS text, pkjIdPekerjaan AS id FROM jakpwt_ref_pekerjaan WHERE 1=1 AND (pkjNama LIKE '%".$q."%')";
     $query = $this->db->query($sql);
     return $query->result_array();
   }
@@ -60,5 +60,12 @@ class M_ref_pekerjaan extends CI_Model {
   public function delete($where){
     $result= $this->db->where($where)->delete($this->table_name);
     return $result;
+  }
+
+  public function getStatistikPekerjaan($db_condition){
+    $param = $db_condition;
+    $sql = "SELECT pkjNama as name, IF(jml <> '', jml, 0) AS data FROM jakpwt_ref_pekerjaan LEFT JOIN (SELECT pkjIdPekerjaan AS pkjId, COUNT(agtId) AS jml FROM  jakpwt_ref_pekerjaan LEFT JOIN jakpwt_anggota ON pkjIdPekerjaan = agtIdPekerjaan WHERE 1=1 ".$param." GROUP BY agtIdPekerjaan)AS a ON a.pkjId = pkjIdPekerjaan GROUP BY pkjNama ORDER BY jml DESC";
+    $query = $this->db->query($sql);
+    return $query->result_array();
   }
 }

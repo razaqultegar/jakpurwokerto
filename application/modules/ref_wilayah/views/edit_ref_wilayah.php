@@ -64,67 +64,17 @@ function calculate(){
 <?php } unset($_SESSION['pesan']); ?>
 <div class="card shadow mb-4">
   <div class="card-header py-3">
-    <h6 class="m-0 font-weight-bold">Tambah Data Kas Umum</h6>
+    <h6 class="m-0 font-weight-bold">Ubah Data Wilayah</h6>
   </div>
   <div class="card-body">
-    <form action="<?php echo site_url('kas/addAction');?>" method="post" autocomplete="off">
+    <form action="<?php echo site_url('ref_wilayah/editAction');?>" method="post" autocomplete="off">
+      <input type="hidden" name="wilIdWilayah" value="<?php echo $wilIdWilayah?>">
       <div class="row">
         <div class="col-xl-12 col-lg-12 mb-2 row-list">
           <li class="mb-2">
             <div class="section-list">
-              <label>Tanggal Transaksi</label>
-              <input name="kasTanggal" type="text" class="form-control" data-language="id" data-date-format="dd/mm/yyyy" id="dp1">
-            </div>
-          </li>
-          <li class="mb-2" style="border-bottom: 1px solid rgba(0, 0, 0, 0.12);">
-            <div class="section-list">
-              <label>Koordinator Wilayah</label>
-              <select name="kasWilId" class="form-control">
-                <option value="">-Pilih Wilayah-</option>
-                <?php
-                  if (!empty($list_wilayah)){
-                    foreach ($list_wilayah as $key => $value) {
-                      echo '<option value="'.$value->wilIdWilayah.'">'.$value->wilNama.'</option>';
-                    }
-                  }
-                ?>
-              </select>
-            </div>
-          </li>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col-xl-6 col-lg-6 mb-2 row-list">
-          <li class="mb-2">
-            <label>Uraian Kas Masuk</label>
-            <textarea name="kasMasukUraian" class="form-control" rows="5"></textarea>
-          </li>
-          <li class="mb-2" style="border-bottom: 1px solid rgba(0, 0, 0, 0.12);">
-            <div class="section-list">
-              <label>Kas Masuk</label>
-              <input type="text" id="kasMasuk" onkeyup="calculate()" class="form-control masked_input" name="kasMasuk">
-            </div>
-          </li>
-        </div>
-        <div class="col-xl-6 col-lg-6 mb-2 row-list">
-          <li class="mb-2">
-            <label>Uraian Kas Keluar</label>
-            <textarea name="kasKeluarUraian" class="form-control" rows="5"></textarea>
-          </li>
-          <li class="mb-2" style="border-bottom: 1px solid rgba(0, 0, 0, 0.12);">
-            <div class="section-list">
-              <label>Kas Keluar</label>
-              <input type="text" id="kasKeluar" onkeyup="calculate()" class="form-control masked_input" name="kasKeluar">
-            </div>
-          </li>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col-xl-12 col-lg-12 mb-2 row-list">
-          <li class="mb-2">
-            <div class="section-list">
-              <label>Selisih Transaksi</label>
-              <input type="text" id="kasSaldo" readonly="readonly" class="form-control masked_input" name="kasSaldo">
+              <label>Nama Wilayah</label>
+              <input name="wilNama" type="text" class="form-control" value="<?php echo $wilNama?>">
             </div>
           </li>
         </div>

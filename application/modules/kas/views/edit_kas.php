@@ -30,7 +30,7 @@ $(document).ready(function(){
     radixPoint: ",",
     autoGroup: true,
     digitsOptional: false,
-    digits: 2,
+    digits: 0,
     allowPlus: false,
     allowMinus: true,
     onUnMask: function(maskedValue, unmaskedValue) {
@@ -64,7 +64,7 @@ function calculate(){
 <?php } unset($_SESSION['pesan']); ?>
 <div class="card shadow mb-4">
   <div class="card-header py-3">
-    <h6 class="m-0 font-weight-bold">Tambah Data Kas Umum</h6>
+    <h6 class="m-0 font-weight-bold">Ubah Data Kas Umum</h6>
   </div>
   <div class="card-body">
     <form action="<?php echo site_url('kas/editAction');?>" method="post" autocomplete="off">

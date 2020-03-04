@@ -384,4 +384,72 @@ class Anggota extends MY_Controller {
 		readfile($temp_file);
 		unlink($temp_file);
 	}
+
+	public function export(){
+    require_once APPPATH.'libraries/excel/PHPExcel.php';
+    include APPPATH.'libraries/excel/PHPExcel/Writer/Excel2007.php';
+
+    $templateExcel = FCPATH.'files/export_anggota.xls';
+    $objPHPExcel = PHPExcel_IOFactory::load($templateExcel);
+    $objPHPExcel->setActiveSheetIndex(0);
+
+    $borderThinStyle = array(
+			'borders' => array(
+				'allborders' => array(
+					'style' => PHPExcel_Style_Border::BORDER_THIN
+				)
+			)
+    );
+
+    $centerStyle = array(
+     'alignment' => array(
+      'horizontal' => PHPExcel_Style_Alignment::HORIZONTAL_CENTER,
+     )
+		);
+		
+    $where_like = array();
+    $key = $_POST['filter_multiple'];
+    if (!empty($key)){
+      $options['where_like'] = array(
+        "AND agtNoKta LIKE '%".$key."%' OR agtNama LIKE '%".$key."%' OR agtNmPendek LIKE '%".$key."%'"
+      );
+    }else{
+      $options['where_like'] = [];
+		}
+		$options['condition'] = $this->db_condition;
+    $dataOutput = $this->m_anggota->getDataExcel($options);
+    $row = 3;
+    if (!empty($dataOutput)){
+      foreach ($dataOutput as $key => $value) {
+				$tgllahir = $this->format_tanggal($value->agtTglLahir);
+				$kelurahan = (!empty($value->agtKelurahan)) ? $value->agtKelurahan : '-';
+				$tglinsert = $this->format_tanggal($value->agtTglInsert);
+
+        $objPHPExcel->getActiveSheet()->SetCellValue('A'.$row, $value->agtNoKta);
+        $objPHPExcel->getActiveSheet()->SetCellValue('B'.$row, $value->agtBrlkDari);
+        $objPHPExcel->getActiveSheet()->SetCellValue('C'.$row, $value->agtBrlkSampai);
+        $objPHPExcel->getActiveSheet()->SetCellValue('D'.$row, $value->agtNama);
+				$objPHPExcel->getActiveSheet()->SetCellValue('E'.$row, $value->agtTmptLahir.", ".$tgllahir);
+				$objPHPExcel->getActiveSheet()->SetCellValue('F'.$row, $value->dikPendidikan);
+				$objPHPExcel->getActiveSheet()->SetCellValue('G'.$row, $value->pkjNama);
+				$objPHPExcel->getActiveSheet()->SetCellValue('H'.$row, $value->agtAlamatJalan);
+				$objPHPExcel->getActiveSheet()->SetCellValue('I'.$row, $kelurahan);
+				$objPHPExcel->getActiveSheet()->SetCellValue('J'.$row, $value->agtKecamatan);
+				$objPHPExcel->getActiveSheet()->SetCellValue('K'.$row, $value->agtKdPos);
+				$objPHPExcel->getActiveSheet()->SetCellValue('L'.$row, $value->agtNoTelp);
+				$objPHPExcel->getActiveSheet()->SetCellValue('M'.$row, $value->agtEmail);
+				$objPHPExcel->getActiveSheet()->SetCellValue('N'.$row, $value->agtUkrnKaos);
+				$objPHPExcel->getActiveSheet()->SetCellValue('O'.$row, $tglinsert);
+        $row++;
+      }
+    }
+
+    $row = $row - 1;
+    $objPHPExcel->getActiveSheet()->getStyle("A3:O".$row)->applyFromArray($borderThinStyle); 
+    header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'); 
+    header('Content-Disposition: attachment;filename="data_anggota_'.date("Y-m-d").'.xlsx"'); 
+    header('Cache-Control: max-age=0'); 
+    $objWriter = new PHPExcel_Writer_Excel2007($objPHPExcel);
+    $objWriter->save('php://output');
+  }
 }

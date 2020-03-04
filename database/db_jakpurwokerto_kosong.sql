@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 04 Mar 2020 pada 07.29
+-- Waktu pembuatan: 04 Mar 2020 pada 14.21
 -- Versi server: 10.1.38-MariaDB
 -- Versi PHP: 5.6.40
 
@@ -32,13 +32,6 @@ CREATE TABLE `default_token` (
   `tokenId` int(11) NOT NULL,
   `token` varchar(10) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
---
--- Dumping data untuk tabel `default_token`
---
-
-INSERT INTO `default_token` (`tokenId`, `token`) VALUES
-(1, 'cobatoken');
 
 -- --------------------------------------------------------
 
@@ -330,7 +323,7 @@ ALTER TABLE `jakpwt_ref_wilayah`
 -- AUTO_INCREMENT untuk tabel `default_token`
 --
 ALTER TABLE `default_token`
-  MODIFY `tokenId` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `tokenId` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT untuk tabel `default_user`
@@ -349,6 +342,12 @@ ALTER TABLE `jakpwt_anggota`
 --
 ALTER TABLE `jakpwt_kas`
   MODIFY `kasId` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT untuk tabel `jakpwt_ref_wilayah`
+--
+ALTER TABLE `jakpwt_ref_wilayah`
+  MODIFY `wilIdWilayah` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

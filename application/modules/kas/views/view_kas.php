@@ -8,12 +8,15 @@
 <?php } unset($_SESSION['pesan']); ?>
 <div class="card shadow mb-4">
   <div class="card-header py-3">
-    <a href="#" class="btn btn-success btn-icon-split btn-sm">
+    <?php echo form_open('kas/export', array('id' => 'form-filter', 'class' => 'form-horizontal'));?>
+    <button type="submit" class="btn btn-success btn-icon-split btn-sm">
       <span class="icon text-white-50">
         <i class="fas fa-print"></i>
       </span>
       <span class="text">Export Excel</span>
-    </a>
+    </button>
+    <input type="hidden" value="" id='export' name="filter_multiple">
+    <?php echo form_close();?>
   </div>
   <div class="card-body">
     <div class="table-responsive">
