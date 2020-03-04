@@ -11,7 +11,7 @@
     <h6 class="m-0 font-weight-bold">Tambah Data Anggota</h6>
   </div>
   <div class="card-body">
-    <form action="<?php echo site_url('anggota/addAction');?>" method="post" enctype="multipart/form-data" autocomplete="off">
+    <form action="<?php echo site_url('anggota/addAction');?>" method="post" enctype="multipart/form-data">
       <div class="row">
         <div class="col-xl-4 col-lg-4 mb-2 row-list">
           <li class="mb-2">

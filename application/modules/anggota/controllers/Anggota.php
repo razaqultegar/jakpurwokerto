@@ -345,4 +345,43 @@ class Anggota extends MY_Controller {
 			redirect('anggota');
 		}
 	}
+
+	public function cetak($id) {
+		$template = base_url('files/formulir.docx');
+		$data = $this->m_anggota->getDataById($id);
+		$templateProcessor = new \PhpOffice\PhpWord\TemplateProcessor($template);
+		$tgllahir = $this->format_tanggal($data['agtTglLahir']);
+
+		$templateProcessor->setValue('nokta', $data['agtNoKta']);
+		$templateProcessor->setValue('nama', $data['agtNama']);
+		$templateProcessor->setValue('nmpendek', $data['agtNmPendek']);
+		$templateProcessor->setValue('tmptlahir', $data['agtTmptLahir']);
+		$templateProcessor->setValue('tgllahir', $tgllahir);
+		$templateProcessor->setValue('pendidikan', $data['dikPendidikan']);
+		$templateProcessor->setValue('pekerjaan', $data['pkjNama']);
+		$templateProcessor->setValue('alamatjalan', $data['agtAlamatJalan']);
+		$templateProcessor->setValue('kelurahan', $data['agtKelurahan']);
+		$templateProcessor->setValue('kecamatan', $data['agtKecamatan']);
+		$templateProcessor->setValue('kodepos', $data['agtKdPos']);
+		$templateProcessor->setValue('notelp', $data['agtNoTelp']);
+		$templateProcessor->setValue('email', $data['agtEmail']);
+		$templateProcessor->setValue('kaos', $data['agtUkrnKaos']);
+
+		$filename = "FORMULIR_".str_replace(' ', '_', $data['agtNama']);
+		$temp_file = tempnam(sys_get_temp_dir(), $filename);
+		$templateProcessor->saveAs($temp_file);
+
+		// download
+		$filename .= ".docx";
+		header('Content-Description: File Transfer');
+		header('Content-Type: application/octet-stream');
+		header('Content-Disposition: attachment; filename='.$filename);
+		header('Content-Transfer-Encoding: binary');
+		header('Expires: 0');
+		header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
+		header('Pragma: public');
+		header('Content-Length: ' . filesize($temp_file));
+		readfile($temp_file);
+		unlink($temp_file);
+	}
 }
