@@ -1,6 +1,19 @@
+<?php if($msg[0] == '1'){ ?>
+<div class="alert alert-<?php echo $msg[1];?> alert-dismissible fade show" role="alert">
+  <i class="fas fa-info-circle mr-2"></i><?php echo $msg[2];?>
+  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+    <span aria-hidden="true">&times;</span>
+  </button>
+</div>
+<?php } unset($_SESSION['pesan']); ?>
 <div class="card shadow mb-4">
   <div class="card-header py-3">
-    <h6 class="m-0 font-weight-bold">Jumlah Saldo : <?php echo $total_kas_saldo; ?></h6>
+    <a href="#" class="btn btn-success btn-icon-split btn-sm">
+      <span class="icon text-white-50">
+        <i class="fas fa-print"></i>
+      </span>
+      <span class="text">Export Excel</span>
+    </a>
   </div>
   <div class="card-body">
     <div class="table-responsive">

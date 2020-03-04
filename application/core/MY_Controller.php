@@ -1,33 +1,27 @@
 <?php (defined('BASEPATH')) OR exit('No direct script access allowed');
 
-class MY_Controller extends CI_Controller {
-
+class MY_Controller extends CI_Controller {=
   public $realname;
   protected $db_condition = '';
 
   public function __construct() {
     parent::__construct();
-
     // session
     if ($this->session->userdata('isLogin') == FALSE) {
       redirect('login');
     }
-
-    //data header statis
+    // data header statis
     $this->user_id = $this->session->userId;
     $this->username = $this->user_active()->username;
     $this->realname = $this->user_active()->realname;
     $this->foto = $this->user_active()->foto;
-
+    // layout
     $this->load->library('layout'); 
-
     // load model
     $this->load->model('login/m_login');
-
     // time setting
     date_default_timezone_set('Asia/Jakarta');
     $this->now = date("Y-m-d");
-
     $this->url_profil = site_url('profil');
     $this->foto_profil = base_url().'files/akun/default.jpg';
   }
@@ -55,18 +49,8 @@ class MY_Controller extends CI_Controller {
   }
 
   public function format_angka($angka) {
-    $frmt = "Rp ".number_format($angka, 2, ',', '.');
+    $frmt = "Rp ".number_format($angka, 0, ',', '.');
     return $frmt;
-  }
-
-  public function format_angka2($angka) {
-    $frmt = number_format($angka, 0, ',', '.');
-    return $frmt;
-  }
-
-  public function replace_spt($angka) {
-    $str = str_replace('.', '', $angka);
-    return $str;
   }
 
   private function user_active() {
@@ -81,5 +65,4 @@ class MY_Controller extends CI_Controller {
     return $result;
   }
 }
-
 ?>

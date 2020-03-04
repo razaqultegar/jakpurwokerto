@@ -4,8 +4,7 @@ class MY_Model extends CI_Model {
 
   public function __construct() {
     parent::__construct();
-
-    //data header statis
+    // data header statis
     $this->user_id = $this->session->userdata('userId');
     $this->db_condition = "";
   }

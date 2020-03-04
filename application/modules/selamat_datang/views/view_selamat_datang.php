@@ -25,7 +25,7 @@
                     <h1 class="h4 text-gray-900 mb-2">MASUKKAN TOKEN</h1>
                     <p class="mb-4">Jika belum mendapatkan Token, silahkan menghubungi Pengurus terlebih dahulu.</p>
                   </div>
-                  <form method="POST" action="<?php echo site_url('selamat_datang/validate_token'); ?>" class="user">
+                  <form method="POST" action="<?php echo site_url('selamat_datang/validate_token'); ?>" class="user" autocomplete="off">
                     <div class="form-group">
                       <select name="jenis" class="form-control">
                         <option value="" class="option">- Pilih Jenis Pengisian-</option>

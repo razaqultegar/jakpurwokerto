@@ -211,6 +211,8 @@ class Anggota extends MY_Controller {
 			$this->session->set_userdata('pesan', $params);
 			redirect('anggota');
 		}else{
+			$params = array($add, 'danger', 'Data Tidak Berhasil Disimpan');
+			$this->session->set_userdata('pesan', $params);
 			redirect('anggota/add');
 		}
 	}

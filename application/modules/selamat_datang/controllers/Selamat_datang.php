@@ -6,7 +6,7 @@ class Selamat_datang extends MX_Controller {
 		parent::__construct();
 		$this->load->model('selamat_datang/m_selamat_datang');
 		// message
-		$this->pesanTokenWarning = "Silahkan Isi Token Terlebih Dahulu";
+		$this->pesanTokenWarning = "Pastikan Jenis Pengisian dan Token Sudah Sesuai";
 		$this->pesanColorWarning = "warning";
 		$this->pesanTokenError = "Token Tidak Sesuai, Silahkan Isi Token Kembali";
 		$this->pesanColorError = "error";
@@ -19,6 +19,7 @@ class Selamat_datang extends MX_Controller {
 	}
 
 	public function validate_token() {
+		$this->form_validation->set_rules('jenis', 'Jenis', 'required');
 		$this->form_validation->set_rules('token', 'Token', 'required|trim');
 		// jika form yang di isi kosong
 		if($this->form_validation->run()==FALSE){
