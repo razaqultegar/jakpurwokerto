@@ -30,7 +30,7 @@ class M_anggota extends MY_Model {
     $where_like = empty($options['where_like']) ? '' : 'AND ('.implode(' AND ', $options['where_like']).')'; 
     if (!isset($options['condition']))
     $options['condition'] = ' ';
-    $sql = $this->query()." WHERE 1 = 1 ".$where_like.$options['condition']." GROUP BY noKta ORDER BY ".$options['order']." ".$options['mode']." LIMIT ".$options['offset'].", ".$options['limit'];
+    $sql = $this->query()." WHERE 1 = 1 ".$where_like.$options['condition']." GROUP BY agtId ORDER BY ".$options['order']." ".$options['mode']." LIMIT ".$options['offset'].", ".$options['limit'];
     // print_r('<pre>');
     // print_r($sql);die;
     $query = $this->db->query($sql);
@@ -41,7 +41,7 @@ class M_anggota extends MY_Model {
     $where_like = empty($options['where_like']) ? '' : 'AND ('.implode(' AND ', $options['where_like']).')'; 
     if (!isset($options['condition']))
     $options['condition'] = ' ';
-    $sql = "SELECT COUNT(DISTINCT noKta) AS total FROM( ";
+    $sql = "SELECT COUNT(DISTINCT agtId) AS total FROM( ";
     $sql .= $this->queryBase();
     $sql .= " ) AS temp_table WHERE 1 = 1 ".$where_like.$options['condition'];
     $query = $this->db->query($sql)->row();
@@ -49,7 +49,7 @@ class M_anggota extends MY_Model {
   }
 
   public function getTotal($options = ''){
-    $sql = "SELECT COUNT(DISTINCT noKta) AS total FROM( ";
+    $sql = "SELECT COUNT(DISTINCT agtId) AS total FROM( ";
     $sql .= $this->queryBase();
     $sql .= ") AS temp_table WHERE 1 = 1 ".$options;
     $query = $this->db->query($sql)->row();
@@ -57,19 +57,19 @@ class M_anggota extends MY_Model {
   }
 
   public function getSearchNamaAnggota($q,$param){
-    $sql = "SELECT agtNama as text, noKta as text, wilNama as text FROM jakpwt_anggota WHERE 1=1 AND agtNama LIKE '%".$q."%' $param";
+    $sql = "SELECT agtNama as text, agtNoKta as text, wilNama as text FROM jakpwt_anggota WHERE 1=1 AND agtNama LIKE '%".$q."%' $param";
     $query = $this->db->query($sql);
     return $query->result_array();
   }
 
   public function getDataById($id){
-    $sql = $this->query()." WHERE noKta = '$id'";
+    $sql = $this->query()." WHERE agtId = '$id'";
     $query = $this->db->query($sql);
     return $query->row_array();  
   }
 
   public function cekDuplicateNik($id){
-    $sql = $this->query()." WHERE noKta = '$id'";
+    $sql = $this->query()." WHERE agtNoKta = '$id'";
     $query = $this->db->query($sql);
     return $query->row_array();  
   }
@@ -81,7 +81,7 @@ class M_anggota extends MY_Model {
       $param = "";
     }
 
-    $sql = "SELECT noKta as id, agtNama as name FROM jakpwt_anggota ".$param;
+    $sql = "SELECT agtNoKta as id, agtNama as name FROM jakpwt_anggota ".$param;
     $query = $this->db->query($sql);
     return $query->result_array();  
   }
@@ -101,9 +101,13 @@ class M_anggota extends MY_Model {
     $result = $this->db->update($this->table_name, $data, $where);
     return $result;
   }
+
+  public function deleteImage($id){
+    return $this->db->get_where($this->table_name, array('agtId'=>$id));
+  }
     
   public function delete($where){
-    $result= $this->db->where($where)->delete($this->table_name);
+    $result = $this->db->where($where)->delete($this->table_name);
     return $result;
   }
 
@@ -118,29 +122,29 @@ class M_anggota extends MY_Model {
   public function getMan($db_condition){
     $param = $db_condition;
     $sql = "SELECT name,data FROM (
-        SELECT 'jan' AS NAME, COUNT(noKta) AS DATA FROM jakpwt_anggota WHERE agtJnsKelamin= 'L' AND MONTH(agtTglInsert)='1' ".$param." AND YEAR(agtTglInsert)=YEAR(NOW())
+        SELECT 'jan' AS NAME, COUNT(agtId) AS DATA FROM jakpwt_anggota WHERE agtJnsKelamin= 'L' AND MONTH(agtTglInsert)='1' ".$param." AND YEAR(agtTglInsert)=YEAR(NOW())
       UNION 
-        SELECT 'Feb' AS NAME, COUNT(noKta) AS DATA FROM jakpwt_anggota WHERE agtJnsKelamin= 'L' AND MONTH(agtTglInsert)='2' ".$param." AND YEAR(agtTglInsert)=YEAR(NOW())
+        SELECT 'Feb' AS NAME, COUNT(agtId) AS DATA FROM jakpwt_anggota WHERE agtJnsKelamin= 'L' AND MONTH(agtTglInsert)='2' ".$param." AND YEAR(agtTglInsert)=YEAR(NOW())
       UNION 
-        SELECT 'Mar' AS NAME, COUNT(noKta) AS DATA FROM jakpwt_anggota WHERE agtJnsKelamin= 'L' AND MONTH(agtTglInsert)='3' ".$param." AND YEAR(agtTglInsert)=YEAR(NOW())
+        SELECT 'Mar' AS NAME, COUNT(agtId) AS DATA FROM jakpwt_anggota WHERE agtJnsKelamin= 'L' AND MONTH(agtTglInsert)='3' ".$param." AND YEAR(agtTglInsert)=YEAR(NOW())
       UNION 
-        SELECT 'April' AS NAME, COUNT(noKta) AS DATA FROM jakpwt_anggota WHERE agtJnsKelamin= 'L' AND MONTH(agtTglInsert)='4' ".$param." AND YEAR(agtTglInsert)=YEAR(NOW())
+        SELECT 'April' AS NAME, COUNT(agtId) AS DATA FROM jakpwt_anggota WHERE agtJnsKelamin= 'L' AND MONTH(agtTglInsert)='4' ".$param." AND YEAR(agtTglInsert)=YEAR(NOW())
       UNION 
-        SELECT 'Mei' AS NAME, COUNT(noKta) AS DATA FROM jakpwt_anggota WHERE agtJnsKelamin= 'L' AND MONTH(agtTglInsert)='5' ".$param." AND YEAR(agtTglInsert)=YEAR(NOW())
+        SELECT 'Mei' AS NAME, COUNT(agtId) AS DATA FROM jakpwt_anggota WHERE agtJnsKelamin= 'L' AND MONTH(agtTglInsert)='5' ".$param." AND YEAR(agtTglInsert)=YEAR(NOW())
       UNION 
-        SELECT 'Juni' AS NAME, COUNT(noKta) AS DATA FROM jakpwt_anggota WHERE agtJnsKelamin= 'L' AND MONTH(agtTglInsert)='6' ".$param." AND YEAR(agtTglInsert)=YEAR(NOW())
+        SELECT 'Juni' AS NAME, COUNT(agtId) AS DATA FROM jakpwt_anggota WHERE agtJnsKelamin= 'L' AND MONTH(agtTglInsert)='6' ".$param." AND YEAR(agtTglInsert)=YEAR(NOW())
       UNION 
-        SELECT 'Juli' AS NAME, COUNT(noKta) AS DATA FROM jakpwt_anggota WHERE agtJnsKelamin= 'L' AND MONTH(agtTglInsert)='7' ".$param." AND YEAR(agtTglInsert)=YEAR(NOW())
+        SELECT 'Juli' AS NAME, COUNT(agtId) AS DATA FROM jakpwt_anggota WHERE agtJnsKelamin= 'L' AND MONTH(agtTglInsert)='7' ".$param." AND YEAR(agtTglInsert)=YEAR(NOW())
       UNION 
-        SELECT 'Agustus' AS NAME, COUNT(noKta) AS DATA FROM jakpwt_anggota WHERE agtJnsKelamin= 'L' AND MONTH(agtTglInsert)='8' ".$param." AND YEAR(agtTglInsert)=YEAR(NOW())
+        SELECT 'Agustus' AS NAME, COUNT(agtId) AS DATA FROM jakpwt_anggota WHERE agtJnsKelamin= 'L' AND MONTH(agtTglInsert)='8' ".$param." AND YEAR(agtTglInsert)=YEAR(NOW())
       UNION 
-        SELECT 'September' AS NAME, COUNT(noKta) AS DATA FROM jakpwt_anggota WHERE agtJnsKelamin= 'L' AND MONTH(agtTglInsert)='9' ".$param." AND YEAR(agtTglInsert)=YEAR(NOW())
+        SELECT 'September' AS NAME, COUNT(agtId) AS DATA FROM jakpwt_anggota WHERE agtJnsKelamin= 'L' AND MONTH(agtTglInsert)='9' ".$param." AND YEAR(agtTglInsert)=YEAR(NOW())
       UNION 
-        SELECT 'Oktober' AS NAME, COUNT(noKta) AS DATA FROM jakpwt_anggota WHERE agtJnsKelamin= 'L' AND MONTH(agtTglInsert)='10' ".$param." AND YEAR(agtTglInsert)=YEAR(NOW())
+        SELECT 'Oktober' AS NAME, COUNT(agtId) AS DATA FROM jakpwt_anggota WHERE agtJnsKelamin= 'L' AND MONTH(agtTglInsert)='10' ".$param." AND YEAR(agtTglInsert)=YEAR(NOW())
       UNION 
-        SELECT 'November' AS NAME, COUNT(noKta) AS DATA FROM jakpwt_anggota WHERE agtJnsKelamin= 'L' AND MONTH(agtTglInsert)='11' ".$param." AND YEAR(agtTglInsert)=YEAR(NOW())
+        SELECT 'November' AS NAME, COUNT(agtId) AS DATA FROM jakpwt_anggota WHERE agtJnsKelamin= 'L' AND MONTH(agtTglInsert)='11' ".$param." AND YEAR(agtTglInsert)=YEAR(NOW())
       UNION 
-        SELECT 'Desember' AS NAME, COUNT(noKta) AS DATA FROM jakpwt_anggota WHERE agtJnsKelamin= 'L' AND MONTH(agtTglInsert)='12' ".$param." AND YEAR(agtTglInsert)=YEAR(NOW())
+        SELECT 'Desember' AS NAME, COUNT(agtId) AS DATA FROM jakpwt_anggota WHERE agtJnsKelamin= 'L' AND MONTH(agtTglInsert)='12' ".$param." AND YEAR(agtTglInsert)=YEAR(NOW())
     )AS temp";
 
     $query = $this->db->query($sql);
@@ -150,29 +154,29 @@ class M_anggota extends MY_Model {
   public function getWoman($db_condition){
     $param = $db_condition;
     $sql = "SELECT name,data FROM (
-        SELECT 'jan' AS NAME, COUNT(noKta) AS DATA FROM jakpwt_anggota WHERE agtJnsKelamin= 'P' AND MONTH(agtTglInsert)='1' ".$param." AND YEAR(agtTglInsert)=YEAR(NOW())
+        SELECT 'jan' AS NAME, COUNT(agtId) AS DATA FROM jakpwt_anggota WHERE agtJnsKelamin= 'P' AND MONTH(agtTglInsert)='1' ".$param." AND YEAR(agtTglInsert)=YEAR(NOW())
       UNION 
-        SELECT 'Feb' AS NAME, COUNT(noKta) AS DATA FROM jakpwt_anggota WHERE agtJnsKelamin= 'P' AND MONTH(agtTglInsert)='2' ".$param." AND YEAR(agtTglInsert)=YEAR(NOW())
+        SELECT 'Feb' AS NAME, COUNT(agtId) AS DATA FROM jakpwt_anggota WHERE agtJnsKelamin= 'P' AND MONTH(agtTglInsert)='2' ".$param." AND YEAR(agtTglInsert)=YEAR(NOW())
       UNION 
-        SELECT 'Mar' AS NAME, COUNT(noKta) AS DATA FROM jakpwt_anggota WHERE agtJnsKelamin= 'P' AND MONTH(agtTglInsert)='3' ".$param." AND YEAR(agtTglInsert)=YEAR(NOW())
+        SELECT 'Mar' AS NAME, COUNT(agtId) AS DATA FROM jakpwt_anggota WHERE agtJnsKelamin= 'P' AND MONTH(agtTglInsert)='3' ".$param." AND YEAR(agtTglInsert)=YEAR(NOW())
       UNION 
-        SELECT 'April' AS NAME, COUNT(noKta) AS DATA FROM jakpwt_anggota WHERE agtJnsKelamin= 'P' AND MONTH(agtTglInsert)='4' ".$param." AND YEAR(agtTglInsert)=YEAR(NOW())
+        SELECT 'April' AS NAME, COUNT(agtId) AS DATA FROM jakpwt_anggota WHERE agtJnsKelamin= 'P' AND MONTH(agtTglInsert)='4' ".$param." AND YEAR(agtTglInsert)=YEAR(NOW())
       UNION 
-        SELECT 'Mei' AS NAME, COUNT(noKta) AS DATA FROM jakpwt_anggota WHERE agtJnsKelamin= 'P' AND MONTH(agtTglInsert)='5' ".$param." AND YEAR(agtTglInsert)=YEAR(NOW())
+        SELECT 'Mei' AS NAME, COUNT(agtId) AS DATA FROM jakpwt_anggota WHERE agtJnsKelamin= 'P' AND MONTH(agtTglInsert)='5' ".$param." AND YEAR(agtTglInsert)=YEAR(NOW())
       UNION 
-        SELECT 'Juni' AS NAME, COUNT(noKta) AS DATA FROM jakpwt_anggota WHERE agtJnsKelamin= 'P' AND MONTH(agtTglInsert)='6' ".$param." AND YEAR(agtTglInsert)=YEAR(NOW())
+        SELECT 'Juni' AS NAME, COUNT(agtId) AS DATA FROM jakpwt_anggota WHERE agtJnsKelamin= 'P' AND MONTH(agtTglInsert)='6' ".$param." AND YEAR(agtTglInsert)=YEAR(NOW())
       UNION 
-        SELECT 'Juli' AS NAME, COUNT(noKta) AS DATA FROM jakpwt_anggota WHERE agtJnsKelamin= 'P' AND MONTH(agtTglInsert)='7' ".$param." AND YEAR(agtTglInsert)=YEAR(NOW())
+        SELECT 'Juli' AS NAME, COUNT(agtId) AS DATA FROM jakpwt_anggota WHERE agtJnsKelamin= 'P' AND MONTH(agtTglInsert)='7' ".$param." AND YEAR(agtTglInsert)=YEAR(NOW())
       UNION 
-        SELECT 'Agustus' AS NAME, COUNT(noKta) AS DATA FROM jakpwt_anggota WHERE agtJnsKelamin= 'P' AND MONTH(agtTglInsert)='8' ".$param." AND YEAR(agtTglInsert)=YEAR(NOW())
+        SELECT 'Agustus' AS NAME, COUNT(agtId) AS DATA FROM jakpwt_anggota WHERE agtJnsKelamin= 'P' AND MONTH(agtTglInsert)='8' ".$param." AND YEAR(agtTglInsert)=YEAR(NOW())
       UNION 
-        SELECT 'September' AS NAME, COUNT(noKta) AS DATA FROM jakpwt_anggota WHERE agtJnsKelamin= 'P' AND MONTH(agtTglInsert)='9' ".$param." AND YEAR(agtTglInsert)=YEAR(NOW())
+        SELECT 'September' AS NAME, COUNT(agtId) AS DATA FROM jakpwt_anggota WHERE agtJnsKelamin= 'P' AND MONTH(agtTglInsert)='9' ".$param." AND YEAR(agtTglInsert)=YEAR(NOW())
       UNION 
-        SELECT 'Oktober' AS NAME, COUNT(noKta) AS DATA FROM jakpwt_anggota WHERE agtJnsKelamin= 'P' AND MONTH(agtTglInsert)='10' ".$param." AND YEAR(agtTglInsert)=YEAR(NOW())
+        SELECT 'Oktober' AS NAME, COUNT(agtId) AS DATA FROM jakpwt_anggota WHERE agtJnsKelamin= 'P' AND MONTH(agtTglInsert)='10' ".$param." AND YEAR(agtTglInsert)=YEAR(NOW())
       UNION 
-        SELECT 'November' AS NAME, COUNT(noKta) AS DATA FROM jakpwt_anggota WHERE agtJnsKelamin= 'P' AND MONTH(agtTglInsert)='11' ".$param." AND YEAR(agtTglInsert)=YEAR(NOW())
+        SELECT 'November' AS NAME, COUNT(agtId) AS DATA FROM jakpwt_anggota WHERE agtJnsKelamin= 'P' AND MONTH(agtTglInsert)='11' ".$param." AND YEAR(agtTglInsert)=YEAR(NOW())
       UNION 
-        SELECT 'Desember' AS NAME, COUNT(noKta) AS DATA FROM jakpwt_anggota WHERE agtJnsKelamin= 'P' AND MONTH(agtTglInsert)='12' ".$param." AND YEAR(agtTglInsert)=YEAR(NOW())
+        SELECT 'Desember' AS NAME, COUNT(agtId) AS DATA FROM jakpwt_anggota WHERE agtJnsKelamin= 'P' AND MONTH(agtTglInsert)='12' ".$param." AND YEAR(agtTglInsert)=YEAR(NOW())
     )AS temp";
 
     $query = $this->db->query($sql);
@@ -182,15 +186,15 @@ class M_anggota extends MY_Model {
   public function getManUsia($db_condition){
     $param = $db_condition;
     $sql = "SELECT `name`,`data` FROM (
-        SELECT '0-5' AS `name`, CONCAT('-', COUNT(noKta)) AS `data` FROM jakpwt_anggota WHERE agtJnsKelamin= 'L' AND (agtUmur BETWEEN 0 AND 5) ".$param."
+        SELECT '0-5' AS `name`, CONCAT('-', COUNT(agtId)) AS `data` FROM jakpwt_anggota WHERE agtJnsKelamin= 'L' AND (agtUmur BETWEEN 0 AND 5) ".$param."
       UNION 
-        SELECT '5-17' AS `name`, CONCAT('-', COUNT(noKta)) AS `data` FROM jakpwt_anggota WHERE agtJnsKelamin= 'L' AND (agtUmur BETWEEN 6 AND 17) ".$param."
+        SELECT '5-17' AS `name`, CONCAT('-', COUNT(agtId)) AS `data` FROM jakpwt_anggota WHERE agtJnsKelamin= 'L' AND (agtUmur BETWEEN 6 AND 17) ".$param."
       UNION 
-        SELECT '17-30' AS `name`, CONCAT('-', COUNT(noKta)) AS `data` FROM jakpwt_anggota WHERE agtJnsKelamin= 'L' AND (agtUmur BETWEEN 18 AND 30) ".$param."
+        SELECT '17-30' AS `name`, CONCAT('-', COUNT(agtId)) AS `data` FROM jakpwt_anggota WHERE agtJnsKelamin= 'L' AND (agtUmur BETWEEN 18 AND 30) ".$param."
       UNION 
-        SELECT '30-60' AS `name`, CONCAT('-', COUNT(noKta)) AS `data` FROM jakpwt_anggota WHERE agtJnsKelamin= 'L' AND (agtUmur BETWEEN 31 AND 60) ".$param."
+        SELECT '30-60' AS `name`, CONCAT('-', COUNT(agtId)) AS `data` FROM jakpwt_anggota WHERE agtJnsKelamin= 'L' AND (agtUmur BETWEEN 31 AND 60) ".$param."
       UNION 
-        SELECT '60+' AS `name`, CONCAT('-', COUNT(noKta)) AS `data` FROM jakpwt_anggota WHERE agtJnsKelamin= 'L' AND agtUmur > 60 ".$param."
+        SELECT '60+' AS `name`, CONCAT('-', COUNT(agtId)) AS `data` FROM jakpwt_anggota WHERE agtJnsKelamin= 'L' AND agtUmur > 60 ".$param."
     )AS temp";
     
     $query = $this->db->query($sql);
@@ -200,15 +204,15 @@ class M_anggota extends MY_Model {
   public function getWomanUsia($db_condition){
     $param = $db_condition;
     $sql = "SELECT  `name`,`data` FROM (
-        SELECT '0-5' AS `name`, CONCAT('+',COUNT(noKta)) AS `data` FROM jakpwt_anggota WHERE agtJnsKelamin= 'P' AND (agtUmur BETWEEN 0 AND 5) ".$param." 
+        SELECT '0-5' AS `name`, CONCAT('+',COUNT(agtId)) AS `data` FROM jakpwt_anggota WHERE agtJnsKelamin= 'P' AND (agtUmur BETWEEN 0 AND 5) ".$param." 
       UNION 
-        SELECT '5-17' AS `name`, CONCAT('+',COUNT(noKta)) AS `data` FROM jakpwt_anggota WHERE agtJnsKelamin= 'P' AND (agtUmur BETWEEN 6 AND 17) ".$param."
+        SELECT '5-17' AS `name`, CONCAT('+',COUNT(agtId)) AS `data` FROM jakpwt_anggota WHERE agtJnsKelamin= 'P' AND (agtUmur BETWEEN 6 AND 17) ".$param."
       UNION 
-        SELECT '17-30' AS `name`, CONCAT('+',COUNT(noKta)) AS `data` FROM jakpwt_anggota WHERE agtJnsKelamin= 'P' AND (agtUmur BETWEEN 18 AND 30) ".$param."
+        SELECT '17-30' AS `name`, CONCAT('+',COUNT(agtId)) AS `data` FROM jakpwt_anggota WHERE agtJnsKelamin= 'P' AND (agtUmur BETWEEN 18 AND 30) ".$param."
       UNION 
-        SELECT '30-60' AS `name`, CONCAT('+',COUNT(noKta)) AS `data` FROM jakpwt_anggota WHERE agtJnsKelamin= 'P' AND (agtUmur BETWEEN 31 AND 60) ".$param."
+        SELECT '30-60' AS `name`, CONCAT('+',COUNT(agtId)) AS `data` FROM jakpwt_anggota WHERE agtJnsKelamin= 'P' AND (agtUmur BETWEEN 31 AND 60) ".$param."
       UNION 
-        SELECT '60+' AS `name`, CONCAT('+',COUNT(noKta)) AS `data` FROM jakpwt_anggota WHERE agtJnsKelamin= 'P' AND agtUmur > 60 ".$param." 
+        SELECT '60+' AS `name`, CONCAT('+',COUNT(agtId)) AS `data` FROM jakpwt_anggota WHERE agtJnsKelamin= 'P' AND agtUmur > 60 ".$param." 
     )AS temp";
     
     $query = $this->db->query($sql);
@@ -225,12 +229,12 @@ class M_anggota extends MY_Model {
   }
 
   public function getGender($gender,$db_condition){
-    $sql = "SELECT count(noKta) as total FROM jakpwt_anggota WHERE agtJnsKelamin='".$gender."' ".$db_condition." ";
+    $sql = "SELECT count(agtId) as total FROM jakpwt_anggota WHERE agtJnsKelamin='".$gender."' ".$db_condition." ";
     $query = $this->db->query($sql);
     return $query->result_array();
   }
 
-  public function getDataAnggotaUnFilteredByNoKta($noKta){
+  public function getDataAnggotaUnFilteredByNoKta($agtNoKta){
     $query = 
     "SELECT 
       $this->table_name.*,
@@ -241,8 +245,8 @@ class M_anggota extends MY_Model {
       LEFT JOIN nagari_ref_pekerjaan ON `pkjIdPekerjaan`=`agtIdPekerjaan`
       LEFT JOIN jakpwt_ref_wilayah ON `wilIdWilayah`=`agtIdWilayah`
     WHERE 
-      noKta = '$nokta'
-    GROUP BY noKta";
+      agtNoKta = '$agtNoKta'
+    GROUP BY agtNoKta";
     $result = $this->db->query($query)->row();
     return $result;
   }

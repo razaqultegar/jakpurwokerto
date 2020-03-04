@@ -1,7 +1,7 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class Pendaftaran extends MX_Controller {
+class Pendataan extends MX_Controller {
 	protected $jenisKelamin = ['L' => 'Laki-laki', 'P' => 'Perempuan'];
 
 	public function __construct() {
@@ -29,12 +29,13 @@ class Pendaftaran extends MX_Controller {
 	public function index() {
 		$data = $this->data_construct();
 		$data['msg'] = $this->session->userdata('pesan');
-		$data['title'] = 'Pendaftaran';
-		$this->load->view('pendaftaran/view_pendaftaran', $data);
+		$data['title'] = 'Pendataan';
+		$this->load->view('pendataan/view_pendataan', $data);
 	}
 
 	public function addAction() {
 		$this->form_validation->set_rules('agtIdWilayah', 'Koordinator Wilayah', 'required');
+		$this->form_validation->set_rules('agtNoKta', 'No. KTA', 'required|min_length[2]');
 		$this->form_validation->set_rules('agtNama', 'Nama Lengkap', 'required|min_length[2]');
 		$this->form_validation->set_rules('agtNmPendek', 'Nama Panggilan', 'required|trim|min_length[2]');
 		$this->form_validation->set_rules('agtTmptLahir', 'Tempat Lahir', 'required|trim|min_length[2]');
@@ -48,10 +49,11 @@ class Pendaftaran extends MX_Controller {
 		$this->form_validation->set_rules('agtNoTelp', 'No. Telp/HP', 'required|trim|max_length[13]');
 		$this->form_validation->set_rules('agtEmail', 'Alamat Email', 'required|trim|valid_email');
 		$this->form_validation->set_rules('agtUkrnKaos', 'Ukuran Kaos', 'required');
+		$this->form_validation->set_rules('agtBrlkDari', 'Berlaku Dari', 'required|min_length[2]');
+		$this->form_validation->set_rules('agtBrlkSampai', 'Berlaku Sampai', 'required|min_length[2]');
 		if (empty($_FILES['agtFoto']['name'])) {
     	$this->form_validation->set_rules('agtFoto', 'Foto Pas (2x3cm)', 'required');
 		}
-		$this->form_validation->set_rules('terms', 'Terms', 'required');
 
 		$tgllhr = explode("/", $_POST['agtTglLahir']);
 		$tgllhr2 = explode("-", $_POST['agtTglLahir']);
@@ -100,6 +102,9 @@ class Pendaftaran extends MX_Controller {
 			'agtEmail' => (!empty($this->input->post('agtEmail'))) ? $this->input->post('agtEmail') : NULL,
 			'agtUkrnKaos' => (!empty($this->input->post('agtUkrnKaos'))) ? $this->input->post('agtUkrnKaos') : NULL,
 			'agtFoto' => $file_name,
+			'agtStatusKta' => (!empty($this->input->post('agtStatusKta'))) ? $this->input->post('agtStatusKta') : '1',
+			'agtBrlkDari' => (!empty($this->input->post('agtBrlkDari'))) ? $this->input->post('agtBrlkDari') : NULL,
+			'agtBrlkSampai' => (!empty($this->input->post('agtBrlkSampai'))) ? $this->input->post('agtBrlkSampai') : NULL,
 			'agtTglInsert' => date('Y-m-d'),
 		];
 
@@ -107,7 +112,7 @@ class Pendaftaran extends MX_Controller {
 			$result = 1;
 			$params = array($result, $this->pesanColorWarning, $this->pesanAddWarning, '');
 			$this->session->set_userdata('pesan',$params); 
-			redirect('pendaftaran');
+			redirect('pendataan');
 		}else{
 			$insertId = $this->m_anggota->addDataAction($data);
 		}
@@ -124,9 +129,9 @@ class Pendaftaran extends MX_Controller {
 			$back = base_url();
 			$params = array($result, $this->pesanColorSuccess, $this->pesanAddSuccess, "window.location='$back'");
 			$this->session->set_userdata('pesan', $params);
-			redirect('pendaftaran');
+			redirect('pendataan');
 		}else{
-			redirect('pendaftaran');
+			redirect('pendataan');
 		}
 	}
 }

@@ -12,7 +12,7 @@
     <div class="row-anggota">
       <h2 class="header-anggota">
         <span class="nama-anggota"><?php echo $agtNama; ?> (<?php echo $agtNmPendek; ?>)</span>
-        <span class="nokta-anggota"><?php echo !empty($noKta) ? $noKta : '-'; ?></span>
+        <span class="nokta-anggota"><?php echo !empty($agtNoKta) ? $agtNoKta : '-'; ?></span>
       </h2>
     </div>
     <div class="dropdown no-arrow">
@@ -20,8 +20,8 @@
         <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
       </a>
       <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in" aria-labelledby="dropdownMenuLink">
-        <a class="dropdown-item" href="<?php echo site_url('anggota/cetak/'.$noKta)?>"><i class="fas fa-print fa-sm text-gray-700"></i> Cetak Formulir</a>
-        <a class="dropdown-item" href="<?php echo site_url('anggota/edit/'.$noKta)?>"><i class="fas fa-pencil-alt fa-sm text-gray-700"></i> Ubah Data</a>
+        <a class="dropdown-item" href="<?php echo site_url('anggota/cetak/'.$agtId)?>"><i class="fas fa-print fa-sm text-gray-700"></i> Cetak Formulir</a>
+        <a class="dropdown-item" href="<?php echo site_url('anggota/edit/'.$agtId)?>"><i class="fas fa-pencil-alt fa-sm text-gray-700"></i> Ubah Data</a>
       </div>
     </div>
   </div>
@@ -43,7 +43,7 @@
         <li class="mb-2">
           <div class="section-list">
             <span class="header-list">Jenis Kelamin</span>
-            <span class="content-list"><?php if($agtJnsKelamin == "L"){ echo "Laki - laki"; }else{ echo "Perempuan"; } ?></span>
+            <span class="content-list"><?php if($agtJnsKelamin == "L"){ echo "Laki-laki"; }else{ echo "Perempuan"; } ?></span>
           </div>
         </li>
         <li class="mb-2">

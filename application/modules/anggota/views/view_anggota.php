@@ -1,6 +1,6 @@
 <?php if($msg[0] == '1'){ ?>
 <div class="alert alert-<?php echo $msg[1];?> alert-dismissible fade show" role="alert">
-  <i class="fas fa-check mr-2"></i><?php echo $msg[2];?>
+  <i class="fas fa-info-circle mr-2"></i><?php echo $msg[2];?>
   <button type="button" class="close" data-dismiss="alert" aria-label="Close">
     <span aria-hidden="true">&times;</span>
   </button>
@@ -41,7 +41,7 @@ $(document).ready(function(){
     columns: [
       { "data": "no", "class" : "text-left", "width":"5%", 'sortable' : false },
       { "data": "aksi", "class" : "text-center", "width":"10%", 'sortable' : false },
-      { "data": "noKta", "class" : "text-left",  "width":"20%",'sortable' : false},
+      { "data": "agtNoKta", "class" : "text-left",  "width":"20%",'sortable' : false},
       { "data": "agtNama", "class" : "text-left",  "width":"35%",'sortable' : true},
       { "data": "jnsKelamin", "class" : "text-left",  "width":"15%",'sortable' : false},
       { "data": "wilNama", "class" : "text-left",  "width":"25%",'sortable' : false}

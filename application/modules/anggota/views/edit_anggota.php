@@ -4,7 +4,7 @@
   </div>
   <div class="card-body">
     <form action="<?php echo site_url('anggota/editAction');?>" method="post" enctype="multipart/form-data">
-      <input type="hidden" name="noKta" value="<?php echo $noKta; ?>">
+      <input type="hidden" name="agtId" value="<?php echo $agtId; ?>">
       <div class="row">
         <div class="col-xl-4 col-lg-4 mb-2 row-list">
           <li class="mb-2">
@@ -17,6 +17,7 @@
           <li class="mb-2">
             <label>Foto Pas (2x3cm)</label>
             <input name="agtFoto" type="file" class="form-control">
+            <input name="agtFoto" type="hidden" class="form-control" value="<?php echo $agtFoto; ?>">
           </li>
           <li class="mb-2">
             <div class="section-list">
@@ -43,7 +44,7 @@
           <li class="mb-2">
             <div class="section-list">
               <label>No. KTA</label>
-              <input name="noKta" type="text" class="form-control" value="<?php echo $noKta; ?>">
+              <input name="agtNoKta" type="text" class="form-control" value="<?php echo $agtNoKta ?>">
             </div>
           </li>
           <li class="mb-2">
@@ -61,9 +62,9 @@
           <li class="mb-2">
             <div class="section-list">
               <label>Jenis Kelamin</label><br/>
-              <select name="agtIdWilayah" class="form-control">
-                <option value="'L" <?php if($agtJnsKelamin == 'L') { echo "selected"; } ?>>Laki -laki</option>
-                <option value="'P" <?php if($agtJnsKelamin == 'P') { echo "selected"; } ?>>Perempuan</option>
+              <select name="agtJnsKelamin" class="form-control">
+                <option value="L" <?php if($agtJnsKelamin == 'L') { echo "selected"; } ?>>Laki-laki</option>
+                <option value="P" <?php if($agtJnsKelamin == 'P') { echo "selected"; } ?>>Perempuan</option>
               </select>
             </div>
           </li>
@@ -82,7 +83,7 @@
           <li class="mb-2">
             <div class="section-list">
               <label>Pendidikan Terakhir</label>
-              <select name="agtIdWilayah" class="form-control">
+              <select name="agtIdPendidikan" class="form-control">
               <?php
               if (!empty($list_pendidikan)){
                 foreach ($list_pendidikan as $key => $value) {
@@ -96,7 +97,7 @@
           <li class="mb-2">
             <div class="section-list">
               <label>Pekerjaan</label>
-              <select name="agtIdWilayah" class="form-control">
+              <select name="agtIdPekerjaan" class="form-control">
               <?php
               if (!empty($list_pekerjaan)){
                 foreach ($list_pekerjaan as $key => $value) {
@@ -120,7 +121,7 @@
               <div class="row">
                 <div class="col">
                   <label>Kelurahan</label>
-                  <input name="agtAlamatJalan" type="text" class="form-control" value="<?php echo !empty($agtKelurahan) ? $agtKelurahan : '-'; ?>">
+                  <input name="agtKelurahan" type="text" class="form-control" value="<?php echo $agtKelurahan; ?>">
                 </div>
                 <div class="col">
                   <label>Kecamatan</label>
@@ -138,9 +139,9 @@
           <li class="mb-2">
             <div class="section-list">
               <label>Status KTA</label>
-              <select name="agtIdWilayah" class="form-control">
-                <option value="'0" <?php if($agtStatusKta == '0') { echo "selected"; } ?>>Belum</option>
-                <option value="'1" <?php if($agtStatusKta == '1') { echo "selected"; } ?>>Sudah</option>
+              <select name="agtStatusKta" class="form-control">
+                <option value="0" <?php if($agtStatusKta == '0') { echo "selected"; } ?>>Belum</option>
+                <option value="1" <?php if($agtStatusKta == '1') { echo "selected"; } ?>>Sudah</option>
               </select>
             </div>
           </li>
@@ -149,11 +150,11 @@
               <div class="row">
                 <div class="col">
                   <label>Berlaku Dari</label>
-                  <input name="agtBrlkDari" type="text" class="form-control" value="<?php echo !empty($agtBrlkDari) ? $agtBrlkDari : '-'; ?>">
+                  <input name="agtBrlkDari" type="text" class="form-control" value="<?php echo $agtBrlkDari ?>">
                 </div>
                 <div class="col">
                   <label>Berlaku Sampai</label>
-                  <input name="agtBrlkDari" type="text" class="form-control" value="<?php echo !empty($agtBrlkSampai) ? $agtBrlkSampai : '-'; ?>">
+                  <input name="agtBrlkSampai" type="text" class="form-control" value="<?php echo $agtBrlkSampai ?>">
                 </div>
               </div>
             </div>
@@ -173,7 +174,7 @@
           <li class="mb-2">
             <div class="section-list">
               <label>Ukuran Kaos</label>
-              <input name="agtUkrnKaos" type="text" class="form-control" value="<?php echo $agtUkrnKaos ?>">
+              <input name="agtUkrnKaos" type="text" class="form-control" value="<?php echo $agtUkrnKaos ?>" style="text-transform:uppercase;">
             </div>
           </li>
         </div>

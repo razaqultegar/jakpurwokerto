@@ -23,15 +23,8 @@
       <li class="nav-item <?=$this->uri->segment(1) == 'beranda' ? 'active' : ''?>">
         <a class="nav-link" href="<?php echo base_url('beranda'); ?>"><i class="fas fa-fw fa-home"></i><span>Beranda</span></a>
       </li>
-      <li class="nav-item <?=$this->uri->segment(1) == 'anggota' || $this->uri->segment(1) == 'validasi' ? 'active' : ''?>">
-        <a class="nav-link <?=$this->uri->segment(1) == 'anggota' || $this->uri->segment(1) == 'validasi' ? '' : 'collapsed'?>" href="#" data-toggle="collapse" data-target="#keanggotaan"><i class="fas fa-fw fa-users"></i><span>Keanggotaan</span>
-        </a>
-        <div id="keanggotaan" class="collapse <?=$this->uri->segment(1) == 'anggota' || $this->uri->segment(1) == 'validasi' ? 'show' : ''?>">
-          <div class="py-2 collapse-inner rounded">
-            <a class="collapse-item <?=$this->uri->segment(1) == 'anggota' ? 'active' : ''?>" href="<?php echo base_url('anggota'); ?>">Anggota</a>
-            <a class="collapse-item <?=$this->uri->segment(1) == 'validasi' ? 'active' : ''?>" href="<?php echo base_url('validasi'); ?>">Validasi Data <span class="badge badge-danger badge-counter">389</span></a>
-          </div>
-        </div>
+      <li class="nav-item <?=$this->uri->segment(1) == 'anggota' ? 'active' : ''?>">
+        <a class="nav-link" href="<?php echo base_url('anggota'); ?>"><i class="fas fa-fw fa-users"></i><span>Keanggotaan</span></a>
       </li>
       <li class="nav-item <?=$this->uri->segment(1) == 'kas' ? 'active' : ''?>">
         <a class="nav-link" href="<?php echo base_url('kas'); ?>"><i class="fas fa-fw fa-money-bill-wave"></i><span>Kas Umum</span></a>
@@ -57,7 +50,11 @@
           <ul class="navbar-nav ml-auto">
             <li class="nav-item dropdown no-arrow">
               <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown">
+                <?php if($this->foto != NULL) {?>
+                <img class="img-profile rounded-circle" src="<?php echo $this->foto ?>">
+                <?php }else{ ?>
                 <img class="img-profile rounded-circle" src="<?php echo $this->foto_profil ?>">
+                <?php } ?>
                 <span class="ml-2 d-none d-lg-inline text-gray-600 small"><?php echo $this->realname;?></span>
               </a>
               <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in">

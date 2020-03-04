@@ -38,7 +38,7 @@
           <li class="mb-2">
             <div class="section-list">
               <label>No. KTA</label>
-              <input name="noKta" type="text" class="form-control">
+              <input name="agtNoKta" type="text" class="form-control">
             </div>
           </li>
           <li class="mb-2">
