@@ -127,7 +127,7 @@ if ($this->session->userdata('isToken') == TRUE) {
           </div>
           <div class="form-row">
             <div class="form-col" style="width:100%;">
-              <label>Alamat Lengkap <span style="color:red;">*</span></label>
+              <label>Alamat Jalan <span style="color:red;">*</span></label>
               <div class="form-holder">
                 <input name="agtAlamatJalan" type="text" class="form-control">
               </div>

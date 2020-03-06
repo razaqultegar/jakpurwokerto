@@ -80,7 +80,7 @@
       <div class="col-xl-6 col-lg-6 mb-2 row-list">
         <li class="mb-2">
           <div class="section-list">
-            <span class="header-list">Alamat Lengkap</span>
+            <span class="header-list">Alamat Jalan</span>
             <span class="content-list"><?php echo $agtAlamatJalan ?></span>
           </div>
         </li>

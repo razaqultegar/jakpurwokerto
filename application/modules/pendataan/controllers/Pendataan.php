@@ -44,7 +44,7 @@ class Pendataan extends MX_Controller {
 		$this->form_validation->set_rules('agtIdPendidikan', 'Pendidikan Terakhir', 'required');
 		$this->form_validation->set_rules('agtIdPekerjaan', 'Pekerjaan', 'required');
 		$this->form_validation->set_rules('agtKecamatan', 'Kecamatan', 'required|trim|min_length[2]');
-		$this->form_validation->set_rules('agtAlamatJalan', 'Alamat Lengkap', 'required|trim|min_length[2]');
+		$this->form_validation->set_rules('agtAlamatJalan', 'Alamat Jalan', 'required|trim|min_length[2]');
 		$this->form_validation->set_rules('agtKdPos', 'Kode Pos', 'required|trim|max_length[5]');
 		$this->form_validation->set_rules('agtNoTelp', 'No. Telp/HP', 'required|trim|max_length[13]');
 		$this->form_validation->set_rules('agtEmail', 'Alamat Email', 'required|trim|valid_email');

@@ -132,7 +132,7 @@ class Anggota extends MY_Controller {
 		$this->form_validation->set_rules('agtIdPendidikan', 'Pendidikan Terakhir', 'required');
 		$this->form_validation->set_rules('agtIdPekerjaan', 'Pekerjaan', 'required');
 		$this->form_validation->set_rules('agtKecamatan', 'Kecamatan', 'required|trim|min_length[2]');
-		$this->form_validation->set_rules('agtAlamatJalan', 'Alamat Lengkap', 'required|trim|min_length[2]');
+		$this->form_validation->set_rules('agtAlamatJalan', 'Alamat Jalan', 'required|trim|min_length[2]');
 		$this->form_validation->set_rules('agtKdPos', 'Kode Pos', 'required|trim|max_length[5]');
 		$this->form_validation->set_rules('agtStatusKta', 'Status KTA', 'required');
 		$this->form_validation->set_rules('agtNoTelp', 'No. Telp/HP', 'required|trim|max_length[14]');
@@ -254,7 +254,7 @@ class Anggota extends MY_Controller {
 		$this->form_validation->set_rules('agtIdPendidikan', 'Pendidikan Terakhir', 'required');
 		$this->form_validation->set_rules('agtIdPekerjaan', 'Pekerjaan', 'required');
 		$this->form_validation->set_rules('agtKecamatan', 'Kecamatan', 'required|trim|min_length[2]');
-		$this->form_validation->set_rules('agtAlamatJalan', 'Alamat Lengkap', 'required|trim|min_length[2]');
+		$this->form_validation->set_rules('agtAlamatJalan', 'Alamat Jalan', 'required|trim|min_length[2]');
 		$this->form_validation->set_rules('agtKdPos', 'Kode Pos', 'required|trim|max_length[5]');
 		$this->form_validation->set_rules('agtStatusKta', 'Status KTA', 'required');
 		$this->form_validation->set_rules('agtNoTelp', 'No. Telp/HP', 'required|trim|max_length[14]');

@@ -114,7 +114,7 @@
         <div class="col-xl-4 col-lg-4 mb-2 row-list">
           <li class="mb-2">
             <div class="section-list">
-              <label>Alamat Lengkap</label>
+              <label>Alamat Jalan</label>
               <input name="agtAlamatJalan" type="text" class="form-control">
             </div>
           </li>
