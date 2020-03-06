@@ -136,9 +136,9 @@
     <div class="modal-content">
       <div class="modal-body">
         <?php if($agtFoto != NULL) {?>
-          <img src="<?php echo base_url('files/anggota/'.$agtFoto); ?>" style="display:block;margin-right: auto;margin-left:auto;">
+          <img src="<?php echo base_url('files/anggota/'.$agtFoto); ?>" style="display:block;margin-right: auto;margin-left:auto;width:50%;">
         <?php } else { ?>
-          <img src="<?php echo base_url('files/anggota/default.jpg'); ?>" style="display:block;margin-right: auto;margin-left:auto;">
+          <img src="<?php echo base_url('files/anggota/default.jpg'); ?>" style="display:block;margin-right: auto;margin-left:auto;width:50%;">
         <?php } ?>
       </div>
     </div>

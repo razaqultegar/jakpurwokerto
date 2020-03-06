@@ -55,6 +55,15 @@ class Pendataan extends MX_Controller {
     	$this->form_validation->set_rules('agtFoto', 'Foto Pas (2x3cm)', 'required');
 		}
 
+		$agtNoKta = $this->input->post('agtNoKta');
+		$validasi_nokta = $this->m_anggota->cekDuplicateNoKta($agtNoKta);
+		if(sizeof($validasi_nokta) > 0){
+			$result = 1;
+			$params = array($result, $this->pesanColorWarning, 'No. KTA Sudah Ada. Silahkan Coba Lagi.', '');
+			$this->session->set_userdata('pesan',$params); 
+			redirect('pendataan');
+		}
+
 		$tgllhr = explode("/", $_POST['agtTglLahir']);
 		$tgllhr2 = explode("-", $_POST['agtTglLahir']);
 		if($tgllhr){

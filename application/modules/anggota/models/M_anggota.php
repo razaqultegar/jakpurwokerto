@@ -68,7 +68,7 @@ class M_anggota extends MY_Model {
     return $query->row_array();  
   }
 
-  public function cekDuplicateNik($id){
+  public function cekDuplicateNoKta($id){
     $sql = $this->query()." WHERE agtNoKta = '$id'";
     $query = $this->db->query($sql);
     return $query->row_array();  

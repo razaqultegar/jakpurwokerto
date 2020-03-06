@@ -144,6 +144,15 @@ class Anggota extends MY_Controller {
 			redirect('anggota/add');
 		}
 
+		$agtNoKta = $this->input->post('agtNoKta');
+		$validasi_nokta = $this->m_anggota->cekDuplicateNoKta($agtNoKta);
+		if(sizeof($validasi_nokta) > 0){
+			$result = 1;
+			$params = array($result, 'warning', 'No. KTA Sudah Ada. Silahkan Coba Lagi.', '');
+			$this->session->set_userdata('pesan',$params); 
+			redirect('anggota');
+		}
+
 		if (!empty($_FILES['agtFoto']['name'])){
 			$file=$_FILES['agtFoto']['name'];
 			$tmp_file=$_FILES['agtFoto']['tmp_name'];
@@ -255,6 +264,15 @@ class Anggota extends MY_Controller {
 		if($this->form_validation->run()==FALSE){
 			$params = array('1', 'danger', 'Data Tidak Berhasil Disimpan');
 			$this->session->set_userdata('pesan', $params);
+			redirect('anggota');
+		}
+
+		$agtNoKta = $this->input->post('agtNoKta');
+		$validasi_nokta = $this->m_anggota->cekDuplicateNoKta($agtNoKta);
+		if(sizeof($validasi_nokta) > 0){
+			$result = 1;
+			$params = array($result, 'warning', 'No. KTA Sudah Ada. Silahkan Coba Lagi.', '');
+			$this->session->set_userdata('pesan',$params); 
 			redirect('anggota');
 		}
 
