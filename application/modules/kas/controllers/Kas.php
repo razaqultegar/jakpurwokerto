@@ -208,61 +208,69 @@ Class Kas extends My_Controller {
     }
   }
 
-  public function export(){
-    require_once APPPATH.'libraries/excel/PHPExcel.php';
-    include APPPATH.'libraries/excel/PHPExcel/Writer/Excel2007.php';
+  public function export() {
+		set_time_limit(0);
+		require_once APPPATH.'libraries/excel/PHPExcel.php';
+		include APPPATH.'libraries/excel/PHPExcel/Writer/Excel2007.php';
 
-    $templateExcel = FCPATH.'files/export_kas.xls';
-    $objPHPExcel = PHPExcel_IOFactory::load($templateExcel);
-    $objPHPExcel->setActiveSheetIndex(0);
+		$templateExcel = FCPATH.'files/export_kas.xls';
+		$objPHPExcel = PHPExcel_IOFactory::load($templateExcel);
+		$objPHPExcel->setActiveSheetIndex(0);
 
-    $borderThinStyle = array(
-    'borders' => array(
-        'allborders' => array(
-          'style' => PHPExcel_Style_Border::BORDER_THIN
-        )
-      )
-    );
+		$borderThinStyle = array(
+			'borders' => array(
+				'allborders' => array(
+					'style' => PHPExcel_Style_Border::BORDER_THIN
+				)
+			)
+		);
 
-    $centerStyle = array(
-     'alignment' => array(
-      'horizontal' => PHPExcel_Style_Alignment::HORIZONTAL_CENTER,
-     )
-    );
-    $where_like = array();
-    $key = $_POST['filter_multiple'];
-    if (!empty($key)){
-      $options['where_like'] = array(
-        "AND kasMasukUraian LIKE '%".$key."%' OR kasKeluarUraian LIKE '%".$key."%' OR kasTanggal LIKE '%".$key."%'"
-      );
-    }else{
-      $options['where_like'] = [];
-    }
-    $dataOutput = $this->m_kas->getDataExcel($options);
+		$centerStyle = array(
+		 'alignment' => array(
+				'horizontal' => PHPExcel_Style_Alignment::HORIZONTAL_CENTER,
+			)
+		);
+
+		$options['order'] = 'kasTanggal';
+		$options['mode'] = 'asc';
+		$options['offset'] = 0;
+		$options['limit'] = 10000000;
+		$key = $_POST['filter_multiple'];
+		$where_like = array();
+		if (!empty($key)){
+			$options['where_like'] = array(
+				"kasMasukUraian LIKE '%".$key."%' OR kasKeluarUraian LIKE '%".$key."%' OR kasTanggal LIKE '%".$key."%'"
+			);
+		}else{
+			$options['where_like'] = [];
+		}
+
+		$options['db_condition'] = $this->db_condition;
+    $dataOutput = $this->m_kas->getListData($options);
     $dataSaldo = $this->m_kas->getDataExcelSaldo($options);
     $objPHPExcel->getActiveSheet()->SetCellValue('C1', $dataSaldo[0]['saldo']);
-    $no = 1;
-    $row = 4;
-    if (!empty($dataOutput)){
-      foreach ($dataOutput as $key => $value) {
-        $objPHPExcel->getActiveSheet()->SetCellValue('A'.$row, $no);
+		$no = 1;
+		$row = 4;
+		if (!empty($dataOutput)){
+			foreach ($dataOutput as $key => $value) {
+				$objPHPExcel->getActiveSheet()->SetCellValue('A'.$row, $no);
         $objPHPExcel->getActiveSheet()->SetCellValue('B'.$row, $value->kasTanggal);
         $objPHPExcel->getActiveSheet()->SetCellValue('C'.$row, $value->kasMasukUraian);
         $objPHPExcel->getActiveSheet()->SetCellValue('D'.$row, $value->kasMasuk);
         $objPHPExcel->getActiveSheet()->SetCellValue('E'.$row, $value->kasTanggal);
         $objPHPExcel->getActiveSheet()->SetCellValue('F'.$row, $value->kasKeluarUraian);
         $objPHPExcel->getActiveSheet()->SetCellValue('G'.$row, $value->kasKeluar);
-        $no++;
-        $row++;
-      }
-    }
+				$no++;
+				$row++;
+			}
+		}
 
-    $row = $row - 1;
-    $objPHPExcel->getActiveSheet()->getStyle("A4:G".$row)->applyFromArray($borderThinStyle); 
-    header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'); 
-    header('Content-Disposition: attachment;filename="data_kas_'.date("Y-m-d").'.xlsx"'); 
-    header('Cache-Control: max-age=0'); 
-    $objWriter = new PHPExcel_Writer_Excel2007($objPHPExcel);
-    $objWriter->save('php://output');
-  }
+		$row = $row - 1;
+		$objPHPExcel->getActiveSheet()->getStyle("A4:G".$row)->applyFromArray($borderThinStyle);
+		header('Content-Type: application/vnd.ms-excel');
+		header('Content-Disposition: attachment;filename="data_kas_'.date("d-m-Y").'.xls"');
+		header('Cache-Control: max-age=0');
+		$objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5');
+		$objWriter->save('php://output');
+	}
 }
