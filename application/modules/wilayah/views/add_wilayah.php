@@ -11,7 +11,7 @@
     <h6 class="m-0 font-weight-bold">Tambah Data Wilayah</h6>
   </div>
   <div class="card-body">
-    <form action="<?php echo site_url('ref_wilayah/addAction');?>" method="post" autocomplete="off">
+    <form action="<?php echo site_url('wilayah/addAction');?>" method="post" autocomplete="off">
       <div class="row">
         <div class="col-xl-12 col-lg-12 mb-2 row-list">
           <li class="mb-2">

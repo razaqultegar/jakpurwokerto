@@ -31,7 +31,7 @@
                   <div class="text-center">
                     <img class="logo-default" src="<?php echo base_url('assets/img/logo.png'); ?>">
                   </div>
-                  <form method="POST" action="<?php echo site_url('login/validate_login'); ?>" class="user">
+                  <form method="POST" action="<?php echo site_url('login/validate_login'); ?>" class="user" autocomplete="off">
                     <div class="form-group">
                       <input type="text" class="form-control form-control-user" id="username" name="username" placeholder="Nama Pengguna...">
                     </div>

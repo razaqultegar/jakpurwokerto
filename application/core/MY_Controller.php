@@ -10,15 +10,19 @@ class MY_Controller extends CI_Controller {
     if ($this->session->userdata('isLogin') == FALSE) {
       redirect('login');
     }
+    
     // data header statis
     $this->user_id = $this->session->userId;
     $this->username = $this->user_active()->username;
     $this->realname = $this->user_active()->realname;
     $this->foto = $this->user_active()->foto;
+
     // layout
     $this->load->library('layout'); 
+
     // load model
     $this->load->model('login/m_login');
+
     // time setting
     date_default_timezone_set('Asia/Jakarta');
     $this->now = date("Y-m-d");

@@ -15,14 +15,14 @@ class Pendataan extends MX_Controller {
 	}
 
 	private function data_construct() {
-		$this->load->model('ref_pekerjaan/m_ref_pekerjaan');
-		$this->load->model('ref_pendidikan/m_ref_pendidikan');
-		$this->load->model('ref_wilayah/m_ref_wilayah');
+		$this->load->model('pekerjaan/m_pekerjaan');
+		$this->load->model('pendidikan/m_pendidikan');
+		$this->load->model('wilayah/m_wilayah');
 
 		$data['list_jenis_kelamin'] = $this->jenisKelamin;
-		$data['list_pekerjaan'] = $this->m_ref_pekerjaan->getCombo();
-		$data['list_pendidikan'] = $this->m_ref_pendidikan->getCombo();
-		$data['list_wilayah'] = $this->m_ref_wilayah->getCombo();
+		$data['list_pekerjaan'] = $this->m_pekerjaan->getCombo();
+		$data['list_pendidikan'] = $this->m_pendidikan->getCombo();
+		$data['list_wilayah'] = $this->m_wilayah->getCombo();
 		return $data;
 	}
 

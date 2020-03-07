@@ -11,9 +11,9 @@ Class Kas extends My_Controller {
   }
   
   private function data_construct() {
-		$this->load->model('ref_wilayah/m_ref_wilayah');
+		$this->load->model('wilayah/m_wilayah');
 
-		$data['list_wilayah'] = $this->m_ref_wilayah->getCombo();
+		$data['list_wilayah'] = $this->m_wilayah->getCombo();
 		$data['msg'] = $this->session->flashdata('msg');
 		return $data;
 	}

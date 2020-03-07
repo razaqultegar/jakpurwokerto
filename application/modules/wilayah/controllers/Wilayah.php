@@ -1,10 +1,10 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class Ref_wilayah extends MY_Controller {
+class Wilayah extends MY_Controller {
 	public function __construct() {
 		parent::__construct();
-		$this->load->model('ref_wilayah/m_ref_wilayah');
+		$this->load->model('wilayah/m_wilayah');
 		$this->pesanAddSuccess = "Data Berhasil Disimpan";
 		$this->pesanDeleteSuccess = "Data Berhasil Dihapus";
 		$this->pesanColorSuccess = "success";
@@ -20,9 +20,9 @@ class Ref_wilayah extends MY_Controller {
 		$data = $this->data_construct();
 		$data['msg'] = (!empty($msg)) ? $msg : ['', '', ''];
 		$data['title'] = 'Data Wilayah';
-		$data['url_get_json'] = site_url('ref_wilayah/get_data_json');
-		$data['url_add'] = site_url('ref_wilayah/add');
-		$this->layout->set_layout('ref_wilayah/view_ref_wilayah', $data);
+		$data['url_get_json'] = site_url('wilayah/get_data_json');
+		$data['url_add'] = site_url('wilayah/add');
+		$this->layout->set_layout('wilayah/view_wilayah', $data);
 	}
 
 	public function get_data_json() {
@@ -47,9 +47,9 @@ class Ref_wilayah extends MY_Controller {
 		}
 
 		$options['condition'] = $this->db_condition;
-		$dataOutput = $this->m_ref_wilayah->getListData($options);
-		$totalFiltered = $this->m_ref_wilayah->getTotalData($options);
-		$totalData = $this->m_ref_wilayah->getTotal($this->db_condition);
+		$dataOutput = $this->m_wilayah->getListData($options);
+		$totalFiltered = $this->m_wilayah->getTotalData($options);
+		$totalData = $this->m_wilayah->getTotal($this->db_condition);
 		$no = $options['offset'] + 1;
 
 		if (!empty($dataOutput)){
@@ -59,7 +59,7 @@ class Ref_wilayah extends MY_Controller {
 				if (count($dataOutput) > 3 && $key >= (count($dataOutput) - 2)){
 					$dataNavbar = ", pos:'top-left'";
 				}
-				$value->aksi = '<a href="'.site_url('ref_wilayah/edit/'.$value->wilIdWilayah).'" class="btn btn-warning btn-circle btn-sm" title="Edit Data"><i class="fas fa-pencil-alt"></i></a> <a href="'.site_url('ref_wilayah/delete/'.$value->wilIdWilayah).'" class="btn btn-danger btn-circle btn-sm" title="Hapus Data"><i class="fas fa-trash"></i></a>';
+				$value->aksi = '<a href="'.site_url('wilayah/edit/'.$value->wilIdWilayah).'" class="btn btn-warning btn-circle btn-sm" title="Edit Data"><i class="fas fa-pencil-alt"></i></a> <a href="'.site_url('wilayah/delete/'.$value->wilIdWilayah).'" class="btn btn-danger btn-circle btn-sm" title="Hapus Data"><i class="fas fa-trash"></i></a>';
 				$no++;
 			}
 		}
@@ -79,7 +79,7 @@ class Ref_wilayah extends MY_Controller {
 		$post = $this->session->flashdata('post');
 		$data = array_merge($data, $this->data_construct());
 		$data['title'] = 'Tambah Data Wilayah';
-		$this->layout->set_layout('ref_wilayah/add_ref_wilayah', $data);
+		$this->layout->set_layout('wilayah/add_wilayah', $data);
 	}
 
 	public function addAction() {
@@ -87,14 +87,14 @@ class Ref_wilayah extends MY_Controller {
 
 		if($this->form_validation->run()==FALSE){
 			$this->session->set_flashdata('msg', array('1', 'warning', 'Lengkapi data terlebih dulu'));
-			redirect('ref_wilayah/add');
+			redirect('wilayah/add');
 		}
 
 		$data = [
 			'wilNama' => (!empty($this->input->post('wilNama'))) ? $this->input->post('wilNama') : NULL,
 		];
 
-		$insertId = $this->m_ref_wilayah->addDataAction($data);
+		$insertId = $this->m_wilayah->addDataAction($data);
 
 		$add = true;
 		if($add){
@@ -106,22 +106,22 @@ class Ref_wilayah extends MY_Controller {
 		if($add){
 			$params = array($add, $this->pesanColorSuccess, $this->pesanAddSuccess);
 			$this->session->set_userdata('pesan', $params);
-			redirect('ref_wilayah');
+			redirect('wilayah');
 		}else{
 			$params = array($add, 'danger', 'Data Tidak Berhasil Disimpan');
 			$this->session->set_userdata('pesan', $params);
-			redirect('ref_wilayah/add');
+			redirect('wilayah/add');
 		}
 	}
 
 	public function edit() {
 		$id = $this->uri->segment(3);
-		$data = $this->m_ref_wilayah->getDataById($id);
+		$data = $this->m_wilayah->getDataById($id);
 		$data = array_merge($data, $this->data_construct());
 		$data['title'] = "Ubah Data Wilayah";
 		$msg = $this->session->flashdata('pesan');
 		$data['msg'] = (!empty($msg)) ? $msg : ['', '', ''];
-		$this->layout->set_layout('ref_wilayah/edit_ref_wilayah', $data);
+		$this->layout->set_layout('wilayah/edit_wilayah', $data);
 	}
 
 	public function editAction() {
@@ -130,14 +130,14 @@ class Ref_wilayah extends MY_Controller {
 		if($this->form_validation->run()==FALSE){
 			$params = array('1', 'danger', 'Data Tidak Berhasil Disimpan');
 			$this->session->set_userdata('pesan', $params);
-			redirect('ref_wilayah');
+			redirect('wilayah');
 		}
 
 		$data = [
 			'wilNama' => (!empty($this->input->post('wilNama'))) ? $this->input->post('wilNama') : NULL,
 		];
 
-		$updateId = $this->m_ref_wilayah->editDataAction($data, ['wilIdWilayah' => $this->input->post('wilIdWilayah')]);
+		$updateId = $this->m_wilayah->editDataAction($data, ['wilIdWilayah' => $this->input->post('wilIdWilayah')]);
 
 		$update = true;
 		if($update){
@@ -149,22 +149,22 @@ class Ref_wilayah extends MY_Controller {
 		if($update){
 			$params = array($update, $this->pesanColorSuccess, $this->pesanAddSuccess);
 			$this->session->set_userdata('pesan', $params);
-			redirect('ref_wilayah');
+			redirect('wilayah');
 		}else{
 			$params = array($update, 'danger', 'Data Tidak Berhasil Disimpan');
 			$this->session->set_userdata('pesan', $params);
-			redirect('ref_wilayah');
+			redirect('wilayah');
 		}
 	}
 
 	public function delete($id){
-		$delete = $this->m_ref_wilayah->delete(['wilIdWilayah' => $id]);
+		$delete = $this->m_wilayah->delete(['wilIdWilayah' => $id]);
 		if($delete){
 			$params = array($delete, $this->pesanColorSuccess, $this->pesanDeleteSuccess);
 			$this->session->set_userdata('pesan', $params);
-			redirect('ref_wilayah');
+			redirect('wilayah');
 		}else{
-			redirect('ref_wilayah');
+			redirect('wilayah');
 		}
 	}
 }

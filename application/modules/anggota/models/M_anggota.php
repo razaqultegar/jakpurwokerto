@@ -221,8 +221,8 @@ class M_anggota extends MY_Model {
 
   public function getStatistikPekerjaan($db_condition){
     $param = $db_condition;
-    $sql = "SELECT pkjNama as name, IF(jml <> '', jml, 0) AS data FROM nagari_ref_pekerjaan
-    LEFT JOIN (SELECT pkjIdPekerjaan AS pkjId, COUNT(id) AS jml FROM  nagari_ref_pekerjaan
+    $sql = "SELECT pkjNama as name, IF(jml <> '', jml, 0) AS data FROM nagari_pekerjaan
+    LEFT JOIN (SELECT pkjIdPekerjaan AS pkjId, COUNT(id) AS jml FROM  nagari_pekerjaan
     LEFT JOIN jakpwt_anggota ON pkjIdPekerjaan = agtIdPekerjaan WHERE 1=1 ".$param." GROUP BY agtIdPekerjaan)AS a ON a.pkjId = pkjIdPekerjaan GROUP BY pkjNama ORDER BY jml DESC";
     $query = $this->db->query($sql);
     return $query->result_array();
@@ -241,8 +241,8 @@ class M_anggota extends MY_Model {
       dikPendidikan, pkjNama, wilNama,
       if(agtJnsKelamin = 'L', 'Laki-laki', 'Perempuan') AS jnsKelamin
     FROM $this->table_name
-      LEFT JOIN nagari_ref_pendidikan ON `dikIdPendidikan`=`agtIdPendidikan`
-      LEFT JOIN nagari_ref_pekerjaan ON `pkjIdPekerjaan`=`agtIdPekerjaan`
+      LEFT JOIN nagari_pendidikan ON `dikIdPendidikan`=`agtIdPendidikan`
+      LEFT JOIN nagari_pekerjaan ON `pkjIdPekerjaan`=`agtIdPekerjaan`
       LEFT JOIN jakpwt_ref_wilayah ON `wilIdWilayah`=`agtIdWilayah`
     WHERE 
       agtNoKta = '$agtNoKta'

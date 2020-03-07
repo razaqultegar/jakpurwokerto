@@ -67,7 +67,7 @@ function calculate(){
     <h6 class="m-0 font-weight-bold">Ubah Data Wilayah</h6>
   </div>
   <div class="card-body">
-    <form action="<?php echo site_url('ref_wilayah/editAction');?>" method="post" autocomplete="off">
+    <form action="<?php echo site_url('wilayah/editAction');?>" method="post" autocomplete="off">
       <input type="hidden" name="wilIdWilayah" value="<?php echo $wilIdWilayah?>">
       <div class="row">
         <div class="col-xl-12 col-lg-12 mb-2 row-list">

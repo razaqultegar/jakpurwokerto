@@ -1,6 +1,6 @@
 <?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 
-class M_ref_pekerjaan extends CI_Model {
+class M_pekerjaan extends CI_Model {
   protected $table_name = 'jakpwt_ref_pekerjaan';
 
   private function query(){
