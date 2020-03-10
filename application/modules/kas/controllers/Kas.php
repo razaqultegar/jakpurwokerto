@@ -24,6 +24,7 @@ Class Kas extends My_Controller {
     $data['title'] = "Data Kas Umum";
     $data['url_get_json'] = site_url('kas/get_data_json');
     $data['url_add'] = site_url('kas/add');
+    $data['url_export'] = site_url('kas/export');
     $this->layout->set_layout('kas/view_kas', $data);
   }
 
@@ -235,15 +236,7 @@ Class Kas extends My_Controller {
 		$options['mode'] = 'asc';
 		$options['offset'] = 0;
 		$options['limit'] = 10000000;
-		$key = $_POST['filter_multiple'];
-		$where_like = array();
-		if (!empty($key)){
-			$options['where_like'] = array(
-				"kasMasukUraian LIKE '%".$key."%' OR kasKeluarUraian LIKE '%".$key."%' OR kasTanggal LIKE '%".$key."%'"
-			);
-		}else{
-			$options['where_like'] = [];
-		}
+		$options['where_like'] = [];
 
 		$options['db_condition'] = $this->db_condition;
     $dataOutput = $this->m_kas->getListData($options);

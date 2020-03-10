@@ -36,6 +36,7 @@ class Anggota extends MY_Controller {
 		$data['title'] = 'Data Anggota';
 		$data['url_get_json'] = site_url('anggota/get_data_json');
 		$data['url_add'] = site_url('anggota/add');
+		$data['url_export'] = site_url('anggota/export');
 		$this->layout->set_layout('anggota/view_anggota', $data);
 	}
 
@@ -432,15 +433,7 @@ class Anggota extends MY_Controller {
 		$options['mode'] = 'asc';
 		$options['offset'] = 0;
 		$options['limit'] = 10000000;
-		$key = $_POST['filter_multiple'];
-		$where_like = array();
-		if (!empty($key)){
-			$options['where_like'] = array(
-				"agtNoKta LIKE '%".$key."%' OR agtNama LIKE '%".$key."%' OR agtNmPendek LIKE '%".$key."%'"
-			);
-		}else{
-			$options['where_like'] = [];
-		}
+		$options['where_like'] = [];
 
 		$options['db_condition'] = $this->db_condition;
 		$dataOutput = $this->m_anggota->getListData($options);

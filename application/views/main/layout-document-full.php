@@ -32,10 +32,10 @@
       <li class="nav-item <?=$this->uri->segment(1) == 'wilayah' || $this->uri->segment(1) == 'token' ? 'active' : ''?>">
         <a class="nav-link <?=$this->uri->segment(1) == 'wilayah' || $this->uri->segment(1) == 'token' ? '' : 'collapsed'?>" href="#" data-toggle="collapse" data-target="#pengaturan"><i class="fas fa-fw fa-cog"></i><span>Pengaturan</span>
         </a>
-        <div id="pengaturan" class="collapse <?=$this->uri->segment(1) == 'ref_wilayah' || $this->uri->segment(1) == 'token' ? 'show' : ''?>">
+        <div id="pengaturan" class="collapse <?=$this->uri->segment(1) == 'wilayah' || $this->uri->segment(1) == 'token' ? 'show' : ''?>">
           <div class="py-2 collapse-inner rounded">
             <a class="collapse-item <?=$this->uri->segment(1) == 'token' ? 'active' : ''?>" href="<?php echo base_url('token'); ?>">Token</a>
-            <a class="collapse-item <?=$this->uri->segment(1) == 'ref_wilayah' ? 'active' : ''?>" href="<?php echo base_url('ref_wilayah'); ?>">Wilayah</a>
+            <a class="collapse-item <?=$this->uri->segment(1) == 'wilayah' ? 'active' : ''?>" href="<?php echo base_url('wilayah'); ?>">Wilayah</a>
           </div>
         </div>
       </li>
