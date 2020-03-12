@@ -29,11 +29,12 @@
       <li class="nav-item <?=$this->uri->segment(1) == 'kas' ? 'active' : ''?>">
         <a class="nav-link" href="<?php echo base_url('kas'); ?>"><i class="fas fa-fw fa-money-bill-wave"></i><span>Kas Umum</span></a>
       </li>
-      <li class="nav-item <?=$this->uri->segment(1) == 'wilayah' || $this->uri->segment(1) == 'token' ? 'active' : ''?>">
-        <a class="nav-link <?=$this->uri->segment(1) == 'wilayah' || $this->uri->segment(1) == 'token' ? '' : 'collapsed'?>" href="#" data-toggle="collapse" data-target="#pengaturan"><i class="fas fa-fw fa-cog"></i><span>Pengaturan</span>
+      <li class="nav-item <?=$this->uri->segment(1) == 'wilayah' || $this->uri->segment(1) == 'token' || $this->uri->segment(1) == 'pengguna' ? 'active' : ''?>">
+        <a class="nav-link <?=$this->uri->segment(1) == 'wilayah' || $this->uri->segment(1) == 'token' || $this->uri->segment(1) == 'pengguna' ? '' : 'collapsed'?>" href="#" data-toggle="collapse" data-target="#pengaturan"><i class="fas fa-fw fa-cog"></i><span>Pengaturan</span>
         </a>
-        <div id="pengaturan" class="collapse <?=$this->uri->segment(1) == 'wilayah' || $this->uri->segment(1) == 'token' ? 'show' : ''?>">
+        <div id="pengaturan" class="collapse <?=$this->uri->segment(1) == 'wilayah' || $this->uri->segment(1) == 'token' || $this->uri->segment(1) == 'pengguna' ? 'show' : ''?>">
           <div class="py-2 collapse-inner rounded">
+            <a class="collapse-item <?=$this->uri->segment(1) == 'pengguna' ? 'active' : ''?>" href="<?php echo base_url('pengguna'); ?>">Pengguna</a>
             <a class="collapse-item <?=$this->uri->segment(1) == 'token' ? 'active' : ''?>" href="<?php echo base_url('token'); ?>">Token</a>
             <a class="collapse-item <?=$this->uri->segment(1) == 'wilayah' ? 'active' : ''?>" href="<?php echo base_url('wilayah'); ?>">Wilayah</a>
           </div>

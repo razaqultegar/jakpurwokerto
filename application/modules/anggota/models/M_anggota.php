@@ -186,15 +186,15 @@ class M_anggota extends MY_Model {
   public function getManUsia($db_condition){
     $param = $db_condition;
     $sql = "SELECT `name`,`data` FROM (
-        SELECT '0-5' AS `name`, CONCAT('-', COUNT(agtId)) AS `data` FROM jakpwt_anggota WHERE agtJnsKelamin= 'L' AND (agtUmur BETWEEN 0 AND 5) ".$param."
+        SELECT '0-5' AS `name`, CONCAT('+', COUNT(agtId)) AS `data` FROM jakpwt_anggota WHERE agtJnsKelamin= 'L' AND (agtUmur BETWEEN 0 AND 5) ".$param."
       UNION 
-        SELECT '5-17' AS `name`, CONCAT('-', COUNT(agtId)) AS `data` FROM jakpwt_anggota WHERE agtJnsKelamin= 'L' AND (agtUmur BETWEEN 6 AND 17) ".$param."
+        SELECT '5-17' AS `name`, CONCAT('+', COUNT(agtId)) AS `data` FROM jakpwt_anggota WHERE agtJnsKelamin= 'L' AND (agtUmur BETWEEN 6 AND 17) ".$param."
       UNION 
-        SELECT '17-30' AS `name`, CONCAT('-', COUNT(agtId)) AS `data` FROM jakpwt_anggota WHERE agtJnsKelamin= 'L' AND (agtUmur BETWEEN 18 AND 30) ".$param."
+        SELECT '17-30' AS `name`, CONCAT('+', COUNT(agtId)) AS `data` FROM jakpwt_anggota WHERE agtJnsKelamin= 'L' AND (agtUmur BETWEEN 18 AND 30) ".$param."
       UNION 
-        SELECT '30-60' AS `name`, CONCAT('-', COUNT(agtId)) AS `data` FROM jakpwt_anggota WHERE agtJnsKelamin= 'L' AND (agtUmur BETWEEN 31 AND 60) ".$param."
+        SELECT '30-60' AS `name`, CONCAT('+', COUNT(agtId)) AS `data` FROM jakpwt_anggota WHERE agtJnsKelamin= 'L' AND (agtUmur BETWEEN 31 AND 60) ".$param."
       UNION 
-        SELECT '60+' AS `name`, CONCAT('-', COUNT(agtId)) AS `data` FROM jakpwt_anggota WHERE agtJnsKelamin= 'L' AND agtUmur > 60 ".$param."
+        SELECT '60+' AS `name`, CONCAT('+', COUNT(agtId)) AS `data` FROM jakpwt_anggota WHERE agtJnsKelamin= 'L' AND agtUmur > 60 ".$param."
     )AS temp";
     
     $query = $this->db->query($sql);

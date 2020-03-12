@@ -58,8 +58,8 @@ class MY_Controller extends CI_Controller {
   }
 
   private function user_active() {
-    $this->load->model('user/m_user');
-    $result = $this->m_user->getDataById($this->user_id);
+    $this->load->model('pengguna/m_pengguna');
+    $result = $this->m_pengguna->getDataById($this->user_id);
     return $result;
   }
 

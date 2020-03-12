@@ -123,7 +123,7 @@ graph= $(function () {
       var chart = new Highcharts.Chart({
         chart: {
           renderTo: 'anggota',
-          type: 'column',
+          type: 'area',
         },
         colors: ['#4e73df', '#e74a3b'],
         title: {
@@ -165,7 +165,6 @@ graph= $(function () {
   });
 });
 $(function () {
-  var categories = ['0-5', '5-17', '17-30', '30-60', '60+'];
   $.ajax({
     type: "GET",
     url: '<?php echo $json_agt_usia?>',
@@ -188,7 +187,7 @@ $(function () {
       var chart = new Highcharts.Chart({
         chart: {
           renderTo: 'usia-bar',
-          type: 'bar',
+          type: 'column',
         },
         colors: ['#4e73df', '#e74a3b'],
         title: {
@@ -202,21 +201,9 @@ $(function () {
             depth: 25,
           }
         },
-        xAxis: [{
-          categories: categories,
-          reversed: false,
-          labels: {
-            step: 1
-          }
-        }, {
-          opposite: true,
-          reversed: false,
-          categories: categories,
-          linkedTo: 0,
-          labels: {
-            step: 1
-          }
-        }],
+        xAxis: {
+          categories: ['0-5', '5-17', '17-30', '30-60', '60+']
+        },
         yAxis: {
           title: {
             text: null
@@ -225,14 +212,9 @@ $(function () {
         credits: {
           enabled: false
         },
-        plotOptions: {
-          series: {
-            stacking: 'normal'
-          }
-        },
         tooltip: {
           formatter: function () {
-            return '<b>' + this.series.name + ', Umur ' + this.point.category + '</b><br/>' + 'Jumlah: ' + Highcharts.numberFormat(Math.abs(this.point.y), 0) + ' ('+Highcharts.numberFormat(Math.abs((this.point.y / total_anggota)*100),1)+'%)';
+            return '<b>' + this.series.name + ', Umur ' + this.point.category + '</b><br/>' + 'Jumlah: ' + Highcharts.numberFormat(Math.abs(this.point.y), 0) + ' Orang';
           }
         },
         series: d
@@ -340,7 +322,7 @@ $(function () {
         tooltip: {
           formatter: function() {
             var pcnt = (this.point.y / total_anggota) * 100;
-            return '<span style="font-size: 10px"> ' + this.point.name + '</span><br>Jumlah : <b>'+ Highcharts.numberFormat(pcnt,1) + '%</b>' + '<br>' + Highcharts.numberFormat(this.point.y, 0) + ' Orang';
+            return '<span style="font-size: 10px"> ' + this.point.name + '</span><br>Jumlah : ' + Highcharts.numberFormat(this.point.y, 0) + ' Orang';
           }
         },
         xAxis: {
@@ -369,7 +351,7 @@ $(function () {
             dataLabels: {
               enabled: true,
               formatter: function () {
-                return Highcharts.numberFormat(Math.abs(this.y), 0) + ' ('+Highcharts.numberFormat(Math.abs((this.y / total_anggota)*100),1)+'%)';
+                return Highcharts.numberFormat(Math.abs(this.y), 0) + ' Orang';
               },
               style: {
                 color: (Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black'
