@@ -438,7 +438,7 @@ class Anggota extends MY_Controller {
 		$options['db_condition'] = $this->db_condition;
 		$dataOutput = $this->m_anggota->getListData($options);
 		$no = 1;
-		$row = 4;
+		$row = 5;
 		if (!empty($dataOutput)){
 			foreach ($dataOutput as $key => $value) {
 				$tgllahir = $this->format_tanggal($value->agtTglLahir);
@@ -466,7 +466,7 @@ class Anggota extends MY_Controller {
 		}
 
 		$row = $row - 1;
-		$objPHPExcel->getActiveSheet()->getStyle("A4:O".$row)->applyFromArray($borderThinStyle);
+		$objPHPExcel->getActiveSheet()->getStyle("A5:O".$row)->applyFromArray($borderThinStyle);
 		header('Content-Type: application/vnd.ms-excel');
 		header('Content-Disposition: attachment;filename="data_anggota_'.date("d-m-Y").'.xls"');
 		header('Cache-Control: max-age=0');
