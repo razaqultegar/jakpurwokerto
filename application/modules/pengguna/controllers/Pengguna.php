@@ -85,6 +85,8 @@ class Pengguna extends MY_Controller {
 
 	public function addAction() {
 		$this->form_validation->set_rules('realname', 'Nama Pengguna', 'required|min_length[2]');
+		$this->form_validation->set_rules('username', 'Username', 'required|min_length[2]');
+		$this->form_validation->set_rules('password', 'Kata Sandi', 'required|min_length[2]');
 
 		if($this->form_validation->run()==FALSE){
 			$this->session->set_flashdata('msg', array('1', 'warning', 'Lengkapi data terlebih dulu'));
@@ -93,6 +95,8 @@ class Pengguna extends MY_Controller {
 
 		$data = [
 			'realname' => (!empty($this->input->post('realname'))) ? $this->input->post('realname') : NULL,
+			'username' => (!empty($this->input->post('username'))) ? $this->input->post('username') : NULL,
+			'password' => (!empty($this->input->post('password'))) ? $this->input->post('password') : NULL,
 		];
 
 		$insertId = $this->m_pengguna->addDataAction($data);
@@ -117,7 +121,7 @@ class Pengguna extends MY_Controller {
 
 	public function edit() {
 		$id = $this->uri->segment(3);
-		$data = $this->m_pengguna->getDataById($id);
+		$data = $this->m_pengguna->getDataByIdd($id);
 		$data = array_merge($data, $this->data_construct());
 		$data['title'] = "Ubah Data Pengguna";
 		$msg = $this->session->flashdata('pesan');
@@ -127,6 +131,8 @@ class Pengguna extends MY_Controller {
 
 	public function editAction() {
 		$this->form_validation->set_rules('realname', 'Nama Pengguna', 'required|min_length[2]');
+		$this->form_validation->set_rules('username', 'Username', 'required|min_length[2]');
+		$this->form_validation->set_rules('password', 'Kata Sandi', 'required|min_length[2]');
 
 		if($this->form_validation->run()==FALSE){
 			$params = array('1', 'danger', 'Data Tidak Berhasil Disimpan');
@@ -136,6 +142,8 @@ class Pengguna extends MY_Controller {
 
 		$data = [
 			'realname' => (!empty($this->input->post('realname'))) ? $this->input->post('realname') : NULL,
+			'username' => (!empty($this->input->post('username'))) ? $this->input->post('username') : NULL,
+			'password' => (!empty($this->input->post('password'))) ? $this->input->post('password') : NULL,
 		];
 
 		$updateId = $this->m_pengguna->editDataAction($data, ['userId' => $this->input->post('userId')]);

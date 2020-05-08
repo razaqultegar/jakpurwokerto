@@ -43,16 +43,27 @@ class M_pengguna extends CI_Model {
   public function getDataById($id){
     $sql = "SELECT * FROM $this->table_name WHERE userId='$id'";
     $query = $this->db->query($sql);
-    return $query->row();  
+    return $query->row();
+  }
+
+  public function getDatabyIdd($id){
+    $sql = "SELECT * FROM $this->table_name WHERE userId='$id'";
+    $query = $this->db->query($sql);
+    return $query->row_array();  
   }
 
   public function getDataByUsername($id){
     $sql = "SELECT * FROM $this->table_name WHERE username='$id'";
     $query = $this->db->query($sql);
-    return $query->row();  
+    return $query->row();
   }
 
   public function update($data){
+    $result = $this->db->update($this->table_name, $data, $where);
+    return $result;
+  }
+
+  public function editDataAction($data, $where){
     $result = $this->db->update($this->table_name, $data, $where);
     return $result;
   }
@@ -67,7 +78,7 @@ class M_pengguna extends CI_Model {
     return $result;
   }
 
-  public function delete($id){
+  public function delete($where){
     $result= $this->db->where($where)->delete($this->table_name);
     return $result;
   }
