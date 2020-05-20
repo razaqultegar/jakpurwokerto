@@ -23,7 +23,7 @@ Info lebih lanjut seputar pemasangan aplikasi ini bisa langsung mengirimkan emai
 
 ## Kontribusi
 
-Saya sangat menghargai ketika Anda ikut berkontribusi ke repositori/aplikasi ini dengan mengirimkan pull request untuk perbaikan bug, penambahan fitur, dsb. Untuk ide-ide brilian yang mungkin Anda punya untuk perkambangan aplikasi ini ke tahap yang lebih sempurna, bisa melalui tab diskusi.
+Saya sangat menghargai setiap kontribusi Anda ke repositori/aplikasi ini dengan mengirimkan pull request untuk perbaikan bug, penambahan fitur, dsb.
 
 ## Donasi
 - [Saweria.co](https://saweria.co/donate/razaqultegar)
