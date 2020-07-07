@@ -17,7 +17,6 @@ Untuk dapat menjalankan aplikasi ini, ada beberapa syarat yang harus dimiliki ol
 
  1. Mempunyai Domain dan Hosting tapi untuk dalam pengembangan/uji coba hanya perlu menggunakan XAMPP di device masing-masing.
  2. Menggunakan PHP v5.6.0
- 3. Composer, karena ada beberapa package yang harus diinstall melalui composer
 
 Info lebih lanjut seputar pemasangan aplikasi ini bisa langsung mengirimkan email ke saya di [razaqulmail@gmail.com](mailto:razaqulmail@gmail.com)
 
