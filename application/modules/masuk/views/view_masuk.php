@@ -31,7 +31,7 @@
                   <div class="text-center">
                     <img class="logo-default" src="<?php echo base_url('assets/img/logo.png'); ?>">
                   </div>
-                  <form method="POST" action="<?php echo site_url('login/validate_login'); ?>" class="user" autocomplete="off">
+                  <form method="POST" action="<?php echo site_url('masuk/validate_masuk'); ?>" class="user" autocomplete="off">
                     <div class="form-group">
                       <input type="text" class="form-control form-control-user" id="username" name="username" placeholder="Nama Pengguna...">
                     </div>
@@ -53,9 +53,9 @@
     </div>
   </div>
   <script src="<?php echo base_url().'assets/vendor/jquery/jquery.min.js'?>"></script>
-  <script src="<?php echo base_url().'assets/vendor/bootstrap/js/bootstrap.bundle.min.js'?>"></script>
-  <script src="<?php echo base_url().'assets/vendor/jquery-easing/jquery.easing.min.js'?>"></script>
-  <script src="<?php echo base_url().'assets/js/sb-admin-2.min.js'?>"></script>
+  <script src="<?php echo base_url().'assets/vendor/bootstrap/bootstrap.min.js'?>"></script>
+  <script src="<?php echo base_url().'assets/vendor/jquery/jquery.easing.min.js'?>"></script>
+  <script src="<?php echo base_url().'assets/js/sb-admin-2.js'?>"></script>
   <script src="<?php echo base_url().'assets/vendor/toastr/toastr.min.js'?>"></script>
   <?php if($msg[0] == '1'){ ?>
     <script>

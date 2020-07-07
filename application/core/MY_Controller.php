@@ -8,7 +8,7 @@ class MY_Controller extends CI_Controller {
     parent::__construct();
     // session
     if ($this->session->userdata('isLogin') == FALSE) {
-      redirect('login');
+      redirect('masuk');
     }
     
     // data header statis
@@ -21,7 +21,7 @@ class MY_Controller extends CI_Controller {
     $this->load->library('layout'); 
 
     // load model
-    $this->load->model('login/m_login');
+    $this->load->model('masuk/m_masuk');
 
     // time setting
     date_default_timezone_set('Asia/Jakarta');

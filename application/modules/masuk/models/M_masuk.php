@@ -1,6 +1,6 @@
 <?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 
-class M_login extends CI_Model {
+class M_masuk extends CI_Model {
   public function validate($username, $password) {
     $sql = "SELECT userId, realname, username, PASSWORD FROM default_user WHERE username=? AND password=?";
     $query = $this->db->query($sql, array($username, $password));
