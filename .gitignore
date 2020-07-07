@@ -30,6 +30,7 @@ user_guide_src/cilexer/pycilexer.egg-info/*
 /tests/tests/
 /tests/results/
 
-## Photos
+## Internal Files
+/database/
 /files/akun/
 /files/anggota/
