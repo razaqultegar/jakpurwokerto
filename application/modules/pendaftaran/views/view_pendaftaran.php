@@ -206,7 +206,7 @@ if ($this->session->userdata('isToken') == TRUE) {
 		</div>
 		<script src="<?php echo base_url().'assets/vendor/wizard/js/jquery-3.3.1.min.js'?>"></script>
 		<script src="<?php echo base_url().'assets/vendor/wizard/js/jquery.steps.min.js'?>"></script>
-		<script src="<?php echo base_url().'assets/vendor/wizard/js/datepicker-copy.min.js'?>"></script>
+		<script src="<?php echo base_url().'assets/vendor/wizard/js/datepicker.min.js'?>"></script>
     <script src="<?php echo base_url().'assets/vendor/wizard/js/datepicker-id.js'?>"></script>
     <script src="<?php echo base_url().'assets/vendor/wizard/js/main.js'?>"></script>
     <script src="<?php echo base_url().'assets/vendor/toastr/toastr.min.js'?>"></script>

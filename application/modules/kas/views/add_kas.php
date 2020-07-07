@@ -3,7 +3,7 @@
   text-align: left !important
 }
 </style>
-<script src="<?php echo base_url('assets/vendor/jquery.inputmask/4.0/jquery.inputmask.bundle.js');?>"></script>
+<script src="<?php echo base_url('assets/vendor/jquery/jquery.inputmask.bundle.js');?>"></script>
 <script type="text/javascript">
 var regEx1 = new RegExp((',00').replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'g');
 var regEx2 = new RegExp(('.').replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'g');

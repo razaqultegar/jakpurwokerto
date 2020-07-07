@@ -58,7 +58,7 @@
                 <span class="ml-2 d-none d-lg-inline text-gray-600 small"><?php echo $this->realname;?></span>
               </a>
               <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in">
-                <a class="dropdown-item" href="<?php echo site_url('login/logout');?>"><i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>Keluar</a>
+                <a class="dropdown-item" href="<?php echo site_url('masuk/keluar');?>"><i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>Keluar</a>
               </div>
             </li>
           </ul>
@@ -80,17 +80,17 @@
       </footer>
     </div>
   </div>
-  <script src="<?php echo base_url().'assets/vendor/bootstrap/js/bootstrap.bundle.min.js'?>"></script>
-  <script src="<?php echo base_url().'assets/vendor/jquery-easing/jquery.easing.min.js'?>"></script>
+  <script src="<?php echo base_url().'assets/vendor/bootstrap/bootstrap.min.js'?>"></script>
+  <script src="<?php echo base_url().'assets/vendor/jquery/jquery.easing.min.js'?>"></script>
   <script src="<?php echo base_url().'assets/js/sb-admin-2.js'?>"></script>
   <script src="<?php echo base_url().'assets/vendor/wizard/js/datepicker.min.js'?>"></script>
   <script src="<?php echo base_url().'assets/vendor/wizard/js/datepicker-id.js'?>"></script>
   <script src="<?php echo base_url().'assets/vendor/datatables/jquery.dataTables.min.js'?>"></script>
   <script src="<?php echo base_url().'assets/vendor/datatables/dataTables.bootstrap4.min.js'?>"></script>
-  <script src="<?php echo base_url().'assets/vendor/highcharts/code/highcharts.js';?>"></script>
-  <script src="<?php echo base_url().'assets/vendor/highcharts/code/highcharts-3d.js';?>"></script>
-  <script src="<?php echo base_url('assets/vendor/highcharts/code/modules/stock.js');?>"></script>
-  <script src="<?php echo base_url().'assets/vendor/highcharts/code/modules/exporting.js';?>"></script>
+  <script src="<?php echo base_url().'assets/vendor/highcharts/highcharts.js';?>"></script>
+  <script src="<?php echo base_url().'assets/vendor/highcharts/highcharts-3d.js';?>"></script>
+  <script src="<?php echo base_url('assets/vendor/highcharts/stock.js');?>"></script>
+  <script src="<?php echo base_url().'assets/vendor/highcharts/exporting.js';?>"></script>
   <script>
     $.fn.dataTable.defaults.language = {
       "lengthMenu": "Menampilkan _MENU_ data per halaman",
