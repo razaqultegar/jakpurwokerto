@@ -51,7 +51,7 @@
   <script src="<?php echo base_url().'assets/vendor/jquery/jquery.easing.min.js'?>"></script>
   <script src="<?php echo base_url().'assets/js/sb-admin-2.js'?>"></script>
   <script src="<?php echo base_url().'assets/vendor/toastr/toastr.min.js'?>"></script>
-  <?php if($msg[0] == '1'){ ?>
+  <?php if(isset($msg[0]) == '1'){ ?>
     <script>
       $(document).ready(function(){
         toastr.options = {

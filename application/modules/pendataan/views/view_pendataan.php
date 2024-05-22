@@ -206,7 +206,7 @@ if ($this->session->userdata('isToken') == TRUE) {
     <script src="<?php echo base_url().'assets/vendor/wizard/js/datepicker-id.js'?>"></script>
     <script src="<?php echo base_url().'assets/vendor/wizard/js/main.js'?>"></script>
     <script src="<?php echo base_url().'assets/vendor/toastr/toastr.min.js'?>"></script>
-    <?php if($msg[0] == '1'){ ?>
+    <?php if(isset($msg[0]) == '1') { ?>
     <script>
       $(document).ready(function(){
         toastr.options = {

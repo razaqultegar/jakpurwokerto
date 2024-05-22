@@ -54,7 +54,7 @@ function calculate(){
   $("#kasSaldo").val(nilai);
 }
 </script>
-<?php if($msg[0] == '1') { ?>
+<?php if(isset($msg[0]) == '1') { ?>
 <div class="alert alert-<?php echo $msg[1];?> alert-dismissible fade show" role="alert">
   <i class="fas fa-info-circle mr-2"></i><?php echo $msg[2];?>
   <button type="button" class="close" data-dismiss="alert" aria-label="Close">
