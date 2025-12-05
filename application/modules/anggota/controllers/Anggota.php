@@ -1,27 +1,33 @@
-<?php
-defined('BASEPATH') OR exit('No direct script access allowed');
+<?php defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Anggota extends MY_Controller {
 	protected $jenisKelamin = ['L' => 'Laki-laki', 'P' => 'Perempuan'];
-	protected $statuskta = ['0' => 'Belum', '1' => 'Sudah'];
+	protected $uploadDir = 'files/anggota/';
 
 	public function __construct() {
 		parent::__construct();
+
+		// load model
 		$this->load->model('anggota/m_anggota');
+
+		// message
 		$this->pesanAddSuccess = "Data Berhasil Disimpan";
 		$this->pesanDeleteSuccess = "Data Berhasil Dihapus";
 		$this->pesanColorSuccess = "success";
 
+		// load excel library
 		$this->load->library('excel/PHPExcel');
 	}
 
 	private function data_construct() {
+		// load model
 		$this->load->model('wilayah/m_wilayah');
 
+		// construct data
 		$data['list_wilayah'] = $this->m_wilayah->getCombo();
 		$data['list_jenis_kelamin'] = $this->jenisKelamin;
-		$data['list_status_kta'] = $this->statuskta;
 		$data['msg'] = $this->session->flashdata('msg');
+
 		return $data;
 	}
 
@@ -29,46 +35,36 @@ class Anggota extends MY_Controller {
 		$msg = $this->session->userdata('pesan');
 		$data = $this->data_construct();
 		$data['msg'] = (!empty($msg)) ? $msg : ['', '', ''];
+
 		$data['title'] = 'Data Anggota';
 		$data['url_get_json'] = site_url('anggota/get_data_json');
-		$data['url_add'] = site_url('anggota/add');
 		$data['url_export'] = site_url('anggota/export');
+
 		$this->layout->set_layout('anggota/view_anggota', $data);
 	}
 
 	public function get_data_json() {
 		ob_start();
-		$data = array();
+
 		$requestData= $_REQUEST;
 		$order = $this->input->post('order');
 		$columns = $this->input->post('columns');
-		$options['order'] = !empty($order) && !empty($columns) ? $columns[$order[0]['column']]['data'] : 'agtLastUpdate';
+		$options['order'] = !empty($order) && !empty($columns)
+			? $columns[$order[0]['column']]['data']
+			: 'agtLastUpdate';
 
 		$options['mode'] = !empty($order) ? $order[0]['dir']: 'desc';
 		$start = $this->input->post('start');
 		$length = $this->input->post('length');
 		$options['offset'] = empty($start) ? 0 : $start;
 		$options['limit'] = empty($length) ? 10 : $length;
-		$where_like = array();
 
-		if (!empty($requestData['search']['value'])){
+		if (!empty($requestData['search']['value'])) {
 				$options['where_like'] = array(
 				"agtNama LIKE '%".$requestData['search']['value']."%'
-				OR agtNoKta LIKE '%".$requestData['search']['value']."%'
+				OR agtNoKTA LIKE '%".$requestData['search']['value']."%'
 				OR wilNama LIkE '%".$requestData['search']['value']."%'"
 			);
-		}
-
-		if (!empty($requestData['agtJnsKelamin'])){
-			$options['where_like'][] = "agtJnsKelamin = '".$requestData['agtJnsKelamin']."'";
-		}
-
-		if (!empty($requestData['filter_jk'])){
-			$plod = explode('@@@', $requestData['filter_jk']);
-			$jk = ($plod[0] == 'Perempuan') ? 'P' : 'L';
-			$bln = $this->monthFormat($plod[1]);
-			$thn = $plod[2];
-			$options['where_like'][] = "agtJnsKelamin = '".$jk."' AND MONTH(agtTglInsert) = '".$bln."' AND YEAR(agtTglInsert) = '".$thn."'";
 		}
 
 		$options['condition'] = $this->db_condition;
@@ -78,135 +74,24 @@ class Anggota extends MY_Controller {
 		$no = $options['offset'] + 1;
 
 		if (!empty($dataOutput)){
-			foreach ($dataOutput as $key => $value) {
+			foreach ($dataOutput as $value) {
 				$value->no = $no;
-				$dataNavbar ="";
-				if (count($dataOutput) > 3 && $key >= (count($dataOutput) - 2)){
-					$dataNavbar = ", pos:'top-left'";
-				}
-				$value->agtNoKta = (!empty($value->agtNoKta)) ? $value->agtNoKta : "-";
-				$value->aksi = '<a href="'.site_url('anggota/edit/'.$value->agtId).'" class="btn btn-warning btn-circle btn-sm" title="Edit Data"><i class="fas fa-pencil-alt"></i></a> <a href="'.site_url('anggota/delete/'.$value->agtId).'" class="btn btn-danger btn-circle btn-sm" title="Hapus Data"><i class="fas fa-trash"></i></a>';
-				$value->agtNama = '<a href="'.site_url('anggota/detil/'.$value->agtId).'" title="Detil Data">'.strtoupper($value->agtNama).'</a>';
+				$value->agtNoKTA = (!empty($value->agtNoKTA)) ? $value->agtNoKTA : "-";
+				$value->aksi = '<a href="' . site_url('anggota/edit/' . $value->agtId) . '" class="btn btn-warning btn-circle btn-sm" title="Edit Data"><i class="fas fa-pencil-alt"></i></a> <a href="' . site_url('anggota/delete/' . $value->agtId) . '" class="btn btn-danger btn-circle btn-sm" title="Hapus Data"><i class="fas fa-trash"></i></a>';
+				$value->agtNama = '<a href="' . site_url('anggota/detil/' . $value->agtId).'" title="Detil Data">' . strtoupper($value->agtNama) . '</a>';
+				$value->wilNama = (!empty($value->wilNama)) ? $value->wilNama : "-";
 				$no++;
 			}
 		}
 
 		$response = array(
-			"draw"            => isset($requestData['draw']) ? intval( $requestData['draw'] ) : 0,
-			"recordsTotal"    => intval( $totalData ),
+			"draw" => isset($requestData['draw']) ? intval( $requestData['draw'] ) : 0,
+			"recordsTotal" => intval( $totalData ),
 			"recordsFiltered" => intval( $totalFiltered ),
-			"data"            => $dataOutput
+			"data" => $dataOutput
 		);
+
 		echo json_encode($response);
-	}
-
-	public function add() {
-		$msg = $this->session->userdata('pesan');
-		$data['msg'] = (!empty($msg)) ? $msg : ['', '', ''];
-		$post = $this->session->flashdata('post');
-		$data = array_merge($data, $this->data_construct());
-		$data['title'] = 'Tambah Data Anggota';
-		$this->layout->set_layout('anggota/add_anggota', $data);
-	}
-
-	public function addAction() {
-		$this->form_validation->set_rules('agtIdWilayah', 'Koordinator Wilayah', 'required');
-		$this->form_validation->set_rules('agtNama', 'Nama Lengkap', 'required|min_length[2]');
-		$this->form_validation->set_rules('agtNmPendek', 'Nama Panggilan', 'required|trim|min_length[2]');
-		$this->form_validation->set_rules('agtTmptLahir', 'Tempat Lahir', 'required|trim|min_length[2]');
-		$this->form_validation->set_rules('agtTglLahir', 'Tanggal Lahir', 'required');
-		$this->form_validation->set_rules('agtJnsKelamin', 'Jenis Kelamin', 'required');
-		$this->form_validation->set_rules('agtKecamatan', 'Kecamatan', 'required|trim|min_length[2]');
-		$this->form_validation->set_rules('agtAlamatJalan', 'Alamat Jalan', 'required|trim|min_length[2]');
-		$this->form_validation->set_rules('agtKdPos', 'Kode Pos', 'required|trim|max_length[5]');
-		$this->form_validation->set_rules('agtStatusKta', 'Status KTA', 'required');
-		$this->form_validation->set_rules('agtNoTelp', 'No. Telp/HP', 'required|trim|max_length[14]');
-		$this->form_validation->set_rules('agtEmail', 'Alamat Email', 'required|trim|valid_email');
-		$this->form_validation->set_rules('agtUkrnKaos', 'Ukuran Kaos', 'required');
-
-		if($this->form_validation->run()==FALSE){
-			$this->session->set_flashdata('msg', array('1', 'warning', 'Lengkapi data terlebih dulu'));
-			redirect('anggota/add');
-		}
-
-		$agtNoKta = $this->input->post('agtNoKta');
-		$validasi_nokta = $this->m_anggota->cekDuplicateNoKta($agtNoKta);
-		if(sizeof($validasi_nokta) > 0){
-			$result = 1;
-			$params = array($result, 'warning', 'No. KTA Sudah Ada. Silahkan Coba Lagi.', '');
-			$this->session->set_userdata('pesan',$params); 
-			redirect('anggota');
-		}
-
-		if (!empty($_FILES['agtFoto']['name'])){
-			$file=$_FILES['agtFoto']['name'];
-			$tmp_file=$_FILES['agtFoto']['tmp_name'];
-			$path = FCPATH.'files/anggota/';
-			$random_name= date('dmysi');
-			$explode = explode('.',$file);
-			$extensi = $explode[count($explode)-1];
-			$file_name = $random_name.".".$extensi;
-			$upload = move_uploaded_file ($tmp_file, $path.$file_name);
-		}else{
-			$file_name = $this->input->post('agtFoto');
-			$upload = "";
-		}
-
-		$tgllhr = explode("/", $_POST['agtTglLahir']);
-		$tgllhr2 = explode("-", $_POST['agtTglLahir']);
-		if($tgllhr){
-			$tgl =  $tgllhr[2]."-".$tgllhr[1]."-".$tgllhr[0];
-		}elseif($tgllhr2){
-			$tgl =  $tgllhr2[0]."-".$tgllhr2[1]."-".$tgllhr2[2];
-		}else{
-			$tgl = NULL;
-		}
-
-		$biday = new DateTime($tgl);
-		$today = new DateTime();
-		$umur = $today->diff($biday)->y;
-
-		$data = [
-			'agtNoKta' => (!empty($this->input->post('agtNoKta'))) ? $this->input->post('agtNoKta') : NULL,
-			'agtIdWilayah' => (!empty($this->input->post('agtIdWilayah'))) ? $this->input->post('agtIdWilayah') : NULL,
-			'agtNama' => (!empty($this->input->post('agtNama'))) ? $this->input->post('agtNama') : NULL,
-			'agtNmPendek' => (!empty($this->input->post('agtNmPendek'))) ? $this->input->post('agtNmPendek') : NULL,
-			'agtTmptLahir' => (!empty($this->input->post('agtTmptLahir'))) ? $this->input->post('agtTmptLahir') : NULL,
-			'agtTglLahir' => $tgl,
-			'agtUmur' => $umur,
-			'agtJnsKelamin' => (!empty($this->input->post('agtJnsKelamin'))) ? $this->input->post('agtJnsKelamin') : NULL,
-			'agtKelurahan' => (!empty($this->input->post('agtKelurahan'))) ? $this->input->post('agtKelurahan') : NULL,
-			'agtKecamatan' => (!empty($this->input->post('agtKecamatan'))) ? $this->input->post('agtKecamatan') : NULL,
-			'agtAlamatJalan' => (!empty($this->input->post('agtAlamatJalan'))) ? $this->input->post('agtAlamatJalan') : NULL,
-			'agtKdPos' => (!empty($this->input->post('agtKdPos'))) ? $this->input->post('agtKdPos') : NULL,
-			'agtNoTelp' => (!empty($this->input->post('agtNoTelp'))) ? $this->input->post('agtNoTelp') : NULL,
-			'agtEmail' => (!empty($this->input->post('agtEmail'))) ? $this->input->post('agtEmail') : NULL,
-			'agtUkrnKaos' => (!empty($this->input->post('agtUkrnKaos'))) ? $this->input->post('agtUkrnKaos') : NULL,
-			'agtFoto' => $file_name,
-			'agtStatusKta' => (!empty($this->input->post('agtStatusKta'))) ? $this->input->post('agtStatusKta') : '0',
-			'agtBrlkDari' => (!empty($this->input->post('agtBrlkDari'))) ? $this->input->post('agtBrlkDari') : NULL,
-			'agtBrlkSampai' => (!empty($this->input->post('agtBrlkSampai'))) ? $this->input->post('agtBrlkSampai') : NULL,
-			'agtTglInsert' => date('Y-m-d'),
-		];
-
-		$insertId = $this->m_anggota->addDataAction($data);
-
-		$add = true;
-		if($add){
-			$this->db->trans_commit();
-		}else{
-			$this->db->trans_rollback();
-		}
-
-		if($add){
-			$params = array($add, $this->pesanColorSuccess, $this->pesanAddSuccess);
-			$this->session->set_userdata('pesan', $params);
-			redirect('anggota');
-		}else{
-			$params = array($add, 'danger', 'Data Tidak Berhasil Disimpan');
-			$this->session->set_userdata('pesan', $params);
-			redirect('anggota/add');
-		}
 	}
 
 	public function detil() {
@@ -214,6 +99,7 @@ class Anggota extends MY_Controller {
 		$data = $this->m_anggota->getDataById($id);
 		$data = array_merge($data, $this->data_construct());
 		$data['title'] = 'Detil Data Anggota';
+		
 		$this->layout->set_layout('anggota/detil_anggota', $data);
 	}
 
@@ -221,119 +107,58 @@ class Anggota extends MY_Controller {
 		$id = $this->uri->segment(3);
 		$data = $this->m_anggota->getDataById($id);
 		$data = array_merge($data, $this->data_construct());
+
 		$data['title'] = "Ubah Data Anggota";
 		$msg = $this->session->flashdata('pesan');
 		$data['msg'] = (!empty($msg)) ? $msg : ['', '', ''];
+
 		$this->layout->set_layout('anggota/edit_anggota', $data);
 	}
 
 	public function editAction() {
-		$this->form_validation->set_rules('agtIdWilayah', 'Koordinator Wilayah', 'required');
-		$this->form_validation->set_rules('agtNama', 'Nama Lengkap', 'required|min_length[2]');
-		$this->form_validation->set_rules('agtNmPendek', 'Nama Panggilan', 'required|trim|min_length[2]');
-		$this->form_validation->set_rules('agtTmptLahir', 'Tempat Lahir', 'required|trim|min_length[2]');
-		$this->form_validation->set_rules('agtTglLahir', 'Tanggal Lahir', 'required');
-		$this->form_validation->set_rules('agtJnsKelamin', 'Jenis Kelamin', 'required');
-		$this->form_validation->set_rules('agtKecamatan', 'Kecamatan', 'required|trim|min_length[2]');
-		$this->form_validation->set_rules('agtAlamatJalan', 'Alamat Jalan', 'required|trim|min_length[2]');
-		$this->form_validation->set_rules('agtKdPos', 'Kode Pos', 'required|trim|max_length[5]');
-		$this->form_validation->set_rules('agtStatusKta', 'Status KTA', 'required');
-		$this->form_validation->set_rules('agtNoTelp', 'No. Telp/HP', 'required|trim|max_length[14]');
-		$this->form_validation->set_rules('agtEmail', 'Alamat Email', 'required|trim|valid_email');
-		$this->form_validation->set_rules('agtUkrnKaos', 'Ukuran Kaos', 'required');
+		$this->_setValidationRules();
 
-		if($this->form_validation->run()==FALSE){
-			$params = array('1', 'danger', 'Data Tidak Berhasil Disimpan');
-			$this->session->set_userdata('pesan', $params);
+		if ($this->form_validation->run() == FALSE) {
+			$this->_handleValidationError();
+		}
+
+		$agtId = $this->input->post('agtId');
+		$agtNoKTA = $this->input->post('agtNoKTA');
+
+		// Check for duplicate KTA (exclude current record)
+		if (!$this->_checkDuplicateKTA($agtNoKTA)) {
 			redirect('anggota');
 		}
 
-		$agtNoKta = $this->input->post('agtNoKta');
-		$validasi_nokta = $this->m_anggota->cekDuplicateNoKta($agtNoKta);
-		if(sizeof($validasi_nokta) > 0){
-			$result = 1;
-			$params = array($result, 'warning', 'No. KTA Sudah Ada. Silahkan Coba Lagi.', '');
-			$this->session->set_userdata('pesan',$params); 
-			redirect('anggota');
+		// Handle file upload
+		$oldFile = $this->input->post('agtFoto');
+		$file_name = $this->_handleFileUpload('agtFoto', $oldFile);
+		if ($file_name === false) {
+			$file_name = $oldFile;
 		}
 
-		if (!empty($_FILES['agtFoto']['name'])){
-			$file=$_FILES['agtFoto']['name'];
-			$tmp_file=$_FILES['agtFoto']['tmp_name'];
-			$path = FCPATH.'files/anggota/';
-			unlink($path.$this->input->post('agtFoto'));
-			$random_name= date('dmysi');
-			$explode = explode('.',$file);
-			$extensi = $explode[count($explode)-1];
-			$file_name = $random_name.".".$extensi;
-			$upload = move_uploaded_file ($tmp_file, $path.$file_name);
-		}else{
-			$file_name = $this->input->post('agtFoto');
-			$upload = "";
-		}
-
-		$tgllhr = explode("/", $_POST['agtTglLahir']);
-		$tgllhr2 = explode("-", $_POST['agtTglLahir']);
-		if($tgllhr){
-			$tgl =  $tgllhr[2]."-".$tgllhr[1]."-".$tgllhr[0];
-		}elseif($tgllhr2){
-			$tgl =  $tgllhr2[0]."-".$tgllhr2[1]."-".$tgllhr2[2];
-		}else{
-			$tgl = NULL;
-		}
-
-		$biday = new DateTime($tgl);
-		$today = new DateTime();
-		$umur = $today->diff($biday)->y;
-
-		$data = [
-			'agtNoKta' => (!empty($this->input->post('agtNoKta'))) ? $this->input->post('agtNoKta') : NULL,
-			'agtIdWilayah' => (!empty($this->input->post('agtIdWilayah'))) ? $this->input->post('agtIdWilayah') : NULL,
-			'agtNama' => (!empty($this->input->post('agtNama'))) ? $this->input->post('agtNama') : NULL,
-			'agtNmPendek' => (!empty($this->input->post('agtNmPendek'))) ? $this->input->post('agtNmPendek') : NULL,
-			'agtTmptLahir' => (!empty($this->input->post('agtTmptLahir'))) ? $this->input->post('agtTmptLahir') : NULL,
-			'agtTglLahir' => $tgl,
-			'agtUmur' => $umur,
-			'agtJnsKelamin' => (!empty($this->input->post('agtJnsKelamin'))) ? $this->input->post('agtJnsKelamin') : NULL,
-			'agtKelurahan' => (!empty($this->input->post('agtKelurahan'))) ? $this->input->post('agtKelurahan') : NULL,
-			'agtKecamatan' => (!empty($this->input->post('agtKecamatan'))) ? $this->input->post('agtKecamatan') : NULL,
-			'agtAlamatJalan' => (!empty($this->input->post('agtAlamatJalan'))) ? $this->input->post('agtAlamatJalan') : NULL,
-			'agtKdPos' => (!empty($this->input->post('agtKdPos'))) ? $this->input->post('agtKdPos') : NULL,
-			'agtNoTelp' => (!empty($this->input->post('agtNoTelp'))) ? $this->input->post('agtNoTelp') : NULL,
-			'agtEmail' => (!empty($this->input->post('agtEmail'))) ? $this->input->post('agtEmail') : NULL,
-			'agtUkrnKaos' => (!empty($this->input->post('agtUkrnKaos'))) ? $this->input->post('agtUkrnKaos') : NULL,
-			'agtFoto' => $file_name,
-			'agtStatusKta' => (!empty($this->input->post('agtStatusKta'))) ? $this->input->post('agtStatusKta') : '0',
-			'agtBrlkDari' => (!empty($this->input->post('agtBrlkDari'))) ? $this->input->post('agtBrlkDari') : NULL,
-			'agtBrlkSampai' => (!empty($this->input->post('agtBrlkSampai'))) ? $this->input->post('agtBrlkSampai') : NULL,
-			'agtTglInsert' => date('Y-m-d'),
+		// Prepare form data
+		$fields = [
+			'agtNoKTA', 'agtIdWilayah', 'agtNama', 'agtNmPendek',
+			'agtTmptLahir', 'agtJnsKelamin', 'agtKelurahan', 'agtKecamatan',
+			'agtAlamatJalan', 'agtKdPos', 'agtNoTelp', 'agtEmail',
+			'agtUkrnKaos', 'agtStatusKta', 'agtBrlkDari', 'agtBrlkSampai'
 		];
 
-		$updateId = $this->m_anggota->editDataAction($data, ['agtId' => $this->input->post('agtId')]);
+		$data = $this->_prepareFormData($fields, $this->input->post('agtTglLahir'));
+		$data['agtFoto'] = $file_name;
+		$data['agtStatusKta'] = $this->input->post('agtStatusKta') ?: '0';
 
-		$update = true;
-		if($update){
-			$this->db->trans_commit();
-		}else{
-			$this->db->trans_rollback();
-		}
-
-		if($update){
-			$params = array($update, $this->pesanColorSuccess, $this->pesanAddSuccess);
-			$this->session->set_userdata('pesan', $params);
-			redirect('anggota');
-		}else{
-			$params = array($update, 'danger', 'Data Tidak Berhasil Disimpan');
-			$this->session->set_userdata('pesan', $params);
-			redirect('anggota');
-		}
+		// Execute update
+		$updateId = $this->m_anggota->editDataAction($data, ['agtId' => $agtId]);
+		$this->_handleSaveResult($updateId, 'edit');
 	}
 
 	public function delete($id){
 		$data = $this->m_anggota->deleteImage($id)->row();
-		unlink("./files/anggota/$data->agtFoto");
-
+		unlink(FCPATH . "files/anggota/$data->agtFoto");
 		$delete = $this->m_anggota->delete(['agtId' => $id]);
+
 		if($delete){
 			$params = array($delete, $this->pesanColorSuccess, $this->pesanDeleteSuccess);
 			$this->session->set_userdata('pesan', $params);
@@ -342,48 +167,11 @@ class Anggota extends MY_Controller {
 			redirect('anggota');
 		}
 	}
-
-	public function cetak($id) {
-		$template = base_url('files/formulir.docx');
-		$data = $this->m_anggota->getDataById($id);
-		$templateProcessor = new \PhpOffice\PhpWord\TemplateProcessor($template);
-		$tgllahir = $this->format_tanggal($data['agtTglLahir']);
-
-		$templateProcessor->setValue('nokta', $data['agtNoKta']);
-		$templateProcessor->setValue('nama', $data['agtNama']);
-		$templateProcessor->setValue('nmpendek', $data['agtNmPendek']);
-		$templateProcessor->setValue('tmptlahir', $data['agtTmptLahir']);
-		$templateProcessor->setValue('tgllahir', $tgllahir);
-		$templateProcessor->setValue('alamatjalan', $data['agtAlamatJalan']);
-		$templateProcessor->setValue('kelurahan', $data['agtKelurahan']);
-		$templateProcessor->setValue('kecamatan', $data['agtKecamatan']);
-		$templateProcessor->setValue('kodepos', $data['agtKdPos']);
-		$templateProcessor->setValue('notelp', $data['agtNoTelp']);
-		$templateProcessor->setValue('email', $data['agtEmail']);
-		$templateProcessor->setValue('kaos', $data['agtUkrnKaos']);
-
-		$filename = "FORMULIR_".str_replace(' ', '_', $data['agtNama']);
-		$temp_file = tempnam(sys_get_temp_dir(), $filename);
-		$templateProcessor->saveAs($temp_file);
-
-		// download
-		$filename .= ".docx";
-		header('Content-Description: File Transfer');
-		header('Content-Type: application/octet-stream');
-		header('Content-Disposition: attachment; filename='.$filename);
-		header('Content-Transfer-Encoding: binary');
-		header('Expires: 0');
-		header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
-		header('Pragma: public');
-		header('Content-Length: ' . filesize($temp_file));
-		readfile($temp_file);
-		unlink($temp_file);
-	}
 	
 	public function export() {
 		set_time_limit(0);
-		require_once APPPATH.'libraries/excel/PHPExcel.php';
-		include APPPATH.'libraries/excel/PHPExcel/Writer/Excel2007.php';
+		require_once APPPATH . 'libraries/excel/PHPExcel.php';
+		include APPPATH . 'libraries/excel/PHPExcel/Writer/Excel2007.php';
 
 		$templateExcel = FCPATH.'files/export_anggota.xls';
 		$objPHPExcel = PHPExcel_IOFactory::load($templateExcel);
@@ -393,14 +181,8 @@ class Anggota extends MY_Controller {
 			'borders' => array(
 				'allborders' => array(
 					'style' => PHPExcel_Style_Border::BORDER_THIN
-				)
-			)
-		);
-
-		$centerStyle = array(
-		 'alignment' => array(
-				'horizontal' => PHPExcel_Style_Alignment::HORIZONTAL_CENTER,
-			)
+				),
+			),
 		);
 
 		$options['order'] = 'agtNama';
@@ -413,13 +195,14 @@ class Anggota extends MY_Controller {
 		$dataOutput = $this->m_anggota->getListData($options);
 		$no = 1;
 		$row = 5;
+
 		if (!empty($dataOutput)){
-			foreach ($dataOutput as $key => $value) {
+			foreach ($dataOutput as $value) {
 				$tgllahir = $this->format_tanggal($value->agtTglLahir);
 				$kelurahan = (!empty($value->agtKelurahan)) ? $value->agtKelurahan : '-';
 				$tglinsert = $this->format_tanggal($value->agtTglInsert);
 
-				$objPHPExcel->getActiveSheet()->SetCellValue('A'.$row, $value->agtNoKta);
+				$objPHPExcel->getActiveSheet()->SetCellValue('A'.$row, $value->agtNoKTA);
 				$objPHPExcel->getActiveSheet()->SetCellValue('B'.$row, $value->agtBrlkDari);
 				$objPHPExcel->getActiveSheet()->SetCellValue('C'.$row, $value->agtBrlkSampai);
 				$objPHPExcel->getActiveSheet()->SetCellValue('D'.$row, $value->agtNama);
@@ -432,6 +215,7 @@ class Anggota extends MY_Controller {
 				$objPHPExcel->getActiveSheet()->SetCellValue('M'.$row, $value->agtEmail);
 				$objPHPExcel->getActiveSheet()->SetCellValue('N'.$row, $value->agtUkrnKaos);
 				$objPHPExcel->getActiveSheet()->SetCellValue('O'.$row, $tglinsert);
+
 				$no++;
 				$row++;
 			}
@@ -439,10 +223,139 @@ class Anggota extends MY_Controller {
 
 		$row = $row - 1;
 		$objPHPExcel->getActiveSheet()->getStyle("A5:O".$row)->applyFromArray($borderThinStyle);
+
 		header('Content-Type: application/vnd.ms-excel');
 		header('Content-Disposition: attachment;filename="data_anggota_'.date("d-m-Y").'.xls"');
 		header('Cache-Control: max-age=0');
+
 		$objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5');
 		$objWriter->save('php://output');
+	}
+
+	private function _parseTanggal($date) {
+		if (empty($date)) return NULL;
+
+		$tgllhr = explode("/", $date);
+		$tgllhr2 = explode("-", $date);
+
+		if (!empty($tgllhr) && count($tgllhr) == 3 && strlen($tgllhr[0]) == 2) {
+			// dd/mm/yyyy format
+			return $tgllhr[2] . "-" . $tgllhr[1] . "-" . $tgllhr[0];
+		} elseif (!empty($tgllhr2) && count($tgllhr2) == 3 && strlen($tgllhr2[0]) == 4) {
+			// yyyy-mm-dd format
+			return $tgllhr2[0] . "-" . $tgllhr2[1] . "-" . $tgllhr2[2];
+		}
+
+		return NULL;
+	}
+
+	private function _calculateAge($birthDate) {
+		if (empty($birthDate)) return 0;
+
+		try {
+			$birthDay = new DateTime($birthDate);
+			$today = new DateTime();
+			return $today->diff($birthDay)->y;
+		} catch (Exception $e) {
+			return 0;
+		}
+	}
+
+	private function _handleFileUpload($fieldName, $oldFile = null) {
+		if (empty($_FILES[$fieldName]['name'])) {
+			return $oldFile; // Return old file if no new file uploaded
+		}
+
+		$file = $_FILES[$fieldName]['name'];
+		$tmp_file = $_FILES[$fieldName]['tmp_name'];
+		$path = FCPATH . $this->uploadDir;
+
+		// Delete old file if exists
+		if (!empty($oldFile) && file_exists($path . $oldFile)) {
+			unlink($path . $oldFile);
+		}
+
+		// Generate new filename
+		$random_name = date('dmysi');
+		$explode = explode('.', $file);
+		$extensi = strtolower($explode[count($explode) - 1]);
+
+		// Validate extension
+		$allowed_ext = array('jpg', 'jpeg', 'png', 'gif');
+		if (!in_array($extensi, $allowed_ext)) {
+			return false;
+		}
+
+		$file_name = $random_name . "." . $extensi;
+		$upload = move_uploaded_file($tmp_file, $path . $file_name);
+
+		return $upload ? $file_name : false;
+	}
+
+	private function _prepareFormData($fields, $tglLahir = null) {
+		$data = array();
+
+		foreach ($fields as $field) {
+			$value = $this->input->post($field);
+			$data[$field] = (!empty($value)) ? $value : NULL;
+		}
+
+		// Handle date parsing
+		if (!empty($tglLahir)) {
+			$tgl = $this->_parseTanggal($tglLahir);
+			$data['agtTglLahir'] = $tgl;
+			$data['agtUmur'] = $this->_calculateAge($tgl);
+		}
+
+		// Set insert/update timestamp
+		$data['agtTglInsert'] = date('Y-m-d');
+
+		return $data;
+	}
+
+	private function _setValidationRules() {
+		$this->form_validation->set_rules('agtIdWilayah', 'Koordinator Wilayah', 'required');
+		$this->form_validation->set_rules('agtNama', 'Nama Lengkap', 'required|min_length[2]');
+		$this->form_validation->set_rules('agtNmPendek', 'Nama Panggilan', 'required|trim|min_length[2]');
+		$this->form_validation->set_rules('agtTmptLahir', 'Tempat Lahir', 'required|trim|min_length[2]');
+		$this->form_validation->set_rules('agtTglLahir', 'Tanggal Lahir', 'required');
+		$this->form_validation->set_rules('agtJnsKelamin', 'Jenis Kelamin', 'required');
+		$this->form_validation->set_rules('agtKecamatan', 'Kecamatan', 'required|trim|min_length[2]');
+		$this->form_validation->set_rules('agtAlamatJalan', 'Alamat Jalan', 'required|trim|min_length[2]');
+		$this->form_validation->set_rules('agtKdPos', 'Kode Pos', 'required|trim|max_length[5]');
+		$this->form_validation->set_rules('agtStatusKta', 'Status KTA', 'required');
+		$this->form_validation->set_rules('agtNoTelp', 'No. Telp/HP', 'required|trim|max_length[14]');
+		$this->form_validation->set_rules('agtEmail', 'Alamat Email', 'required|trim|valid_email');
+		$this->form_validation->set_rules('agtUkrnKaos', 'Ukuran Kaos', 'required');
+	}
+
+	private function _handleValidationError() {
+		$params = array('1', 'danger', 'Data Tidak Berhasil Disimpan');
+		$this->session->set_userdata('pesan', $params);
+		redirect('anggota');
+	}
+
+	private function _checkDuplicateKTA($agtNoKTA) {
+		$validasi_nokta = $this->m_anggota->cekDuplicateNoKta($agtNoKTA);
+		if (sizeof($validasi_nokta) > 0) {
+			$params = array(1, 'warning', 'No. KTA Sudah Ada. Silahkan Coba Lagi.');
+			$this->session->set_userdata('pesan', $params);
+			return false;
+		}
+		return true;
+	}
+
+	private function _handleSaveResult($result, $action = 'add') {
+		if ($result) {
+			$this->db->trans_commit();
+			$params = array($result, $this->pesanColorSuccess, $this->pesanAddSuccess);
+			$this->session->set_userdata('pesan', $params);
+			redirect('anggota');
+		} else {
+			$this->db->trans_rollback();
+			$params = array($result, 'danger', 'Data Tidak Berhasil Disimpan');
+			$this->session->set_userdata('pesan', $params);
+			redirect('anggota');
+		}
 	}
 }
