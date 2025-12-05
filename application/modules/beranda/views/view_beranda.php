@@ -65,33 +65,17 @@
   </div>
 </div>
 <div class="row">
-  <div class="col-xl-6 col-lg-6">
+  <div class="col-12">
     <div class="card shadow mb-4">
       <div class="card-body">
         <div id="usia-bar"></div>
       </div>
     </div>
   </div>
-  <div class="col-xl-6 col-lg-6">
+  <div class="col-12">
     <div class="card shadow mb-4">
       <div class="card-body">
         <div id="anggota"></div>
-      </div>
-    </div>
-  </div>
-</div>
-<div class="row">
-  <div class="col-xl-6 col-lg-6">
-    <div class="card shadow mb-4">
-      <div class="card-body">
-        <div id="pendidikan"></div>
-      </div>
-    </div>
-  </div>
-  <div class="col-xl-6 col-lg-6">
-    <div class="card shadow mb-4">
-      <div class="card-body">
-        <div id="pekerjaan"></div>
       </div>
     </div>
   </div>
@@ -221,158 +205,5 @@ $(function () {
       });
     }
   });
-});
-total_data_pendidikan = '<?php echo $total_pendidikan?>';
-$(function () {
-  $.ajax({
-    type: "GET",
-    url: '<?php echo $json_pendidikan?>',
-    dataType: "json",
-    contentType: "application/json",
-    crossDomain: true,
-    success: function (data) {
-      var d = data
-      var name = Array();
-      var data = Array();
-      var dataArrayFinal = Array();
-      for(i=0;i<d.length;i++) { 
-        name[i] = d[i].name; 
-        data[i] = d[i].data;  
-      }
-      for(j=0;j<name.length;j++) { 
-        var temp = new Array(name[j],data[j]); 
-        dataArrayFinal[j] = temp;     
-      }
-      var chart = new Highcharts.Chart({
-        chart: {
-          renderTo: 'pendidikan',
-          plotBackgroundColor: null,
-          plotBorderWidth: null,
-          plotShadow: false,
-          type: 'pie',
-        },
-        colors: ['#90ed7d', '#80699B','#8085e9','#f7a35c','#434348','#ff8a80 ','#b2dfdb','#e6ee9c','#cfd8dc','#26a69a','#536dfe','#ff80ab','#880e4f'],
-        title: {
-          text: 'Pendidikan'
-        },
-        subtitle: {
-          text: 'Total Data : '+ total_data_pendidikan
-        },
-        tooltip: {
-          pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b><br>{point.y} Orang'
-        },
-        plotOptions: {
-          pie: {
-            allowPointSelect: true,
-            cursor: 'pointer',
-            depth: 35,
-            dataLabels: {
-              enabled: true,
-              format: '<b>{point.name}</b>: {point.percentage:.1f}%</b><br>{point.y} Orang',
-              style: {
-                color: (Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black'
-              }
-            }
-          }
-        },
-        credits: {
-          enabled: false
-        },
-        series: [{
-          name: 'Jumlah',
-          colorByPoint: true,
-          data: dataArrayFinal
-        }]
-      });
-    }
-  });    
-});
-$(function () {
-  $.ajax({
-    type: "GET",
-    url: '<?php echo $json_pekerjaan?>',
-    dataType: "json",
-    contentType: "application/json",
-    crossDomain: true,
-    success: function (data) {
-      var d = data
-      var name = Array();
-      var data = Array();
-      var dataArrayFinal = Array();
-      for(i=0;i<d.length;i++) { 
-        name[i] = d[i].name; 
-        data[i] = d[i].data;  
-      }
-      for(j=0;j<name.length;j++) { 
-        var temp = new Array(name[j],data[j]); 
-          dataArrayFinal[j] = temp;     
-        }
-        var chart = new Highcharts.Chart({
-        chart: {
-          type: 'bar',
-          renderTo: 'pekerjaan',
-          marginLeft: 150,
-        },
-        title: {
-          text: 'Statistik Pekerjaan'
-        },
-        subtitle: {
-          text: 'Jumlah Total Anggota : '+ total_anggota
-        },
-        tooltip: {
-          formatter: function() {
-            var pcnt = (this.point.y / total_anggota) * 100;
-            return '<span style="font-size: 10px"> ' + this.point.name + '</span><br>Jumlah : ' + Highcharts.numberFormat(this.point.y, 0) + ' Orang';
-          }
-        },
-        xAxis: {
-          categories:name,
-          title: {
-            text: null
-          },
-          min: 0,
-          max: 12,
-          scrollbar: {
-            enabled: true
-          },
-          tickLength: 0,
-        },
-        yAxis: {
-          min: 0,
-          endOnTick: true,
-          maxPadding: 0.2,
-          title: {
-            text: 'Jumlah',
-            align: 'high'
-          }
-        },
-        plotOptions: {
-          bar: {
-            dataLabels: {
-              enabled: true,
-              formatter: function () {
-                return Highcharts.numberFormat(Math.abs(this.y), 0) + ' Orang';
-              },
-              style: {
-                color: (Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black'
-              }
-            }
-          }
-        },
-        legend: {
-          enabled: false
-        },
-        credits: {
-          enabled: false
-        },
-        series: [{
-          name: 'Jumlah',
-          data: dataArrayFinal,
-          colorByPoint: true,
-          cursor: 'pointer'
-        }]
-      });
-    }
-  });  
 });
 </script>

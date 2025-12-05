@@ -92,40 +92,6 @@ if ($this->session->userdata('isToken') == TRUE) {
         <section>
           <h3>Formulir Pendaftaran</h3>
           <div class="form-row">
-            <div class="form-col">
-              <label>Pendidikan Terakhir <span style="color:red;">*</span></label>
-              <div class="form-holder">
-                <select name="agtIdPendidikan" class="form-control">
-                  <option value="">-Pilih Pendidikan Terakhir-</option>
-                  <?php
-                    if (!empty($list_pendidikan)){
-                      foreach ($list_pendidikan as $key => $value) {
-                        echo '<option value="'.$value->dikIdPendidikan.'">'.$value->dikPendidikan.'</option>';
-                      }
-                    }
-                  ?>
-                </select>
-                <i class="zmdi zmdi-chevron-down"></i>
-              </div>
-            </div>
-            <div class="form-col">
-              <label>Pekerjaan <span style="color:red;">*</span></label>
-              <div class="form-holder">
-                <select name="agtIdPekerjaan" class="form-control">
-                  <option value="">-Pilih Pekerjaan-</option>
-                  <?php
-                    if (!empty($list_pekerjaan)){
-                      foreach ($list_pekerjaan as $key => $value) {
-                        echo '<option value="'.$value->pkjIdPekerjaan.'">'.$value->pkjNama.'</option>';
-                      }
-                    }
-                  ?>
-                </select>
-                <i class="zmdi zmdi-chevron-down"></i>
-              </div>
-            </div>
-          </div>
-          <div class="form-row">
             <div class="form-col" style="width:100%;">
               <label>Alamat Jalan <span style="color:red;">*</span></label>
               <div class="form-holder">

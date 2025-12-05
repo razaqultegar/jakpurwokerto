@@ -15,13 +15,9 @@ class Pendaftaran extends MX_Controller {
 	}
 
 	private function data_construct() {
-		$this->load->model('pekerjaan/m_pekerjaan');
-		$this->load->model('pendidikan/m_pendidikan');
 		$this->load->model('wilayah/m_wilayah');
 
 		$data['list_jenis_kelamin'] = $this->jenisKelamin;
-		$data['list_pekerjaan'] = $this->m_pekerjaan->getCombo();
-		$data['list_pendidikan'] = $this->m_pendidikan->getCombo();
 		$data['list_wilayah'] = $this->m_wilayah->getCombo();
 		return $data;
 	}
@@ -40,8 +36,6 @@ class Pendaftaran extends MX_Controller {
 		$this->form_validation->set_rules('agtTmptLahir', 'Tempat Lahir', 'required|trim|min_length[2]');
 		$this->form_validation->set_rules('agtTglLahir', 'Tanggal Lahir', 'required');
 		$this->form_validation->set_rules('agtJnsKelamin', 'Jenis Kelamin', 'required');
-		$this->form_validation->set_rules('agtIdPendidikan', 'Pendidikan Terakhir', 'required');
-		$this->form_validation->set_rules('agtIdPekerjaan', 'Pekerjaan', 'required');
 		$this->form_validation->set_rules('agtKecamatan', 'Kecamatan', 'required|trim|min_length[2]');
 		$this->form_validation->set_rules('agtAlamatJalan', 'Alamat Jalan', 'required|trim|min_length[2]');
 		$this->form_validation->set_rules('agtKdPos', 'Kode Pos', 'required|trim|max_length[5]');
@@ -49,7 +43,7 @@ class Pendaftaran extends MX_Controller {
 		$this->form_validation->set_rules('agtEmail', 'Alamat Email', 'required|trim|valid_email');
 		$this->form_validation->set_rules('agtUkrnKaos', 'Ukuran Kaos', 'required');
 		if (empty($_FILES['agtFoto']['name'])) {
-    	$this->form_validation->set_rules('agtFoto', 'Foto Pas (2x3cm)', 'required');
+			$this->form_validation->set_rules('agtFoto', 'Foto Pas (2x3cm)', 'required');
 		}
 		$this->form_validation->set_rules('terms', 'Terms', 'required');
 
@@ -90,8 +84,6 @@ class Pendaftaran extends MX_Controller {
 			'agtTglLahir' => $tgl,
 			'agtUmur' => $umur,
 			'agtJnsKelamin' => (!empty($this->input->post('agtJnsKelamin'))) ? $this->input->post('agtJnsKelamin') : NULL,
-			'agtIdPendidikan' => (!empty($this->input->post('agtIdPendidikan'))) ? $this->input->post('agtIdPendidikan') : NULL,
-			'agtIdPekerjaan' => (!empty($this->input->post('agtIdPekerjaan'))) ? $this->input->post('agtIdPekerjaan') : NULL,
 			'agtKelurahan' => (!empty($this->input->post('agtKelurahan'))) ? $this->input->post('agtKelurahan') : NULL,
 			'agtKecamatan' => (!empty($this->input->post('agtKecamatan'))) ? $this->input->post('agtKecamatan') : NULL,
 			'agtAlamatJalan' => (!empty($this->input->post('agtAlamatJalan'))) ? $this->input->post('agtAlamatJalan') : NULL,

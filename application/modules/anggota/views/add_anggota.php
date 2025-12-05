@@ -80,36 +80,6 @@
               <input name="agtTglLahir" type="text" class="form-control" data-language="id" data-date-format="dd/mm/yyyy" id="dp1">
             </div>
           </li>
-          <li class="mb-2">
-            <div class="section-list">
-              <label>Pendidikan Terakhir</label>
-              <select name="agtIdPendidikan" class="form-control">
-                <option value="">-Pilih Pendidikan Terakhir-</option>
-                <?php
-                  if (!empty($list_pendidikan)){
-                    foreach ($list_pendidikan as $key => $value) {
-                      echo '<option value="'.$value->dikIdPendidikan.'">'.$value->dikPendidikan.'</option>';
-                    }
-                  }
-                ?>
-              </select>
-            </div>
-          </li>
-          <li class="mb-2">
-            <div class="section-list">
-              <label>Pekerjaan</label>
-              <select name="agtIdPekerjaan" class="form-control">
-                <option value="">-Pilih Pekerjaan-</option>
-                <?php
-                  if (!empty($list_pekerjaan)){
-                    foreach ($list_pekerjaan as $key => $value) {
-                      echo '<option value="'.$value->pkjIdPekerjaan.'">'.$value->pkjNama.'</option>';
-                    }
-                  }
-                ?>
-              </select>
-            </div>
-          </li>
         </div>
         <div class="col-xl-4 col-lg-4 mb-2 row-list">
           <li class="mb-2">

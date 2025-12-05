@@ -48,18 +48,6 @@
         </li>
         <li class="mb-2">
           <div class="section-list">
-            <span class="header-list">Pendidikan Terakhir</span>
-            <span class="content-list"><?php echo $dikPendidikan ?></span>
-          </div>
-        </li>
-        <li class="mb-2">
-          <div class="section-list">
-            <span class="header-list">Pekerjaan</span>
-            <span class="content-list"><?php echo $pkjNama ?></span>
-          </div>
-        </li>
-        <li class="mb-2">
-          <div class="section-list">
             <span class="header-list">No. Telepon</span>
             <span class="content-list"><?php echo $agtNoTelp ?></span>
           </div>
