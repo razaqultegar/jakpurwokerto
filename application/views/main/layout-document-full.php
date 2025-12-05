@@ -74,7 +74,7 @@
       <footer class="sticky-footer bg-white">
         <div class="container my-auto">
           <div class="copyright my-auto">
-            <span>Hak Cipta &copy; 2018 oleh <a href="https://limbodigital.id" target="_blank">Limbo Digital</a>.</span>
+            <span>Hak Cipta &copy; 2018 oleh <a href="https://thedots.space" target="_blank">DOTS.</a>.</span>
           </div>
         </div>
       </footer>

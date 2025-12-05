@@ -41,7 +41,7 @@
                     <button type="submit" class="btn btn-danger btn-user btn-block">Masuk</button>
                     <hr>
                     <div class="text-center">
-                      <p>Hak Cipta &copy; 2018 oleh <a href="https://limbodigital" target="_blank">Limbo Digital</a>.</p>
+                      <p>Hak Cipta &copy; 2018 oleh <a href="https://thedots.space" target="_blank">DOTS.</a>.</p>
                     </div>
                   </form>
                 </div>
