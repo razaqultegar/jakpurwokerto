@@ -1,10 +1,14 @@
 <?php
+
 defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Selamat_datang extends MX_Controller {
 	public function __construct() {
 		parent::__construct();
+
+		// load model
 		$this->load->model('selamat_datang/m_selamat_datang');
+
 		// message
 		$this->pesanTokenWarning = "Pastikan Jenis Pengisian dan Token Sudah Sesuai";
 		$this->pesanColorWarning = "warning";
@@ -21,29 +25,33 @@ class Selamat_datang extends MX_Controller {
 	public function validate_token() {
 		$this->form_validation->set_rules('jenis', 'Jenis', 'required');
 		$this->form_validation->set_rules('token', 'Token', 'required|trim');
+
 		// jika form yang di isi kosong
-		if($this->form_validation->run()==FALSE){
+		if ($this->form_validation->run() == FALSE) {
 			$result = 1;
 			$params = array($result, $this->pesanColorWarning, $this->pesanTokenWarning, '');
 			$this->session->set_userdata('pesan', $params); 
 			redirect('/');
-		}else{
+		} else {
 			// jika form yang di isi benar
 			$jenis = $this->input->post('jenis');
 			$token = $this->input->post('token');
-			  
 			$cek = $this->m_selamat_datang->validate($token);
-			if(!empty($cek)){
+
+			if (!empty($cek)) {
 				$this->session->set_userdata('isToken', TRUE);
 				$this->session->set_userdata('tokenId', $cek->tokenId);  
 				$this->session->set_userdata('token', $token);  
-				
-				if($jenis == 'pendaftaran'){
+
+				// arahkan ke halaman sesuai jenis pengisian
+				if ($jenis == 'pendaftaran') {
 					redirect('pendaftaran');
-				}else{
+				} else if ($jenis == 'pendataan') {
 					redirect('pendataan');
+				} else {
+					redirect('perpanjangan');
 				}
-			}else{
+			} else {
 				// jika form yang di isi salah
 				$result = 1;
 				$params = array($result, $this->pesanColorError, $this->pesanTokenError, '');
