@@ -1,10 +1,12 @@
-<?php defined('BASEPATH') OR exit('No direct script access allowed');
+<?php defined('BASEPATH') or exit('No direct script access allowed');
 
-class Anggota extends MY_Controller {
+class Anggota extends MY_Controller
+{
 	protected $jenisKelamin = ['L' => 'Laki-laki', 'P' => 'Perempuan'];
 	protected $uploadDir = 'files/anggota/';
 
-	public function __construct() {
+	public function __construct()
+	{
 		parent::__construct();
 
 		// load model
@@ -19,7 +21,8 @@ class Anggota extends MY_Controller {
 		$this->load->library('excel/PHPExcel');
 	}
 
-	private function data_construct() {
+	private function data_construct()
+	{
 		// load model
 		$this->load->model('wilayah/m_wilayah');
 
@@ -31,7 +34,8 @@ class Anggota extends MY_Controller {
 		return $data;
 	}
 
-	public function index() {
+	public function index()
+	{
 		$msg = $this->session->userdata('pesan');
 		$data = $this->data_construct();
 		$data['msg'] = (!empty($msg)) ? $msg : ['', '', ''];
@@ -43,27 +47,28 @@ class Anggota extends MY_Controller {
 		$this->layout->set_layout('anggota/view_anggota', $data);
 	}
 
-	public function get_data_json() {
+	public function get_data_json()
+	{
 		ob_start();
 
-		$requestData= $_REQUEST;
+		$requestData = $_REQUEST;
 		$order = $this->input->post('order');
 		$columns = $this->input->post('columns');
 		$options['order'] = !empty($order) && !empty($columns)
 			? $columns[$order[0]['column']]['data']
 			: 'agtLastUpdate';
 
-		$options['mode'] = !empty($order) ? $order[0]['dir']: 'desc';
+		$options['mode'] = !empty($order) ? $order[0]['dir'] : 'desc';
 		$start = $this->input->post('start');
 		$length = $this->input->post('length');
 		$options['offset'] = empty($start) ? 0 : $start;
 		$options['limit'] = empty($length) ? 10 : $length;
 
 		if (!empty($requestData['search']['value'])) {
-				$options['where_like'] = array(
-				"agtNama LIKE '%".$requestData['search']['value']."%'
-				OR agtNoKTA LIKE '%".$requestData['search']['value']."%'
-				OR wilNama LIkE '%".$requestData['search']['value']."%'"
+			$options['where_like'] = array(
+				"agtNama LIKE '%" . $requestData['search']['value'] . "%'
+				OR agtNoKTA LIKE '%" . $requestData['search']['value'] . "%'
+				OR wilNama LIkE '%" . $requestData['search']['value'] . "%'"
 			);
 		}
 
@@ -73,37 +78,40 @@ class Anggota extends MY_Controller {
 		$totalData = $this->m_anggota->getTotal($this->db_condition);
 		$no = $options['offset'] + 1;
 
-		if (!empty($dataOutput)){
+		if (!empty($dataOutput)) {
 			foreach ($dataOutput as $value) {
 				$value->no = $no;
 				$value->agtNoKTA = (!empty($value->agtNoKTA)) ? $value->agtNoKTA : "-";
 				$value->aksi = '<a href="' . site_url('anggota/edit/' . $value->agtId) . '" class="btn btn-warning btn-circle btn-sm" title="Edit Data"><i class="fas fa-pencil-alt"></i></a> <a href="' . site_url('anggota/delete/' . $value->agtId) . '" class="btn btn-danger btn-circle btn-sm" title="Hapus Data"><i class="fas fa-trash"></i></a>';
-				$value->agtNama = '<a href="' . site_url('anggota/detil/' . $value->agtId).'" title="Detil Data">' . strtoupper($value->agtNama) . '</a>';
+				$value->agtNama = '<a href="' . site_url('anggota/detil/' . $value->agtId) . '" title="Detil Data">' . strtoupper($value->agtNama) . '</a>';
 				$value->wilNama = (!empty($value->wilNama)) ? $value->wilNama : "-";
 				$no++;
 			}
 		}
 
 		$response = array(
-			"draw" => isset($requestData['draw']) ? intval( $requestData['draw'] ) : 0,
-			"recordsTotal" => intval( $totalData ),
-			"recordsFiltered" => intval( $totalFiltered ),
+			"draw" => isset($requestData['draw']) ? intval($requestData['draw']) : 0,
+			"recordsTotal" => intval($totalData),
+			"recordsFiltered" => intval($totalFiltered),
 			"data" => $dataOutput
 		);
 
 		echo json_encode($response);
 	}
 
-	public function detil() {
+	public function detil()
+	{
 		$id = $this->uri->segment(3);
-		$data = $this->m_anggota->getDataById($id);
-		$data = array_merge($data, $this->data_construct());
+		$anggota = $this->m_anggota->getDataById($id);
+		$wilayah = $this->_resolveWilayahNames($anggota);
+		$data = array_merge($anggota, $wilayah, $this->data_construct());
 		$data['title'] = 'Detil Data Anggota';
-		
+
 		$this->layout->set_layout('anggota/detil_anggota', $data);
 	}
 
-	public function edit() {
+	public function edit()
+	{
 		$id = $this->uri->segment(3);
 		$data = $this->m_anggota->getDataById($id);
 		$data = array_merge($data, $this->data_construct());
@@ -115,7 +123,8 @@ class Anggota extends MY_Controller {
 		$this->layout->set_layout('anggota/edit_anggota', $data);
 	}
 
-	public function editAction() {
+	public function editAction()
+	{
 		$this->_setValidationRules();
 
 		if ($this->form_validation->run() == FALSE) {
@@ -139,10 +148,22 @@ class Anggota extends MY_Controller {
 
 		// Prepare form data
 		$fields = [
-			'agtNoKTA', 'agtIdWilayah', 'agtNama', 'agtNmPendek',
-			'agtTmptLahir', 'agtJnsKelamin', 'agtKelurahan', 'agtKecamatan',
-			'agtAlamatJalan', 'agtKdPos', 'agtNoTelp', 'agtEmail',
-			'agtUkrnKaos', 'agtStatusKta', 'agtBrlkDari', 'agtBrlkSampai'
+			'agtNoKTA',
+			'agtIdWilayah',
+			'agtNama',
+			'agtNmPendek',
+			'agtTmptLahir',
+			'agtJnsKelamin',
+			'agtKelurahan',
+			'agtKecamatan',
+			'agtAlamatJalan',
+			'agtKdPos',
+			'agtNoTelp',
+			'agtEmail',
+			'agtUkrnKaos',
+			'agtStatusKta',
+			'agtBrlkDari',
+			'agtBrlkSampai'
 		];
 
 		$data = $this->_prepareFormData($fields, $this->input->post('agtTglLahir'));
@@ -154,26 +175,28 @@ class Anggota extends MY_Controller {
 		$this->_handleSaveResult($updateId, 'edit');
 	}
 
-	public function delete($id){
+	public function delete($id)
+	{
 		$data = $this->m_anggota->deleteImage($id)->row();
 		unlink(FCPATH . "files/anggota/$data->agtFoto");
 		$delete = $this->m_anggota->delete(['agtId' => $id]);
 
-		if($delete){
+		if ($delete) {
 			$params = array($delete, $this->pesanColorSuccess, $this->pesanDeleteSuccess);
 			$this->session->set_userdata('pesan', $params);
 			redirect('anggota');
-		}else{
+		} else {
 			redirect('anggota');
 		}
 	}
-	
-	public function export() {
+
+	public function export()
+	{
 		set_time_limit(0);
 		require_once APPPATH . 'libraries/excel/PHPExcel.php';
 		include APPPATH . 'libraries/excel/PHPExcel/Writer/Excel2007.php';
 
-		$templateExcel = FCPATH.'files/export_anggota.xls';
+		$templateExcel = FCPATH . 'files/export_anggota.xls';
 		$objPHPExcel = PHPExcel_IOFactory::load($templateExcel);
 		$objPHPExcel->setActiveSheetIndex(0);
 
@@ -196,25 +219,25 @@ class Anggota extends MY_Controller {
 		$no = 1;
 		$row = 5;
 
-		if (!empty($dataOutput)){
+		if (!empty($dataOutput)) {
 			foreach ($dataOutput as $value) {
 				$tgllahir = $this->format_tanggal($value->agtTglLahir);
 				$kelurahan = (!empty($value->agtKelurahan)) ? $value->agtKelurahan : '-';
 				$tglinsert = $this->format_tanggal($value->agtTglInsert);
 
-				$objPHPExcel->getActiveSheet()->SetCellValue('A'.$row, $value->agtNoKTA);
-				$objPHPExcel->getActiveSheet()->SetCellValue('B'.$row, $value->agtBrlkDari);
-				$objPHPExcel->getActiveSheet()->SetCellValue('C'.$row, $value->agtBrlkSampai);
-				$objPHPExcel->getActiveSheet()->SetCellValue('D'.$row, $value->agtNama);
-				$objPHPExcel->getActiveSheet()->SetCellValue('E'.$row, $value->agtTmptLahir.", ".$tgllahir);
-				$objPHPExcel->getActiveSheet()->SetCellValue('H'.$row, $value->agtAlamatJalan);
-				$objPHPExcel->getActiveSheet()->SetCellValue('I'.$row, $kelurahan);
-				$objPHPExcel->getActiveSheet()->SetCellValue('J'.$row, $value->agtKecamatan);
-				$objPHPExcel->getActiveSheet()->SetCellValue('K'.$row, $value->agtKdPos);
-				$objPHPExcel->getActiveSheet()->SetCellValue('L'.$row, $value->agtNoTelp);
-				$objPHPExcel->getActiveSheet()->SetCellValue('M'.$row, $value->agtEmail);
-				$objPHPExcel->getActiveSheet()->SetCellValue('N'.$row, $value->agtUkrnKaos);
-				$objPHPExcel->getActiveSheet()->SetCellValue('O'.$row, $tglinsert);
+				$objPHPExcel->getActiveSheet()->SetCellValue('A' . $row, $value->agtNoKTA);
+				$objPHPExcel->getActiveSheet()->SetCellValue('B' . $row, $value->agtBrlkDari);
+				$objPHPExcel->getActiveSheet()->SetCellValue('C' . $row, $value->agtBrlkSampai);
+				$objPHPExcel->getActiveSheet()->SetCellValue('D' . $row, $value->agtNama);
+				$objPHPExcel->getActiveSheet()->SetCellValue('E' . $row, $value->agtTmptLahir . ", " . $tgllahir);
+				$objPHPExcel->getActiveSheet()->SetCellValue('H' . $row, $value->agtAlamatJalan);
+				$objPHPExcel->getActiveSheet()->SetCellValue('I' . $row, $kelurahan);
+				$objPHPExcel->getActiveSheet()->SetCellValue('J' . $row, $value->agtKecamatan);
+				$objPHPExcel->getActiveSheet()->SetCellValue('K' . $row, $value->agtKdPos);
+				$objPHPExcel->getActiveSheet()->SetCellValue('L' . $row, $value->agtNoTelp);
+				$objPHPExcel->getActiveSheet()->SetCellValue('M' . $row, $value->agtEmail);
+				$objPHPExcel->getActiveSheet()->SetCellValue('N' . $row, $value->agtUkrnKaos);
+				$objPHPExcel->getActiveSheet()->SetCellValue('O' . $row, $tglinsert);
 
 				$no++;
 				$row++;
@@ -222,17 +245,18 @@ class Anggota extends MY_Controller {
 		}
 
 		$row = $row - 1;
-		$objPHPExcel->getActiveSheet()->getStyle("A5:O".$row)->applyFromArray($borderThinStyle);
+		$objPHPExcel->getActiveSheet()->getStyle("A5:O" . $row)->applyFromArray($borderThinStyle);
 
 		header('Content-Type: application/vnd.ms-excel');
-		header('Content-Disposition: attachment;filename="data_anggota_'.date("d-m-Y").'.xls"');
+		header('Content-Disposition: attachment;filename="data_anggota_' . date("d-m-Y") . '.xls"');
 		header('Cache-Control: max-age=0');
 
 		$objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5');
 		$objWriter->save('php://output');
 	}
 
-	private function _parseTanggal($date) {
+	private function _parseTanggal($date)
+	{
 		if (empty($date)) return NULL;
 
 		$tgllhr = explode("/", $date);
@@ -249,7 +273,8 @@ class Anggota extends MY_Controller {
 		return NULL;
 	}
 
-	private function _calculateAge($birthDate) {
+	private function _calculateAge($birthDate)
+	{
 		if (empty($birthDate)) return 0;
 
 		try {
@@ -261,7 +286,8 @@ class Anggota extends MY_Controller {
 		}
 	}
 
-	private function _handleFileUpload($fieldName, $oldFile = null) {
+	private function _handleFileUpload($fieldName, $oldFile = null)
+	{
 		if (empty($_FILES[$fieldName]['name'])) {
 			return $oldFile; // Return old file if no new file uploaded
 		}
@@ -292,7 +318,8 @@ class Anggota extends MY_Controller {
 		return $upload ? $file_name : false;
 	}
 
-	private function _prepareFormData($fields, $tglLahir = null) {
+	private function _prepareFormData($fields, $tglLahir = null)
+	{
 		$data = array();
 
 		foreach ($fields as $field) {
@@ -313,7 +340,8 @@ class Anggota extends MY_Controller {
 		return $data;
 	}
 
-	private function _setValidationRules() {
+	private function _setValidationRules()
+	{
 		$this->form_validation->set_rules('agtIdWilayah', 'Koordinator Wilayah', 'required');
 		$this->form_validation->set_rules('agtNama', 'Nama Lengkap', 'required|min_length[2]');
 		$this->form_validation->set_rules('agtNmPendek', 'Nama Panggilan', 'required|trim|min_length[2]');
@@ -329,13 +357,15 @@ class Anggota extends MY_Controller {
 		$this->form_validation->set_rules('agtUkrnKaos', 'Ukuran Kaos', 'required');
 	}
 
-	private function _handleValidationError() {
+	private function _handleValidationError()
+	{
 		$params = array('1', 'danger', 'Data Tidak Berhasil Disimpan');
 		$this->session->set_userdata('pesan', $params);
 		redirect('anggota');
 	}
 
-	private function _checkDuplicateKTA($agtNoKTA) {
+	private function _checkDuplicateKTA($agtNoKTA)
+	{
 		$validasi_nokta = $this->m_anggota->cekDuplicateNoKta($agtNoKTA);
 		if (sizeof($validasi_nokta) > 0) {
 			$params = array(1, 'warning', 'No. KTA Sudah Ada. Silahkan Coba Lagi.');
@@ -345,7 +375,8 @@ class Anggota extends MY_Controller {
 		return true;
 	}
 
-	private function _handleSaveResult($result, $action = 'add') {
+	private function _handleSaveResult($result, $action = 'add')
+	{
 		if ($result) {
 			$this->db->trans_commit();
 			$params = array($result, $this->pesanColorSuccess, $this->pesanAddSuccess);
@@ -357,5 +388,79 @@ class Anggota extends MY_Controller {
 			$this->session->set_userdata('pesan', $params);
 			redirect('anggota');
 		}
+	}
+
+	private function _fetchWilayahData($url)
+	{
+		$ch = curl_init();
+		curl_setopt($ch, CURLOPT_URL, $url);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+		curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+		$response = curl_exec($ch);
+		curl_close($ch);
+
+		if (!$response) {
+			return [];
+		}
+
+		$data = json_decode($response, true);
+		return isset($data['data']) && is_array($data['data']) ? $data['data'] : [];
+	}
+
+	private function _resolveWilayahNames($anggota)
+	{
+		$result = array(
+			'agtProvinsiNama' => null,
+			'agtKabupatenNama' => null,
+			'agtKecamatanNama' => null,
+			'agtKelurahanNama' => null,
+		);
+
+		// Provinsi
+		if (!empty($anggota['agtProvinsi'])) {
+			$provinces = $this->_fetchWilayahData('https://wilayah.id/api/provinces.json');
+			foreach ($provinces as $provinsi) {
+				if (isset($provinsi['code']) && $provinsi['code'] == $anggota['agtProvinsi']) {
+					$result['agtProvinsiNama'] = $provinsi['name'];
+					break;
+				}
+			}
+		}
+
+		// Kabupaten/Kota
+		if (!empty($anggota['agtProvinsi']) && !empty($anggota['agtKabupaten'])) {
+			$regencies = $this->_fetchWilayahData('https://wilayah.id/api/regencies/' . $anggota['agtProvinsi'] . '.json');
+			foreach ($regencies as $kabupaten) {
+				if (isset($kabupaten['code']) && $kabupaten['code'] == $anggota['agtKabupaten']) {
+					$name = isset($kabupaten['name']) ? $kabupaten['name'] : null;
+					$result['agtKabupatenNama'] = preg_replace('/^(Kabupaten|Kota Administrasi|Kota)\s+/', '', $name);
+					break;
+				}
+			}
+		}
+
+		// Kecamatan
+		if (!empty($anggota['agtKabupaten']) && !empty($anggota['agtKecamatan'])) {
+			$districts = $this->_fetchWilayahData('https://wilayah.id/api/districts/' . $anggota['agtKabupaten'] . '.json');
+			foreach ($districts as $kecamatan) {
+				if (isset($kecamatan['code']) && $kecamatan['code'] == $anggota['agtKecamatan']) {
+					$result['agtKecamatanNama'] = isset($kecamatan['name']) ? $kecamatan['name'] : null;
+					break;
+				}
+			}
+		}
+
+		// Kelurahan/Desa
+		if (!empty($anggota['agtKecamatan']) && !empty($anggota['agtKelurahan'])) {
+			$villages = $this->_fetchWilayahData('https://wilayah.id/api/villages/' . $anggota['agtKecamatan'] . '.json');
+			foreach ($villages as $kelurahan) {
+				if (isset($kelurahan['code']) && $kelurahan['code'] == $anggota['agtKelurahan']) {
+					$result['agtKelurahanNama'] = isset($kelurahan['name']) ? $kelurahan['name'] : null;
+					break;
+				}
+			}
+		}
+
+		return $result;
 	}
 }
