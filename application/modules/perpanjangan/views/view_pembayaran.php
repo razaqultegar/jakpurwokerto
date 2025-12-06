@@ -58,8 +58,7 @@
 				<?php } elseif ($anggota['agtMetodePembayaran'] == 'MANDIRI') { ?>
 				<div class="bank-detail">
 					<div class="bank-name">Bank Mandiri</div>
-					<div class="account-number" id="accountMandiri">1800015214796</div>
-					<div class="account-name">a.n. Khilmi Choerul F.</div>
+					<div class="account-number" id="accountMandiri">1800015214796 <span class="account-name">a.n. Khilmi Choerul F.</span></div>
 					<button class="copy-btn" onclick="copyAccount('accountMandiri')">Salin Nomor Rekening</button>
 				</div>
 				<?php } ?>
