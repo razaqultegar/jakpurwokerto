@@ -1,73 +1,91 @@
-<?php
-defined('BASEPATH') OR exit('No direct script access allowed');
+<?php defined('BASEPATH') or exit('No direct script access allowed');
 
-class Beranda extends MY_Controller {
-	public function __construct() {
+class Beranda extends MY_Controller
+{
+	public function __construct()
+	{
 		parent::__construct();
 		$this->load->model('anggota/m_anggota');
 		$this->load->model('kas/m_kas');
 	}
 
-	public function json_anggota(){
-		$m = $this->m_anggota->getMan($this->db_condition);
-		$w = $this->m_anggota->getWoman($this->db_condition);
-		foreach ($m as $value) {
-			$man['name'] = 'Laki-laki';
-			$man['data'][] = $value->data; 
-		}
+	public function index()
+	{
+		$data['title'] = 'Beranda';
 
-		foreach ($w as $value) {
-			$woma['name'] = 'Perempuan';
-			$woma['data'][] = $value->data; 
-		}
-
-		$response = [
-			$anggota[] = $man,
-			$anggota[] = $woma,
-		];
-
-		$json = json_encode($anggota, JSON_NUMERIC_CHECK);
-		print_r($json);
-	}
-
-	public function json_anggota_usia(){
-		$m = $this->m_anggota->getManUsia($this->db_condition);
-		$w = $this->m_anggota->getWomanUsia($this->db_condition);
-		foreach ($m as $value) {
-			$man['name'] = 'Laki-laki';
-			$man['data'][] = $value->data; 
-		}
-
-		foreach ($w as $value) {
-			$woma['name'] = 'Perempuan';
-			$woma['data'][] = $value->data; 
-		}
-		
-		$response = [
-			$anggota[] = $man,
-			$anggota[] = $woma,
-		];
-
-		$json = json_encode($anggota, JSON_NUMERIC_CHECK);
-		print_r($json);
-	}
-
-	public function index() {
 		$data['total_anggota'] = $this->m_anggota->getTotal($this->db_condition);
+		$man = $this->m_anggota->getGender('L', $this->db_condition);
+		$woman = $this->m_anggota->getGender('P', $this->db_condition);
+		$data['total_laki'] = !empty($man) && isset($man[0]['total'])
+			? (int)$man[0]['total'] : 0;
+		$data['total_perempuan'] = !empty($woman) && isset($woman[0]['total'])
+			? (int)$woman[0]['total'] : 0;
+
 		$kas = $this->m_kas->getData();
-		$total_kas = 0;        
-		foreach ($kas as $key => $value) {
-			$total_kas += $value['kasSaldo'];
+		$total_kas = 0;
+		foreach ($kas as $value) {
+			$total_kas += isset($value['kasSaldo']) ? (float)$value['kasSaldo'] : 0;
 		}
 		$data['total_kas'] = $total_kas;
+
 		$data['json_agt'] = site_url('beranda/json_anggota');
 		$data['json_agt_usia'] = site_url('beranda/json_anggota_usia');
-		$l = $this->m_anggota->getGender('L', $this->db_condition);
-		$p = $this->m_anggota->getGender('P', $this->db_condition);
-		$data['total_laki'] = $l[0]['total'];
-		$data['total_perempuan'] = $p[0]['total'];
-		
-		$data['title'] = 'Beranda';
+
 		$this->layout->set_layout('beranda/view_beranda', $data);
+	}
+
+	public function json_anggota()
+	{
+		$man = $this->m_anggota->getMan($this->db_condition);
+		$woman = $this->m_anggota->getWoman($this->db_condition);
+
+		$series = [
+			$this->buildSeries($man, 'Laki-laki'),
+			$this->buildSeries($woman, 'Perempuan'),
+		];
+
+		$this->respondJson($series);
+	}
+
+	public function json_anggota_usia()
+	{
+		$man = $this->m_anggota->getManUsia($this->db_condition);
+		$woman = $this->m_anggota->getWomanUsia($this->db_condition);
+
+		$series = [
+			$this->buildSeries($man, 'Laki-laki'),
+			$this->buildSeries($woman, 'Perempuan'),
+		];
+
+		$this->respondJson($series);
+	}
+
+	private function buildSeries($rows, $label)
+	{
+		$series = [
+			'name' => $label,
+			'data' => [],
+		];
+
+		foreach ($rows as $row) {
+			$value = null;
+
+			if (is_object($row) && isset($row->data)) {
+				$value = $row->data;
+			} elseif (is_array($row) && isset($row['data'])) {
+				$value = $row['data'];
+			}
+
+			$series['data'][] = $value !== null ? (float)$value : 0;
+		}
+
+		return $series;
+	}
+
+	private function respondJson($payload)
+	{
+		$this->output
+			->set_content_type('application/json')
+			->set_output(json_encode($payload, JSON_NUMERIC_CHECK));
 	}
 }
