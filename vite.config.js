@@ -1,24 +1,31 @@
-import { defineConfig } from 'vite';
-import laravel from 'laravel-vite-plugin';
-import { bunny } from 'laravel-vite-plugin/fonts';
-import tailwindcss from '@tailwindcss/vite';
+import * as glob from "glob";
+import path from "path";
+import { defineConfig } from "vite";
+import laravel from "laravel-vite-plugin";
+import tailwindcss from "@tailwindcss/vite";
+
+// Helpers: Define asset paths
+const ASSET_ROOT = "resources/assets";
+const PATHS = {
+    core: [`${ASSET_ROOT}/css/app.css`, `${ASSET_ROOT}/js/app.js`],
+};
+
+// Helpers: Function to generate entry points
+function entries() {
+    return [...PATHS.core];
+}
 
 export default defineConfig({
     plugins: [
         laravel({
-            input: ['resources/css/app.css', 'resources/js/app.js'],
+            input: entries(),
             refresh: true,
-            fonts: [
-                bunny('Instrument Sans', {
-                    weights: [400, 500, 600],
-                }),
-            ],
         }),
         tailwindcss(),
     ],
     server: {
         watch: {
-            ignored: ['**/storage/framework/views/**'],
+            ignored: ["**/storage/framework/views/**"],
         },
     },
 });
