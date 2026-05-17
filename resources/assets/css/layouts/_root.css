@@ -1,0 +1,14 @@
+@layer base {
+    body {
+        background-color: var(--color-background);
+        color: var(--color-foreground);
+        font-size: 14px;
+        font-weight: 300;
+        line-height: inherit;
+    }
+
+    html,
+    body {
+        -webkit-font-smoothing: antialiased;
+    }
+}

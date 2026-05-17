@@ -1,0 +1,12 @@
+@theme {
+    --breakpoint-sm: 480px;
+
+    --color-background: #f7f7f7;
+    --color-foreground: #4a4a4a;
+    --color-mercury: #e8e8e8;
+    --color-onyx: #666666;
+
+    --font-sans: "Rubik", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
+        "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    --text-sm: 12px;
+}

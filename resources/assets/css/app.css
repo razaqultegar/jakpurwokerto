@@ -1,6 +1,6 @@
-@import 'tailwindcss';
+/* Core */
+@import "tailwindcss";
+@import "./config";
 
-@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
-@source '../../storage/framework/views/*.php';
-@source '../**/*.blade.php';
-@source '../**/*.js';
+/* Layouts */
+@import "./layouts/_layout";
