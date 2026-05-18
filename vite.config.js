@@ -8,11 +8,12 @@ import tailwindcss from "@tailwindcss/vite";
 const ASSET_ROOT = "resources/assets";
 const PATHS = {
     core: [`${ASSET_ROOT}/css/app.css`, `${ASSET_ROOT}/js/app.js`],
+    pages: glob.sync(`${ASSET_ROOT}/js/pages/*.js`),
 };
 
 // Helpers: Function to generate entry points
 function entries() {
-    return [...PATHS.core];
+    return [...PATHS.core, ...PATHS.pages];
 }
 
 export default defineConfig({

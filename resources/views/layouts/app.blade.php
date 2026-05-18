@@ -9,7 +9,7 @@
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300..900;1,300..900&display=swap">
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300..900;1,300..900&display=swap">
-        @vite(['resources/assets/css/app.css', 'resources/assets/js/app.js'])
+        @vite('resources/assets/css/app.css')
     </head>
     <body>
         <main class="mx-auto my-0 min-h-full max-w-screen-sm">
@@ -18,5 +18,7 @@
                 <x-footer />
             </div>
         </main>
+        @vite('resources/assets/js/app.js')
+        @stack('scripts')
     </body>
 </html>
