@@ -13,4 +13,12 @@
             @include('pages.home._partials.menu')
         </div>
     </section>
+    <hr class="m-0 h-2 w-full border-0 bg-skull p-0">
+    <section class="mb-6 p-4">
+        @include('pages.home._partials.merchandise')
+    </section>
 @endsection
+
+@push('scripts')
+    @vite('resources/assets/js/pages/home.js')
+@endpush
