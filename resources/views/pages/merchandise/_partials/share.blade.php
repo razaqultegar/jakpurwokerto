@@ -2,9 +2,9 @@
     $shareUrl = url()->current();
     $shareText = ($merch['name'] ?? 'Merchandise') . ' - ' . ($merch['tagline'] ?? '');
 @endphp
-<div class="pointer-events-none fixed inset-0 z-50" data-share aria-hidden="true">
+<div class="pointer-events-none fixed inset-0 z-50" aria-hidden="true" data-share>
     <div class="absolute inset-0 bg-black/60 opacity-0 transition-opacity duration-300" data-share-backdrop></div>
-    <div class="absolute inset-x-0 bottom-0 mx-auto flex w-full max-w-screen-sm translate-y-full flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl transition-transform duration-300 ease-out" data-share-panel role="dialog" aria-modal="true" aria-label="Bagikan">
+    <div class="absolute inset-x-0 bottom-0 mx-auto flex w-full max-w-screen-sm translate-y-full flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl transition-transform duration-300 ease-out" aria-modal="true" data-share-panel>
         <div class="flex justify-center pt-2.5">
             <span class="h-1.5 w-10 rounded-full bg-mercury"></span>
         </div>
@@ -18,7 +18,7 @@
                     <p class="text-[10px] text-onyx">Ajak teman lihat merchandise ini</p>
                 </div>
             </div>
-            <button type="button" class="flex h-9 w-9 items-center justify-center rounded-full bg-skull text-foreground ring-1 ring-mercury" data-share-close aria-label="Tutup">
+            <button type="button" class="flex h-9 w-9 items-center justify-center rounded-full bg-skull text-foreground ring-1 ring-mercury" data-share-close>
                 <i class="ri-close-line text-lg"></i>
             </button>
         </header>
@@ -52,7 +52,7 @@
             <div class="mt-3 flex items-center gap-2 rounded-2xl bg-skull p-2 pl-3 ring-1 ring-mercury">
                 <i class="ri-link-m shrink-0 text-base text-onyx"></i>
                 <span class="flex-1 truncate text-[11px] text-onyx" data-share-url>{{ $shareUrl }}</span>
-                <button type="button" class="inline-flex shrink-0 items-center gap-1 rounded-xl bg-primary px-2.5 py-1.5 text-[11px] font-bold text-white shadow-sm transition active:scale-95" data-share-copy aria-label="Salin link">
+                <button type="button" class="inline-flex shrink-0 items-center gap-1 rounded-xl bg-primary px-2.5 py-1.5 text-[11px] font-bold text-white shadow-sm transition active:scale-95" data-share-copy>
                     <i class="ri-link text-sm" data-share-copy-icon></i>
                     <span data-share-copy-label>Salin</span>
                 </button>

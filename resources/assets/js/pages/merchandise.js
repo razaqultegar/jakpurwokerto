@@ -429,7 +429,7 @@ function initCart(alert) {
                     <div class="mt-0.5 text-[10px] text-onyx">${it.category} · ${it.sleeve} · ${it.size}${it.fee > 0 ? ` <span class="text-primary">(+${formatRupiah(it.fee)} kustom)</span>` : ''}</div>
                     <div class="mt-1 text-[11px] font-semibold text-primary">${formatRupiah(it.price)} × ${it.qty}</div>
                 </div>
-                <button type="button" class="flex h-8 w-8 items-center justify-center rounded-full bg-white text-foreground ring-1 ring-mercury" data-cart-remove="${i}" aria-label="Hapus item">
+                <button type="button" class="flex h-8 w-8 items-center justify-center rounded-full bg-white text-foreground ring-1 ring-mercury" data-cart-remove="${i}">
                     <i class="ri-delete-bin-line text-sm"></i>
                 </button>
             </li>

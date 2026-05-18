@@ -8,7 +8,7 @@
     </div>
     <div class="grid grid-cols-2 gap-2.5">
         @foreach ($merch['categories'] as $cat)
-        <button type="button" class="group relative flex items-center gap-3 rounded-2xl border-2 p-3 text-left transition aria-pressed:border-primary aria-pressed:bg-primary-softer aria-pressed:shadow-sm border-mercury bg-white" data-category="{{ $cat['key'] }}" data-category-name="{{ $cat['name'] }}" aria-pressed="{{ $cat['active'] ? 'true' : 'false' }}">
+        <button type="button" class="group relative flex items-center gap-3 rounded-2xl border-2 p-3 text-left transition aria-pressed:border-primary aria-pressed:bg-primary-softer aria-pressed:shadow-sm border-mercury bg-white" data-category="{{ $cat['key'] }}" aria-pressed="{{ $cat['active'] ? 'true' : 'false' }}" data-category-name="{{ $cat['name'] }}">
             <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary-softer text-primary ring-1 ring-primary-soft group-aria-pressed:bg-primary group-aria-pressed:text-white group-aria-pressed:ring-primary">
                 <i class="{{ $cat['icon'] }} text-xl"></i>
             </span>
@@ -28,7 +28,7 @@
     </div>
     <div class="grid grid-cols-2 gap-2.5">
         @foreach ($merch['sleeves'] as $sleeve)
-        <button type="button" class="group relative flex items-center gap-3 rounded-2xl border-2 p-3 text-left transition aria-pressed:border-primary aria-pressed:bg-primary-softer aria-pressed:shadow-sm border-mercury bg-white" data-sleeve="{{ $sleeve['key'] }}" data-sleeve-name="{{ $sleeve['name'] }}" data-sleeve-prices='@json($sleeve['prices'])' aria-pressed="{{ $sleeve['active'] ? 'true' : 'false' }}">
+        <button type="button" class="group relative flex items-center gap-3 rounded-2xl border-2 p-3 text-left transition aria-pressed:border-primary aria-pressed:bg-primary-softer aria-pressed:shadow-sm border-mercury bg-white" data-sleeve="{{ $sleeve['key'] }}" data-sleeve-name="{{ $sleeve['name'] }}" aria-pressed="{{ $sleeve['active'] ? 'true' : 'false' }}" data-sleeve-prices='@json($sleeve['prices'])'>
             <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary-softer text-primary ring-1 ring-primary-soft group-aria-pressed:bg-primary group-aria-pressed:text-white group-aria-pressed:ring-primary">
                 <i class="{{ $sleeve['icon'] }} text-xl"></i>
             </span>
@@ -54,7 +54,7 @@
     </div>
     <div class="grid grid-cols-5 gap-2">
         @foreach ($merch['sizes'] as $size)
-        <button type="button" class="rounded-xl border-2 border-mercury bg-white py-2.5 text-xs font-bold text-foreground transition aria-pressed:border-primary aria-pressed:bg-primary aria-pressed:text-white aria-pressed:shadow-md" data-size="{{ $size }}" data-size-fee="{{ $size === 'Kustom' ? ($merch['custom_size_fee'] ?? 0) : 0 }}" aria-pressed="false">{{ $size }}</button>
+        <button type="button" class="rounded-xl border-2 border-mercury bg-white py-2.5 text-xs font-bold text-foreground transition aria-pressed:border-primary aria-pressed:bg-primary aria-pressed:text-white aria-pressed:shadow-md" aria-pressed="false" data-size="{{ $size }}" data-size-fee="{{ $size === 'Kustom' ? ($merch['custom_size_fee'] ?? 0) : 0 }}">{{ $size }}</button>
         @endforeach
     </div>
     <div class="mt-2 hidden" data-custom-size-wrap>

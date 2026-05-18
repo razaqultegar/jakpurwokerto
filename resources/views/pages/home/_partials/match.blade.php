@@ -3,8 +3,8 @@
         <input type="text" placeholder='Coba cari "Jadwal pertandingan"' class="w-full rounded-full border-0 bg-white px-4 py-3 pr-10 text-sm text-foreground shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-light/30">
         <i class="ri-search-line absolute right-4 top-1/2 -translate-y-1/2 text-lg text-onyx"></i>
     </div>
-    <h1 class="text-center text-xl font-bold leading-snug text-white drop-shadow-md">Dukung Macan Kemayoran dari Purwokerto</h1>
-    <p class="mt-2 text-center text-sm font-medium text-white/95 drop-shadow">Pantau pertandingan mendatang Persija bareng The Jakmania.</p>
+    <h1 class="text-center text-xl font-bold leading-snug text-white drop-shadow-md">Orange Ora Mung Neng Jakarta</h1>
+    <p class="mt-2 text-center text-sm font-medium text-white/95 drop-shadow">Pantau pertandingan mendatang Persija bareng <br> The Jakmania Biro 01 Purwokerto.</p>
     <div class="relative mt-6 overflow-hidden rounded-2xl bg-white shadow-md ring-1 ring-primary-light/20">
         <div class="absolute inset-x-0 top-0 h-1 bg-linear-to-r from-primary-light via-primary-lighter to-primary"></div>
         <div class="flex items-center justify-between bg-linear-to-r from-primary to-primary-light px-4 py-2.5 text-white">

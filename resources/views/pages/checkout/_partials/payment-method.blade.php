@@ -13,7 +13,7 @@
             <div class="space-y-2">
                 @foreach ($checkout['banks'] as $i => $bank)
                 <label class="relative flex cursor-pointer items-center gap-3 rounded-2xl border-2 border-mercury bg-white p-3 transition has-[input:checked]:border-primary has-[input:checked]:bg-primary-softer has-[input:checked]:shadow-sm">
-                    <input type="radio" name="payment_method" value="bank:{{ $bank['key'] }}" class="peer sr-only" {{ $i === 0 ? 'checked' : '' }}>
+                    <input type="radio" class="peer sr-only" name="payment_method" value="bank:{{ $bank['key'] }}" {{ $i === 0 ? 'checked' : '' }}>
                     <span class="flex h-10 w-14 shrink-0 items-center justify-center rounded-lg {{ $bank['color'] }} text-[10px] font-black uppercase tracking-wider text-white shadow-sm">
                         {{ $bank['logo_text'] }}
                     </span>
@@ -36,7 +36,7 @@
             </div>
             <div class="space-y-2">
                 <label class="relative flex cursor-pointer items-center gap-3 rounded-2xl border-2 border-mercury bg-white p-3 transition has-[input:checked]:border-primary has-[input:checked]:bg-primary-softer has-[input:checked]:shadow-sm">
-                    <input type="radio" name="payment_method" value="qris:dana" class="peer sr-only">
+                    <input type="radio" class="peer sr-only" name="payment_method" value="qris:dana">
                     <span class="flex h-10 w-14 shrink-0 items-center justify-center rounded-lg bg-sky-500 text-[10px] font-black uppercase tracking-wider text-white shadow-sm">
                         DANA
                     </span>
@@ -51,7 +51,6 @@
             </div>
         </div>
     </div>
-
     <div class="mt-3 flex items-start gap-2 rounded-2xl border border-dashed border-primary-soft bg-primary-softer p-3">
         <i class="ri-information-2-line shrink-0 text-base text-primary"></i>
         <p class="text-[11px] leading-relaxed text-onyx">Detail nomor rekening atau kode QRIS akan ditampilkan di halaman konfirmasi setelah checkout.</p>

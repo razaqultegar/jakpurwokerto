@@ -23,8 +23,8 @@
             <h4 class="text-sm font-bold leading-tight">the 7ourney</h4>
             <p class="mt-1 text-[11px] text-white/85">Bersama jadi keluarga, satu jiwa untuk Macan Kemayoran.</p>
             <div class="mt-2 flex items-baseline gap-2">
-                <span class="text-lg font-bold">Rp 175.000</span>
-                <span class="text-[11px] text-white/70 line-through">Rp225.000</span>
+                <span class="text-lg font-bold">+Rp135.000</span>
+                <span class="text-[11px] text-white/70 line-through">Rp185.000</span>
             </div>
             <span class="mt-1 w-fit rounded bg-yellow-300 px-1.5 py-0.5 text-[9px] font-bold text-primary">HEMAT 22%</span>
         </div>
@@ -54,8 +54,7 @@
         </div>
     </div>
     <a href="{{ route('merchandise.show', 'the-7ourney') }}" class="relative mt-4 flex items-center justify-center gap-2 rounded-full bg-white py-3 text-sm font-bold text-primary shadow-md">
-        <i class="ri-shopping-bag-3-fill"></i>
-        Pesan Sekarang
+        Selengkapnya...
         <i class="ri-arrow-right-line"></i>
     </a>
 </div>

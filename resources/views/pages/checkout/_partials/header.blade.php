@@ -1,5 +1,5 @@
 <header class="sticky top-0 z-30 flex items-center gap-3 border-b border-mercury bg-white/95 px-4 py-3 backdrop-blur-md">
-    <a href="{{ url()->previous() }}" class="flex h-10 w-10 items-center justify-center rounded-full bg-skull text-foreground ring-1 ring-mercury" aria-label="Kembali">
+    <a href="{{ url()->previous() }}" class="flex h-10 w-10 items-center justify-center rounded-full bg-skull text-foreground ring-1 ring-mercury">
         <i class="ri-arrow-left-line text-lg"></i>
     </a>
     <div class="flex-1">

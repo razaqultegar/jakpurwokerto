@@ -1,7 +1,7 @@
 <div class="pointer-events-none fixed inset-x-0 bottom-0 z-40 mx-auto max-w-screen-sm px-3 pb-3">
     <div class="pointer-events-auto mx-auto flex max-w-480 flex-col gap-2">
-        <div class="overflow-hidden" data-checkout-alert aria-live="polite">
-            <div class="flex w-full translate-y-[calc(100%+1rem)] items-start gap-2.5 rounded-2xl bg-foreground/95 px-3.5 py-3 text-white shadow-[0_10px_30px_-5px_rgba(0,0,0,0.45)] ring-1 ring-white/10 backdrop-blur-md transition-transform duration-300 ease-out" data-checkout-alert-panel role="status">
+        <div class="overflow-hidden" data-checkout-alert>
+            <div class="flex w-full translate-y-[calc(100%+1rem)] items-start gap-2.5 rounded-2xl bg-foreground/95 px-3.5 py-3 text-white shadow-[0_10px_30px_-5px_rgba(0,0,0,0.45)] ring-1 ring-white/10 backdrop-blur-md transition-transform duration-300 ease-out" data-checkout-alert-panel>
                 <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-yellow-300 text-primary">
                     <i class="ri-error-warning-fill text-base"></i>
                 </span>
@@ -9,7 +9,7 @@
                     <div class="text-xs font-bold" data-checkout-alert-title>Data belum lengkap</div>
                     <p class="mt-0.5 text-[11px] leading-snug text-white/80" data-checkout-alert-message>Mohon lengkapi data pemesan sebelum melanjutkan.</p>
                 </div>
-                <button type="button" class="flex h-7 w-7 items-center justify-center rounded-full bg-white/10 text-white ring-1 ring-white/20" aria-label="Tutup pemberitahuan" data-checkout-alert-close>
+                <button type="button" class="flex h-7 w-7 items-center justify-center rounded-full bg-white/10 text-white ring-1 ring-white/20" data-checkout-alert-close>
                     <i class="ri-close-line text-sm"></i>
                 </button>
             </div>
