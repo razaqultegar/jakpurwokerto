@@ -44,7 +44,7 @@
             </div>
             <div class="mt-4 flex items-center justify-center gap-1.5 text-[11px] text-onyx">
                 <i class="ri-map-pin-line text-sm text-primary-light"></i>
-                To Be Announced Stadium
+                Gelora Bung Karno, Jakarta
             </div>
             <div class="mt-4 grid grid-cols-2 gap-2">
                 <a href="#" class="flex items-center justify-center gap-1.5 rounded-full border border-primary-light py-2 text-xs font-semibold text-primary">

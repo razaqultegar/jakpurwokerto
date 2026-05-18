@@ -15,6 +15,7 @@
     </section>
     <hr class="m-0 h-2 w-full border-0 bg-skull p-0">
     <section class="mb-6 p-4">
+        <h3 class="text-base font-bold text-foreground mb-3">Merchandise</h3>
         @include('pages.home._partials.merchandise')
     </section>
 @endsection
