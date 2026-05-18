@@ -567,6 +567,11 @@ function initCart(alert) {
 
     if (orderBtn) {
         orderBtn.addEventListener('click', () => {
+            if (items.length > 0) {
+                hideSelectedStrip();
+                open();
+                return;
+            }
             const size = getSelectedSize();
             if (!size) {
                 alert.show('Silakan pilih ukuran jersey terlebih dahulu sebelum memesan.');
@@ -574,7 +579,7 @@ function initCart(alert) {
             }
             if (addToCart()) {
                 hideSelectedStrip();
-                window.location.href = '/checkout';
+                window.location.href = '/bayar';
             }
         });
     }
@@ -582,7 +587,7 @@ function initCart(alert) {
     if (checkoutBtn) {
         checkoutBtn.addEventListener('click', () => {
             if (items.length === 0) return;
-            window.location.href = '/checkout';
+            window.location.href = '/bayar';
         });
     }
 

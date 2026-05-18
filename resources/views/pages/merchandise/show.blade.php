@@ -15,7 +15,7 @@
         <p class="whitespace-pre-line text-xs leading-relaxed text-onyx">{{ $merch['description'] }}</p>
     </section>
     <hr class="m-0 h-2 w-full border-0 bg-skull p-0">
-    <section class="px-4 pb-6 pt-5">
+    <section class="px-4 mb-6 pt-5">
         <div class="mb-3 flex items-center gap-2">
             <span class="h-5 w-1 rounded-full bg-primary"></span>
             <h3 class="text-sm font-bold text-foreground">Spesifikasi</h3>
@@ -27,10 +27,6 @@
                 <span class="font-semibold text-foreground">{{ $spec['value'] }}</span>
             </div>
             @endforeach
-        </div>
-        <div class="mt-4 flex items-start gap-2.5 rounded-2xl border border-dashed border-primary-soft bg-primary-softer p-3">
-            <i class="ri-information-2-line text-base text-primary"></i>
-            <p class="text-[11px] leading-relaxed text-onyx">Produk ini adalah <strong class="font-semibold text-foreground">Pre-Order</strong>. Proses produksi dimulai setelah masa PO ditutup. Estimasi pengiriman <strong class="font-semibold text-foreground">{{ $merch['estimated_ship'] }}</strong>.</p>
         </div>
     </section>
     @include('pages.merchandise._partials.cta')

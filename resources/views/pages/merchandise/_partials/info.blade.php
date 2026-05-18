@@ -5,23 +5,16 @@
             <p class="mt-1 text-[11px] italic text-onyx">"{{ $merch['tagline'] }}"</p>
         </div>
     </div>
-    @php
-        $discountLabel = $merch['discount_percent_min'] === $merch['discount_percent_max']
-            ? '-' . $merch['discount_percent_min'] . '%'
-            : '-' . $merch['discount_percent_min'] . '% s/d -' . $merch['discount_percent_max'] . '%';
-    @endphp
     <div class="mt-3 flex items-end gap-2">
         <div class="flex flex-col">
-            <span class="text-[11px] font-semibold uppercase tracking-wider text-onyx">Rentang harga</span>
+            <span class="text-[11px] font-semibold uppercase tracking-wider text-onyx">Mulai dari</span>
             <span class="mt-0.5 text-2xl font-black leading-none text-primary">
-                Rp{{ number_format($merch['price_min'], 0, ',', '.') }}
-                <span class="text-onyx">–</span>
-                Rp{{ number_format($merch['price_max'], 0, ',', '.') }}
+                Rp{{ number_format($merch['price'], 0, ',', '.') }}
             </span>
         </div>
         <div class="ml-auto flex flex-col items-end">
-            <span class="rounded bg-primary-soft px-1.5 py-0.5 text-[10px] font-bold text-primary leading-none">{{ $discountLabel }}</span>
-            <span class="mt-1 text-[11px] text-onyx line-through leading-none">Rp{{ number_format($merch['price_original_min'], 0, ',', '.') }} – Rp{{ number_format($merch['price_original_max'], 0, ',', '.') }}</span>
+            <span class="rounded bg-primary-soft px-1.5 py-0.5 text-[10px] font-bold text-primary leading-none">-{{ $merch['discount_percent'] }}%</span>
+            <span class="mt-1 text-[11px] text-onyx line-through leading-none">Rp{{ number_format($merch['price_original'], 0, ',', '.') }}</span>
         </div>
     </div>
     @php
