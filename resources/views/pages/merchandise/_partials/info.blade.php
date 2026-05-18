@@ -1,7 +1,7 @@
 <section class="px-4 pb-5 pt-5">
     <div class="flex items-start gap-2">
         <div class="flex-1">
-            <h1 class="text-xl font-black leading-tight text-foreground">{{ $merch['name'] }}</h1>
+            <h1 class="text-xl font-black leading-tight text-foreground" data-merch-name>{{ $merch['name'] }}</h1>
             <p class="mt-1 text-[11px] italic text-onyx">"{{ $merch['tagline'] }}"</p>
         </div>
     </div>
@@ -20,7 +20,7 @@
         </span>
     </div>
     <div class="mt-4 flex items-end gap-2">
-        <span class="text-3xl font-black text-primary leading-none">Rp{{ number_format($merch['price'], 0, ',', '.') }}</span>
+        <span class="text-3xl font-black text-primary leading-none" data-merch-price data-price="{{ $merch['price'] }}">Rp{{ number_format($merch['price'], 0, ',', '.') }}</span>
         <div class="flex flex-col">
             <span class="rounded bg-primary-soft px-1.5 py-0.5 text-[10px] font-bold text-primary leading-none">-{{ $merch['discount_percent'] }}%</span>
             <span class="mt-1 text-[11px] text-onyx line-through leading-none">Rp{{ number_format($merch['price_original'], 0, ',', '.') }}</span>

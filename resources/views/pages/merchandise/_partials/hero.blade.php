@@ -19,8 +19,9 @@
                 <button type="button" class="flex h-10 w-10 items-center justify-center rounded-full bg-white/25 text-white shadow ring-1 ring-white/30 backdrop-blur-md">
                     <i class="ri-share-forward-line text-lg"></i>
                 </button>
-                <button type="button" class="flex h-10 w-10 items-center justify-center rounded-full bg-white/25 text-white shadow ring-1 ring-white/30 backdrop-blur-md">
-                    <i class="ri-heart-line text-lg"></i>
+                <button type="button" class="relative flex h-10 w-10 items-center justify-center rounded-full bg-white/25 text-white shadow ring-1 ring-white/30 backdrop-blur-md" data-cart-open aria-label="Buka keranjang">
+                    <i class="ri-shopping-cart-2-line text-lg"></i>
+                    <span class="absolute -right-1 -top-1 hidden h-4 min-w-4 items-center justify-center rounded-full bg-yellow-300 px-1 text-[9px] font-black leading-none text-primary ring-2 ring-foreground" data-cart-count>0</span>
                 </button>
             </div>
         </div>
