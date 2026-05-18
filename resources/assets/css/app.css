@@ -9,4 +9,5 @@
 @import "./layouts/_layout";
 
 /* Components */
+@import "./components/_loader";
 @import "./components/_swiper";
