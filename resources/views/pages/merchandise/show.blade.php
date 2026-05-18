@@ -12,22 +12,7 @@
             <span class="h-5 w-1 rounded-full bg-primary"></span>
             <h3 class="text-sm font-bold text-foreground">Cerita di Balik Jersey</h3>
         </div>
-        <p class="text-xs leading-relaxed text-onyx">{{ $merch['description'] }}</p>
-        <div class="mt-4 grid grid-cols-3 gap-2 text-center">
-            <div class="relative overflow-hidden rounded-2xl bg-linear-to-br from-primary to-primary-lighter p-3 text-white shadow-md">
-                <div class="pointer-events-none absolute -right-2 -top-2 h-10 w-10 rounded-full bg-white/15 blur-lg"></div>
-                <div class="relative text-2xl font-black leading-none">7</div>
-                <div class="relative mt-1 text-[10px] text-white/85">Tahun perjalanan</div>
-            </div>
-            <div class="rounded-2xl bg-primary-softer p-3 ring-1 ring-primary-soft">
-                <div class="text-2xl font-black leading-none text-primary">1</div>
-                <div class="mt-1 text-[10px] text-onyx">Jiwa keluarga</div>
-            </div>
-            <div class="rounded-2xl bg-primary-softer p-3 ring-1 ring-primary-soft">
-                <div class="text-2xl font-black leading-none text-primary">∞</div>
-                <div class="mt-1 text-[10px] text-onyx">Cinta Macan</div>
-            </div>
-        </div>
+        <p class="whitespace-pre-line text-xs leading-relaxed text-onyx">{{ $merch['description'] }}</p>
     </section>
     <hr class="m-0 h-2 w-full border-0 bg-skull p-0">
     <section class="px-4 pb-6 pt-5">

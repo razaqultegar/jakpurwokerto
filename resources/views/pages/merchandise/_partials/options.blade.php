@@ -22,9 +22,12 @@
         </button>
         @endforeach
     </div>
-    <div class="mb-3 mt-5 flex items-center gap-2">
-        <span class="h-5 w-1 rounded-full bg-primary"></span>
-        <h3 class="text-sm font-bold text-foreground">Pilih Model Lengan</h3>
+    <div class="mb-3 mt-5 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+            <span class="h-5 w-1 rounded-full bg-primary"></span>
+            <h3 class="text-sm font-bold text-foreground">Pilih Model Lengan</h3>
+        </div>
+        <span class="text-[10px] text-onyx">{{ count($merch['sleeves']) }} pilihan</span>
     </div>
     <div class="grid grid-cols-2 gap-2.5">
         @foreach ($merch['sleeves'] as $sleeve)

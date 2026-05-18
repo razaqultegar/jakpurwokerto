@@ -10,9 +10,9 @@ class MerchandiseController extends Controller
             'slug' => 'the-7ourney',
             'badge' => 'Open Pre-Order',
             'edition' => 'Edisi Spesial #7 Tahun',
-            'name' => 'Jersey "the 7ourney"',
-            'tagline' => 'Bersama jadi keluarga, satu jiwa untuk Macan Kemayoran.',
-            'description' => 'Jersey edisi spesial 7 tahun JakPurwokerto. Dirancang dengan motif batik Banyumasan yang dipadukan corak khas Persija, melambangkan perjalanan, kebersamaan, dan kebanggaan keluarga The Jakmania Purwokerto Raya. Bahan dryfit premium, jahitan rapi, dan cetak sublimasi tahan lama.',
+            'name' => 'THE 7OURNEY',
+            'tagline' => 'Years of Stories, Loyalty, and Pride',
+            'description' => "Sebuah jersey yang bukan cuma dibuat untuk dipakai, tapi juga untuk mengingat setiap cerita dan proses yang sudah dilewati bersama selama 7 tahun terakhir.\n\nDirancang menggunakan motif khas batik Banyumasan yang dipadukan dengan corak identitas Persija, jersey yang menjadi simbol perjalanan, kebersamaan, dan kebanggaan keluarga besar The Jakmania Biro Purwokerto. Perpaduan unsur budaya lokal dan semangat supporter culture menghadirkan desain yang kuat, klasik, dan tetap relevan dipakai di mana saja — baik saat matchday maupun daily wear.\n\nBukan cuma soal tampilan, kualitas juga jadi bagian penting dari perjalanan ini. Menggunakan bahan dryfit premium yang nyaman dipakai, jahitan rapi dan teknik cetak sublimasi tahan lama, jersey ini siap menemani setiap perjalanan tanpa menghilangkan identitas dan kualitas terbaiknya.\n\nKarena pada akhirnya, jersey ini bukan sekadar merchandise. Ini adalah simbol cerita yang terus hidup. Tentang rumah, tentang kebersamaan, dan tentang perjalanan yang akan terus berjalan bersama.",
             'price_min' => 135000,
             'price_max' => 200000,
             'price_original_min' => 175000,
@@ -46,6 +46,30 @@ class MerchandiseController extends Controller
                 ['label' => 'Pola', 'value' => 'Reglan Retro'],
                 ['label' => 'Sablon', 'value' => 'Polyflex'],
             ],
+        ];
+
+        $stockLimit = $merchandise['stock_limit'] ?? 0;
+        $sold = $merchandise['sold'] ?? 0;
+        $remaining = max(0, $stockLimit - $sold);
+        $progress = $stockLimit > 0 ? min(100, (int) round(($sold / $stockLimit) * 100)) : 0;
+
+        $now = now();
+        $poStart = \Carbon\Carbon::parse($merchandise['po_start']);
+        $poEnd = \Carbon\Carbon::parse($merchandise['po_end']);
+        $isSoldOut = $stockLimit > 0 && $remaining <= 0;
+        $isBeforeStart = $now->lt($poStart);
+        $isAfterEnd = $now->gt($poEnd);
+        $isActive = !$isBeforeStart && !$isAfterEnd && !$isSoldOut;
+
+        $merchandise['state'] = [
+            'stock_remaining' => $remaining,
+            'stock_progress' => $progress,
+            'po_start_at' => $poStart,
+            'po_end_at' => $poEnd,
+            'is_sold_out' => $isSoldOut,
+            'is_before_start' => $isBeforeStart,
+            'is_after_end' => $isAfterEnd,
+            'is_active' => $isActive,
         ];
 
         return view('pages.merchandise.show', [

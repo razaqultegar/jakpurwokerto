@@ -25,35 +25,54 @@
         </div>
     </div>
     @php
-        $stockLimit = $merch['stock_limit'] ?? 0;
-        $sold = $merch['sold'] ?? 0;
-        $remaining = max(0, $stockLimit - $sold);
-        $progress = $stockLimit > 0 ? min(100, round(($sold / $stockLimit) * 100)) : 0;
+        $state = $merch['state'];
+        $isSoldOut = $state['is_sold_out'];
+        $isBeforeStart = $state['is_before_start'];
+        $isAfterEnd = $state['is_after_end'];
+
+        if ($isSoldOut) {
+            $countdownLabel = 'Stok telah habis';
+            $countdownStatus = 'Habis';
+        } elseif ($isAfterEnd) {
+            $countdownLabel = 'Pre-Order telah ditutup';
+            $countdownStatus = 'Ditutup';
+        } elseif ($isBeforeStart) {
+            $countdownLabel = 'PO dibuka dalam';
+            $countdownStatus = 'Segera';
+        } else {
+            $countdownLabel = 'PO berakhir dalam';
+            $countdownStatus = 'Berlangsung';
+        }
+
+        $countdownGradient = $isSoldOut || $isAfterEnd
+            ? 'linear-gradient(135deg, #374151 0%, #1f2937 100%)'
+            : 'linear-gradient(135deg, #1f2937 0%, #111827 100%)';
     @endphp
-    <div class="mt-4 rounded-2xl bg-primary-softer p-3 ring-1 ring-primary-soft">
+    @unless ($isBeforeStart)
+    <div class="mt-4 rounded-2xl {{ $isSoldOut || $isAfterEnd ? 'bg-skull ring-mercury' : 'bg-primary-softer ring-primary-soft' }} p-3 ring-1">
         <div class="flex items-center gap-3">
-            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-primary to-primary-lighter text-white shadow-md">
-                <i class="ri-stack-line text-xl"></i>
+            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl {{ $isSoldOut || $isAfterEnd ? 'bg-onyx' : 'bg-linear-to-br from-primary to-primary-lighter' }} text-white shadow-md">
+                <i class="{{ $isSoldOut ? 'ri-shopping-bag-line' : 'ri-stack-line' }} text-xl"></i>
             </div>
             <div class="flex-1">
-                <div class="text-xs font-bold text-foreground">Stok terbatas {{ $stockLimit }} pcs</div>
-                <div class="text-[10px] text-onyx">Sudah terjual <strong class="font-semibold text-foreground">{{ $sold }}</strong> · Sisa <strong class="font-semibold text-foreground">{{ $remaining }}</strong></div>
+                <div class="text-xs font-bold text-foreground">@if ($isSoldOut) Stok habis terjual @else Stok terbatas {{ $merch['stock_limit'] }} pcs @endif</div>
+                <div class="text-[10px] text-onyx">Sudah terjual <strong class="font-semibold text-foreground">{{ $merch['sold'] }}</strong> · Sisa <strong class="font-semibold text-foreground">{{ $state['stock_remaining'] }}</strong></div>
             </div>
-            <span class="rounded-full bg-primary px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-white">Tersedia</span>
         </div>
-        <div class="mt-2.5 h-1.5 w-full overflow-hidden rounded-full bg-white/70 ring-1 ring-primary-soft">
-            <div class="h-full rounded-full bg-linear-to-r from-primary to-primary-lighter" style="width: {{ $progress }}%"></div>
+        <div class="mt-2.5 h-1.5 w-full overflow-hidden rounded-full bg-white/70 ring-1 {{ $isSoldOut || $isAfterEnd ? 'ring-mercury' : 'ring-primary-soft' }}">
+            <div class="h-full rounded-full {{ $isSoldOut || $isAfterEnd ? 'bg-onyx' : 'bg-linear-to-r from-primary to-primary-lighter' }}" style="width: {{ $isSoldOut ? 100 : $state['stock_progress'] }}%"></div>
         </div>
     </div>
-    <div class="relative mt-4 overflow-hidden rounded-2xl p-4 text-white shadow-lg" data-countdown data-start="{{ $merch['po_start'] }}" data-end="{{ $merch['po_end'] }}" style="background: linear-gradient(135deg, #1f2937 0%, #111827 100%);">
-        <div class="pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full bg-yellow-300/15 blur-2xl"></div>
-        <div class="pointer-events-none absolute -bottom-8 -left-4 h-24 w-24 rounded-full bg-primary/30 blur-2xl"></div>
+    @endunless
+    <div class="relative mt-4 overflow-hidden rounded-2xl p-4 text-white shadow-lg" data-countdown data-start="{{ $merch['po_start'] }}" data-end="{{ $merch['po_end'] }}" style="background: {{ $countdownGradient }};">
+        <div class="pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full {{ $isSoldOut || $isAfterEnd ? 'bg-white/10' : 'bg-yellow-300/15' }} blur-2xl"></div>
+        <div class="pointer-events-none absolute -bottom-8 -left-4 h-24 w-24 rounded-full {{ $isSoldOut || $isAfterEnd ? 'bg-white/10' : 'bg-primary/30' }} blur-2xl"></div>
         <div class="relative mb-3 flex items-center justify-between">
             <span class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-white">
-                <i class="ri-timer-flash-fill text-base text-yellow-300"></i>
-                <span data-countdown-label>Berakhir dalam</span>
+                <i class="{{ $isSoldOut ? 'ri-shopping-bag-line' : ($isAfterEnd ? 'ri-time-line' : 'ri-timer-flash-fill') }} text-base {{ $isSoldOut || $isAfterEnd ? 'text-white/70' : 'text-yellow-300' }}"></i>
+                <span data-countdown-label>{{ $countdownLabel }}</span>
             </span>
-            <span class="rounded-full bg-yellow-300 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-primary" data-countdown-status>Berlangsung</span>
+            <span class="rounded-full {{ $isSoldOut || $isAfterEnd ? 'bg-white/20 text-white' : 'bg-yellow-300 text-primary' }} px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider" data-countdown-status>{{ $countdownStatus }}</span>
         </div>
         <div class="relative grid grid-cols-4 gap-2 text-center">
             <div class="rounded-xl bg-white/10 py-2.5 ring-1 ring-white/15 backdrop-blur-sm">

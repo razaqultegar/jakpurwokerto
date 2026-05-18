@@ -1,3 +1,9 @@
+@php
+    $state = $merch['state'];
+    $isBeforeStart = $state['is_before_start'];
+@endphp
+
+@unless ($isBeforeStart)
 <div class="pointer-events-none fixed inset-x-0 bottom-0 z-40 mx-auto max-w-screen-sm px-3 pb-3">
     <div class="pointer-events-auto mx-auto flex max-w-480 flex-col gap-2">
         <div class="overflow-hidden" data-merch-alert>
@@ -48,3 +54,4 @@
         </div>
     </div>
 </div>
+@endunless
