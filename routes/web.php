@@ -1,10 +1,9 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-
+use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MerchandiseController;
-use App\Http\Controllers\CheckoutController;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/bayar', [CheckoutController::class, 'index'])->name('checkout');

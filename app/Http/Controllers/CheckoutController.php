@@ -138,7 +138,7 @@ class CheckoutController extends Controller
                 ->withInput();
         }
 
-        $orderId = 'JPW-' . now()->format('ymd') . '-' . strtoupper(Str::random(5));
+        $orderId = 'JPW-'.now()->format('ymd').'-'.strtoupper(Str::random(5));
 
         $order = Order::create([
             'order_id' => $orderId,

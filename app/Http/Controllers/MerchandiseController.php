@@ -58,7 +58,7 @@ class MerchandiseController extends Controller
         $isSoldOut = $stockLimit > 0 && $remaining <= 0;
         $isBeforeStart = $now->lt($poStart);
         $isAfterEnd = $now->gt($poEnd);
-        $isActive = !$isBeforeStart && !$isAfterEnd && !$isSoldOut;
+        $isActive = ! $isBeforeStart && ! $isAfterEnd && ! $isSoldOut;
 
         $merchandise['state'] = [
             'stock_remaining' => $remaining,
