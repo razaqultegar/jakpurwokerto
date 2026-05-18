@@ -2,5 +2,8 @@
 @import "tailwindcss";
 @import "./config";
 
+/* Icons */
+@import "remixicon/fonts/remixicon.css";
+
 /* Layouts */
 @import "./layouts/_layout";
