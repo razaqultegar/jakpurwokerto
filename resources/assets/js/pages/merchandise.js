@@ -218,16 +218,7 @@ function getBasePrice() {
             if (prices[catKey] != null) return parseInt(prices[catKey], 10);
         } catch (_) {}
     }
-    const priceEl = document.querySelector('[data-merch-price]');
-    return priceEl ? parseInt(priceEl.dataset.price || '0', 10) : 0;
-}
-
-function refreshPriceDisplay() {
-    const priceEl = document.querySelector('[data-merch-price]');
-    if (!priceEl) return;
-    const base = getBasePrice();
-    priceEl.dataset.price = base;
-    priceEl.textContent = formatRupiah(base).replace(' ', '');
+    return 0;
 }
 
 function initCategoryPicker() {
@@ -235,7 +226,7 @@ function initCategoryPicker() {
     buttons.forEach((btn) => {
         btn.addEventListener('click', () => {
             buttons.forEach((b) => b.setAttribute('aria-pressed', b === btn ? 'true' : 'false'));
-            refreshPriceDisplay();
+            refreshSelectedStrip();
         });
     });
 }
@@ -245,7 +236,7 @@ function initSleevePicker() {
     buttons.forEach((btn) => {
         btn.addEventListener('click', () => {
             buttons.forEach((b) => b.setAttribute('aria-pressed', b === btn ? 'true' : 'false'));
-            refreshPriceDisplay();
+            refreshSelectedStrip();
         });
     });
 }
@@ -272,6 +263,7 @@ function initSizePicker() {
             if (customWrap) customWrap.classList.toggle('hidden', !isCustom);
             if (isCustom && customInput) setTimeout(() => customInput.focus(), 50);
             updateHelper(btn);
+            refreshSelectedStrip();
         });
     });
 
@@ -279,8 +271,56 @@ function initSizePicker() {
         customInput.addEventListener('input', () => {
             const active = document.querySelector('[data-size][aria-pressed="true"]');
             if (active && active.dataset.size === 'Kustom') updateHelper(active);
+            refreshSelectedStrip();
         });
     }
+}
+
+function refreshSelectedStrip() {
+    const strip = document.querySelector('[data-merch-selected]');
+    if (!strip) return;
+    const panel = strip.querySelector('[data-merch-selected-panel]');
+    const variantEl = strip.querySelector('[data-merch-selected-variant]');
+    const totalEl = strip.querySelector('[data-merch-selected-total]');
+    const qtyEl = strip.querySelector('[data-merch-selected-qty]');
+
+    const activeSize = document.querySelector('[data-size][aria-pressed="true"]');
+    const cat = getSelectedCategory();
+    const sleeve = getSelectedSleeve();
+    const qty = getQuantity();
+    const fee = getSelectedSizeFee();
+
+    const hiddenClass = 'translate-y-[calc(100%+1rem)]';
+
+    if (!activeSize || !cat || !sleeve) {
+        panel.classList.add(hiddenClass);
+        panel.classList.remove('translate-y-0');
+        return;
+    }
+
+    let sizeLabel;
+    if (activeSize.dataset.size === 'Kustom') {
+        const customInput = document.querySelector('[data-custom-size-input]');
+        const val = customInput ? customInput.value.trim().toUpperCase() : '';
+        sizeLabel = val ? `Kustom (${val})` : 'Kustom (—)';
+    } else {
+        sizeLabel = activeSize.dataset.size;
+    }
+
+    const total = (getBasePrice() + fee) * qty;
+    if (variantEl) variantEl.textContent = `${cat.name} · ${sleeve.name} · ${sizeLabel}`;
+    if (totalEl) totalEl.textContent = formatRupiah(total);
+    if (qtyEl) qtyEl.textContent = qty;
+    panel.classList.remove(hiddenClass);
+    panel.classList.add('translate-y-0');
+}
+
+function hideSelectedStrip() {
+    const strip = document.querySelector('[data-merch-selected]');
+    if (!strip) return;
+    const panel = strip.querySelector('[data-merch-selected-panel]');
+    panel.classList.add('translate-y-[calc(100%+1rem)]');
+    panel.classList.remove('translate-y-0');
 }
 
 function getSelectedSize() {
@@ -492,7 +532,10 @@ function initCart(alert) {
 
     if (addBtn) {
         addBtn.addEventListener('click', () => {
-            if (addToCart()) open();
+            if (addToCart()) {
+                hideSelectedStrip();
+                open();
+            }
         });
     }
 
@@ -504,6 +547,7 @@ function initCart(alert) {
                 return;
             }
             if (addToCart()) {
+                hideSelectedStrip();
                 window.location.href = '/checkout';
             }
         });
@@ -538,12 +582,14 @@ function initQuantity() {
         if (qty > min) {
             qty -= 1;
             render();
+            refreshSelectedStrip();
         }
     });
 
     inc.addEventListener('click', () => {
         qty += 1;
         render();
+        refreshSelectedStrip();
     });
 
     render();
@@ -553,10 +599,10 @@ document.querySelectorAll('[data-countdown]').forEach(initCountdown);
 initHeroSwiper();
 initCategoryPicker();
 initSleevePicker();
-refreshPriceDisplay();
 initSizeGuide();
 initShare();
 initSizePicker();
 initQuantity();
 const merchAlert = initAlert();
 initCart(merchAlert);
+refreshSelectedStrip();

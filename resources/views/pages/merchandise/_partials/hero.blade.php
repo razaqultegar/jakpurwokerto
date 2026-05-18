@@ -36,8 +36,8 @@
             </span>
         </div>
         <div class="absolute right-4 top-4 z-10 mt-14 flex w-fit -rotate-6 flex-col items-center justify-center rounded-2xl bg-yellow-300 px-3 py-2 text-primary shadow-xl ring-2 ring-white/40">
-            <span class="text-[9px] font-bold uppercase leading-none tracking-wider">Hemat</span>
-            <span class="text-2xl font-black leading-none">{{ $merch['discount_percent'] }}%</span>
+            <span class="text-[9px] font-bold uppercase leading-none tracking-wider">Hemat s/d</span>
+            <span class="text-2xl font-black leading-none">{{ $merch['discount_percent_max'] }}%</span>
         </div>
         <button type="button" class="hero-swiper-prev absolute left-3 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/25 text-white ring-1 ring-white/30 backdrop-blur-md transition hover:bg-white/40">
             <i class="ri-arrow-left-s-line text-xl"></i>
