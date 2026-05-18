@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
+
 class MerchandiseController extends Controller
 {
     public function show(string $slug)
@@ -51,8 +53,8 @@ class MerchandiseController extends Controller
         $progress = $stockLimit > 0 ? min(100, (int) round(($sold / $stockLimit) * 100)) : 0;
 
         $now = now();
-        $poStart = \Carbon\Carbon::parse($merchandise['po_start']);
-        $poEnd = \Carbon\Carbon::parse($merchandise['po_end']);
+        $poStart = Carbon::parse($merchandise['po_start']);
+        $poEnd = Carbon::parse($merchandise['po_end']);
         $isSoldOut = $stockLimit > 0 && $remaining <= 0;
         $isBeforeStart = $now->lt($poStart);
         $isAfterEnd = $now->gt($poEnd);
