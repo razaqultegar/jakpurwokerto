@@ -2,7 +2,7 @@
 
 @section('content')
     @include('pages.checkout._partials.header')
-    <form action="" method="post" class="pb-6" novalidate>
+    <form action="{{ route('checkout.store') }}" method="post" class="pb-6" novalidate>
         @csrf
         @include('pages.checkout._partials.summary')
         <hr class="m-0 h-2 w-full border-0 bg-skull p-0">

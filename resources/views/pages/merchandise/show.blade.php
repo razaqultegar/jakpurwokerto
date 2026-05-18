@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
+    <div data-merch-meta data-merch-slug="{{ $merch['slug'] }}" data-merch-image="{{ $merch['gallery'][0] ?? '' }}" hidden></div>
     @include('pages.merchandise._partials.hero')
     @include('pages.merchandise._partials.info')
     <hr class="m-0 h-2 w-full border-0 bg-skull p-0">

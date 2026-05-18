@@ -1,4 +1,31 @@
+const CART_STORAGE_KEY = 'jpw.cart.v1';
+
 const formatRupiah = (n) => 'Rp' + n.toLocaleString('id-ID');
+
+const escapeHtml = (s) => String(s).replace(/[&<>"']/g, (c) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+}[c]));
+
+function loadCart() {
+    try {
+        const raw = localStorage.getItem(CART_STORAGE_KEY);
+        if (!raw) return [];
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed.filter((it) => it && typeof it === 'object' && it.qty > 0 && it.price >= 0) : [];
+    } catch (_) {
+        return [];
+    }
+}
+
+function saveCart(items) {
+    try {
+        localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
+    } catch (_) {}
+}
 
 function initAlert() {
     const root = document.querySelector('[data-checkout-alert]');
@@ -29,6 +56,80 @@ function initAlert() {
     return { show, hide };
 }
 
+function renderCart(items) {
+    const list = document.querySelector('[data-cart-items]');
+    const empty = document.querySelector('[data-cart-empty]');
+    const subtotalEl = document.querySelector('[data-subtotal]');
+    const totalEl = document.querySelector('[data-total]');
+    const countEl = document.querySelector('[data-cart-count]');
+
+    const subtotal = items.reduce((s, it) => s + (parseInt(it.price, 10) || 0) * (parseInt(it.qty, 10) || 0), 0);
+    const totalQty = items.reduce((s, it) => s + (parseInt(it.qty, 10) || 0), 0);
+
+    if (countEl) countEl.textContent = totalQty;
+    if (subtotalEl) {
+        subtotalEl.textContent = formatRupiah(subtotal);
+        subtotalEl.dataset.value = String(subtotal);
+    }
+    if (totalEl) totalEl.textContent = formatRupiah(subtotal);
+
+    if (!list || !empty) return subtotal;
+
+    if (items.length === 0) {
+        list.innerHTML = '';
+        list.classList.add('hidden');
+        empty.classList.remove('hidden');
+        empty.classList.add('flex');
+        return subtotal;
+    }
+
+    empty.classList.add('hidden');
+    empty.classList.remove('flex');
+    list.classList.remove('hidden');
+    list.innerHTML = items.map((it) => {
+        const img = it.image
+            ? `<img src="/build/${escapeHtml(it.image)}" alt="${escapeHtml(it.name)}" class="h-16 w-16 shrink-0 rounded-xl object-cover ring-1 ring-mercury">`
+            : `<span class="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-white text-primary ring-1 ring-mercury"><i class="ri-shirt-fill text-2xl"></i></span>`;
+        const feeText = it.fee > 0 ? ` <span class="text-primary">(+${formatRupiah(it.fee)} kustom)</span>` : '';
+        return `
+            <div class="flex items-center gap-3 rounded-2xl bg-skull p-3 ring-1 ring-mercury">
+                ${img}
+                <div class="min-w-0 flex-1">
+                    <div class="truncate text-xs font-bold text-foreground">${escapeHtml(it.name)}</div>
+                    <div class="mt-0.5 text-[10px] text-onyx">${escapeHtml(it.category)} · ${escapeHtml(it.sleeve)} · Ukuran ${escapeHtml(it.size)}${feeText}</div>
+                    <div class="mt-1 inline-flex items-center gap-2">
+                        <span class="rounded-md bg-white px-1.5 py-0.5 text-[10px] font-semibold text-foreground ring-1 ring-mercury">x${it.qty}</span>
+                        <span class="text-[11px] font-bold text-primary">${formatRupiah(it.price)}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    return subtotal;
+}
+
+function syncHiddenInputs(items) {
+    const wrap = document.querySelector('[data-cart-hidden-inputs]');
+    if (!wrap) return;
+    wrap.innerHTML = items.map((it, i) => {
+        const fields = {
+            slug: it.slug || '',
+            name: it.name || '',
+            image: it.image || '',
+            category: it.category || '',
+            sleeve: it.sleeve || '',
+            size: it.size || '',
+            qty: parseInt(it.qty, 10) || 0,
+            price: parseInt(it.price, 10) || 0,
+            fee: parseInt(it.fee, 10) || 0,
+        };
+        return Object.entries(fields).map(([k, v]) => (
+            `<input type="hidden" name="items[${i}][${k}]" value="${escapeHtml(v)}">`
+        )).join('');
+    }).join('');
+}
+
 function getTotals() {
     const sub = parseInt(document.querySelector('[data-subtotal]')?.dataset.value || '0', 10);
     return { subtotal: sub, total: sub };
@@ -39,7 +140,7 @@ function getSelectedPaymentType() {
     return el ? el.value : 'dp';
 }
 
-function initPaymentAmounts() {
+function updatePaymentAmounts() {
     const { total } = getTotals();
     const dpEl = document.querySelector('[data-payment-amount="dp"]');
     const fullEl = document.querySelector('[data-payment-amount="full"]');
@@ -56,6 +157,15 @@ function updatePayCTA() {
     const amountEl = document.querySelector('[data-pay-amount]');
     if (labelEl) labelEl.textContent = label;
     if (amountEl) amountEl.textContent = formatRupiah(amount);
+}
+
+function setPayButtonsDisabled(disabled) {
+    const submitBtn = document.querySelector('form button[type="submit"]');
+    if (submitBtn) {
+        submitBtn.disabled = disabled;
+        submitBtn.classList.toggle('opacity-50', disabled);
+        submitBtn.classList.toggle('pointer-events-none', disabled);
+    }
 }
 
 function initPaymentType() {
@@ -110,7 +220,7 @@ function validateForm() {
     return Object.keys(errors).length === 0;
 }
 
-function initForm(alert) {
+function initForm(alert, getCart) {
     const form = document.querySelector('form');
     if (!form) return;
 
@@ -120,23 +230,44 @@ function initForm(alert) {
     });
 
     form.addEventListener('submit', (e) => {
-        e.preventDefault();
+        const items = getCart();
+        if (items.length === 0) {
+            e.preventDefault();
+            alert.show('Keranjangmu masih kosong. Tambahkan merchandise dulu sebelum checkout.', 'Keranjang kosong');
+            return;
+        }
         if (!validateForm()) {
+            e.preventDefault();
             alert.show('Mohon periksa kembali data pemesan yang ditandai merah.');
             const firstError = form.querySelector('.border-red-500');
             if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
             return;
         }
-        const type = getSelectedPaymentType();
-        const method = document.querySelector('input[name="payment_method"]:checked')?.value || '';
-        const methodLabel = method.startsWith('qris') ? 'QRIS DANA' : 'transfer bank';
-        alert.show(`Pesanan diterima. Lanjut ke pembayaran ${type === 'dp' ? 'DP 50%' : 'lunas'} via ${methodLabel}.`, 'Berhasil');
+        const phoneInput = document.querySelector('[data-field="phone"]');
+        if (phoneInput) phoneInput.value = phoneInput.value.replace(/^0+/, '');
+        syncHiddenInputs(items);
+        const submitBtn = form.querySelector('button[type="submit"]');
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.classList.add('opacity-70', 'pointer-events-none');
+            submitBtn.innerHTML = '<i class="ri-loader-4-line animate-spin text-base"></i> Memproses...';
+        }
     });
 }
 
+let cart = loadCart();
+const getCart = () => cart;
+
 const alert = initAlert();
-initPaymentAmounts();
+renderCart(cart);
+syncHiddenInputs(cart);
+updatePaymentAmounts();
 updatePayCTA();
+setPayButtonsDisabled(cart.length === 0);
 initPaymentType();
 initNoteCounter();
-initForm(alert);
+initForm(alert, getCart);
+
+if (cart.length === 0) {
+    alert.show('Tambahkan merchandise dulu sebelum melanjutkan checkout.', 'Keranjang kosong');
+}

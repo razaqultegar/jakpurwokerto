@@ -393,6 +393,25 @@ function formatRupiah(n) {
     return 'Rp ' + n.toLocaleString('id-ID');
 }
 
+const CART_STORAGE_KEY = 'jpw.cart.v1';
+
+function loadCart() {
+    try {
+        const raw = localStorage.getItem(CART_STORAGE_KEY);
+        if (!raw) return [];
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed : [];
+    } catch (_) {
+        return [];
+    }
+}
+
+function saveCart(items) {
+    try {
+        localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
+    } catch (_) {}
+}
+
 function initCart(alert) {
     const drawer = document.querySelector('[data-cart-drawer]');
     if (!drawer) return;
@@ -412,8 +431,11 @@ function initCart(alert) {
 
     const nameEl = document.querySelector('[data-merch-name]');
     const productName = nameEl ? nameEl.textContent.trim() : 'Jersey';
+    const meta = document.querySelector('[data-merch-meta]');
+    const productSlug = meta ? (meta.dataset.merchSlug || '') : '';
+    const productImage = meta ? (meta.dataset.merchImage || '') : '';
 
-    const items = [];
+    const items = loadCart();
 
     const open = () => {
         drawer.setAttribute('aria-hidden', 'false');
@@ -479,6 +501,7 @@ function initCart(alert) {
             btn.addEventListener('click', () => {
                 const idx = parseInt(btn.dataset.cartRemove, 10);
                 items.splice(idx, 1);
+                saveCart(items);
                 render();
             });
         });
@@ -505,12 +528,14 @@ function initCart(alert) {
         const fee = getSelectedSizeFee();
         const itemPrice = getBasePrice() + fee;
         const sleeveName = sleeve?.name || '-';
-        const existing = items.find((it) => it.size === size && it.category === (cat?.name || '-') && it.sleeve === sleeveName);
+        const existing = items.find((it) => it.size === size && it.category === (cat?.name || '-') && it.sleeve === sleeveName && it.slug === productSlug);
         if (existing) {
             existing.qty += qty;
         } else {
             items.push({
+                slug: productSlug,
                 name: productName,
+                image: productImage,
                 size,
                 category: cat?.name || '-',
                 sleeve: sleeveName,
@@ -519,6 +544,7 @@ function initCart(alert) {
                 fee,
             });
         }
+        saveCart(items);
         render();
         return true;
     };
