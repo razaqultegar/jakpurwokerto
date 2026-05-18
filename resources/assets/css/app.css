@@ -7,3 +7,6 @@
 
 /* Layouts */
 @import "./layouts/_layout";
+
+/* Components */
+@import "./components/_swiper";
