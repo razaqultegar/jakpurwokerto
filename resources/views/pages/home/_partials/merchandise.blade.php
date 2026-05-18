@@ -6,7 +6,7 @@
         </span>
         <h3 class="mt-1 text-base font-bold text-foreground">Jersey #7 Tahun JakPurwokerto</h3>
     </div>
-    <a href="#" class="text-xs font-medium text-primary">Lihat Detail</a>
+    <a href="{{ route('merchandise.show', 'the-7ourney') }}" class="text-xs font-medium text-primary">Lihat Detail</a>
 </div>
 <div class="relative overflow-hidden rounded-2xl bg-linear-to-br from-primary via-primary-light to-primary-lighter p-4 text-white shadow-lg">
     <div class="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-2xl"></div>
@@ -51,7 +51,7 @@
             </div>
         </div>
     </div>
-    <a href="#" class="relative mt-4 flex items-center justify-center gap-2 rounded-full bg-white py-3 text-sm font-bold text-primary shadow-md">
+    <a href="{{ route('merchandise.show', 'the-7ourney') }}" class="relative mt-4 flex items-center justify-center gap-2 rounded-full bg-white py-3 text-sm font-bold text-primary shadow-md">
         <i class="ri-shopping-bag-3-fill"></i>
         Pesan Sekarang
         <i class="ri-arrow-right-line"></i>
