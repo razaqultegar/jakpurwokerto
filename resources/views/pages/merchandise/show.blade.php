@@ -52,7 +52,7 @@
         </div>
     </section>
     <hr class="m-0 h-2 w-full border-0 bg-skull p-0">
-    <section class="px-4 pb-28 pt-5">
+    <section class="px-4 pb-6 pt-5">
         <div class="mb-3 flex items-center gap-2">
             <span class="h-5 w-1 rounded-full bg-primary"></span>
             <h3 class="text-sm font-bold text-foreground">Spesifikasi</h3>

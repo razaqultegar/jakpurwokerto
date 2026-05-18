@@ -13,9 +13,11 @@
     <div class="pointer-events-none absolute -bottom-12 -left-8 h-32 w-32 rounded-full bg-white/10 blur-2xl"></div>
     <div class="pointer-events-none absolute right-4 top-2 text-[110px] font-black leading-none text-white/10">7</div>
     <div class="relative flex gap-4">
-        <div class="flex h-32 w-28 shrink-0 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/20 backdrop-blur-sm">
-            <i class="ri-t-shirt-2-fill text-6xl text-white"></i>
-        </div>
+        <a href="{{ route('merchandise.show', 'the-7ourney') }}" class="relative h-32 w-28 shrink-0 overflow-hidden rounded-xl bg-white/15 ring-1 ring-white/20 backdrop-blur-sm">
+            <img src="{{ asset('build/medias/the-7ourney/artboard1.jpg') }}" alt="Jersey the 7ourney" class="h-full w-full object-cover" loading="lazy">
+            <span class="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-linear-to-t from-black/50 to-transparent"></span>
+            <span class="absolute bottom-1 left-1 rounded-full bg-white/85 px-1.5 py-0.5 text-[9px] font-bold text-primary backdrop-blur-sm">#7</span>
+        </a>
         <div class="flex flex-1 flex-col">
             <span class="text-[10px] font-medium uppercase tracking-wider text-white/80">Edisi Spesial</span>
             <h4 class="text-sm font-bold leading-tight">the 7ourney</h4>
