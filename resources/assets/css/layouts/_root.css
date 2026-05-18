@@ -1,0 +1,22 @@
+@layer base {
+    *, ::after, ::before {
+        border: 0 solid #e5e7eb;
+    }
+
+    html {
+        font-family: var(--font-sans);
+    }
+
+    body {
+        background-color: var(--color-background);
+        color: var(--color-foreground);
+        font-size: 14px;
+        font-weight: 200;
+        line-height: inherit;
+    }
+
+    html,
+    body {
+        -webkit-font-smoothing: antialiased;
+    }
+}

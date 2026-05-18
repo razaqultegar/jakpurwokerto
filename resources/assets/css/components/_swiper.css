@@ -1,0 +1,15 @@
+.hero-bullet {
+    display: inline-block;
+    height: 6px;
+    width: 6px;
+    border-radius: 9999px;
+    background-color: rgb(255 255 255 / 0.5);
+    transition: all 250ms ease;
+    cursor: pointer;
+}
+
+.hero-bullet-active {
+    width: 22px;
+    background-color: #fff;
+    box-shadow: 0 0 0 2px rgb(255 255 255 / 0.25);
+}
