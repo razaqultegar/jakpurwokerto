@@ -4,29 +4,6 @@
     @include('pages.merchandise._partials.hero')
     @include('pages.merchandise._partials.info')
     <hr class="m-0 h-2 w-full border-0 bg-skull p-0">
-    <section class="px-4 py-5">
-        <div class="mb-3 flex items-center gap-2">
-            <span class="h-5 w-1 rounded-full bg-primary"></span>
-            <h3 class="text-sm font-bold text-foreground">Kenapa Spesial?</h3>
-        </div>
-        <div class="grid grid-cols-2 gap-2.5">
-            @foreach ($merch['highlights'] as $i => $item)
-            <div class="relative overflow-hidden rounded-2xl bg-linear-to-br from-primary-softer to-white p-3 ring-1 ring-primary-soft">
-                <div class="pointer-events-none absolute -right-3 -top-3 h-12 w-12 rounded-full bg-primary/10 blur-xl"></div>
-                <div class="relative flex h-10 w-10 items-center justify-center rounded-xl bg-linear-to-br from-primary to-primary-lighter text-white shadow-md">
-                    <i class="{{ $item['icon'] }} text-xl"></i>
-                </div>
-                <div class="relative mt-2.5">
-                    <div class="text-xs font-bold text-foreground">{{ $item['label'] }}</div>
-                    <div class="mt-0.5 text-[10px] leading-snug text-onyx">{{ $item['desc'] }}</div>
-                </div>
-            </div>
-            @endforeach
-        </div>
-    </section>
-    <hr class="m-0 h-2 w-full border-0 bg-skull p-0">
-    @include('pages.merchandise._partials.gallery')
-    <hr class="m-0 h-2 w-full border-0 bg-skull p-0">
     @include('pages.merchandise._partials.options')
     <hr class="m-0 h-2 w-full border-0 bg-skull p-0">
     <section class="px-4 py-5">
@@ -71,6 +48,8 @@
         </div>
     </section>
     @include('pages.merchandise._partials.cta')
+    @include('pages.merchandise._partials.size-guide')
+    @include('pages.merchandise._partials.share')
     @include('pages.merchandise._partials.drawer')
 @endsection
 

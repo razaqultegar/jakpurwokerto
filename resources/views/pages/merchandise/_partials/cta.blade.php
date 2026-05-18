@@ -16,17 +16,14 @@
         </div>
         <div class="rounded-2xl bg-white/95 p-2 shadow-[0_10px_30px_-5px_rgba(0,0,0,0.25)] ring-1 ring-mercury backdrop-blur-md">
             <div class="flex items-center gap-2">
-                <button type="button" class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary-softer text-primary ring-1 ring-primary-soft">
-                    <i class="ri-customer-service-2-line text-xl"></i>
-                </button>
                 <button type="button" class="relative flex h-12 flex-1 items-center justify-center gap-2 rounded-xl border-2 border-primary bg-white text-sm font-bold text-primary" data-cart-add>
                     <i class="ri-shopping-cart-2-line text-base"></i>
-                    Keranjang
+                    Masukkan ke Keranjang
                 </button>
                 <button type="button" class="relative flex h-12 flex-1 items-center justify-center gap-2 overflow-hidden rounded-xl bg-linear-to-r from-primary via-primary-light to-primary-lighter text-sm font-bold text-white shadow-lg" data-cart-order>
                     <span class="pointer-events-none absolute -left-6 top-0 h-full w-12 -skew-x-12 bg-white/20"></span>
                     <i class="ri-shopping-bag-3-fill text-base"></i>
-                    Pesan
+                    Beli Sekarang
                 </button>
             </div>
         </div>

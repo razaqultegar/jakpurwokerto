@@ -1,6 +1,6 @@
 <div class="pointer-events-none fixed inset-0 z-50" data-cart-drawer aria-hidden="true">
     <div class="absolute inset-0 bg-black/50 opacity-0 transition-opacity duration-300" data-cart-backdrop></div>
-    <aside class="absolute right-0 top-0 flex h-full w-[88%] max-w-sm translate-x-full flex-col bg-white shadow-2xl transition-transform duration-300 ease-out" data-cart-panel role="dialog" aria-modal="true" aria-label="Keranjang">
+    <aside class="absolute right-0 top-0 flex h-full w-[88%] max-w-sm translate-x-full flex-col bg-white shadow-2xl transition-transform duration-300 ease-out" aria-modal="true" aria-label="Keranjang" data-cart-panel role="dialog">
         <header class="flex items-center justify-between border-b border-mercury px-4 py-3">
             <div class="flex items-center gap-2">
                 <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-primary-softer text-primary ring-1 ring-primary-soft">
@@ -34,7 +34,7 @@
             </div>
             <button type="button" class="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-linear-to-r from-primary via-primary-light to-primary-lighter text-sm font-bold text-white shadow-lg disabled:cursor-not-allowed disabled:opacity-60" data-cart-checkout disabled>
                 <i class="ri-shopping-bag-3-fill text-base"></i>
-                Lanjut Pesan
+                Lanjut ke Pembayaran
             </button>
         </footer>
     </aside>

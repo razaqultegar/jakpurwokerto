@@ -72,20 +72,162 @@ function initHeroSwiper() {
     });
 }
 
-function initGallerySwiper() {
-    const el = document.querySelector('[data-gallery-swiper]');
-    if (!el) return;
+function initSizeGuide() {
+    const root = document.querySelector('[data-size-guide]');
+    if (!root) return;
 
-    new Swiper(el, {
-        slidesPerView: 'auto',
-        spaceBetween: 10,
-        freeMode: true,
-        navigation: {
-            nextEl: '.gallery-swiper-next',
-            prevEl: '.gallery-swiper-prev',
-            disabledClass: 'swiper-button-disabled',
-        },
+    const panel = root.querySelector('[data-size-guide-panel]');
+    const backdrop = root.querySelector('[data-size-guide-backdrop]');
+    const openBtns = document.querySelectorAll('[data-size-guide-open]');
+    const closeBtn = root.querySelector('[data-size-guide-close]');
+    const swiperEl = root.querySelector('[data-size-guide-swiper]');
+    let swiper = null;
+
+    const open = () => {
+        root.setAttribute('aria-hidden', 'false');
+        root.classList.remove('pointer-events-none');
+        backdrop.classList.remove('opacity-0');
+        backdrop.classList.add('opacity-100');
+        panel.classList.remove('scale-95', 'opacity-0');
+        panel.classList.add('scale-100', 'opacity-100');
+        document.body.style.overflow = 'hidden';
+        if (swiper) swiper.update();
+    };
+
+    const close = () => {
+        root.setAttribute('aria-hidden', 'true');
+        backdrop.classList.add('opacity-0');
+        backdrop.classList.remove('opacity-100');
+        panel.classList.add('scale-95', 'opacity-0');
+        panel.classList.remove('scale-100', 'opacity-100');
+        document.body.style.overflow = '';
+        setTimeout(() => root.classList.add('pointer-events-none'), 300);
+    };
+
+    if (swiperEl) {
+        swiper = new Swiper(swiperEl, {
+            slidesPerView: 1,
+            spaceBetween: 12,
+            loop: false,
+            navigation: {
+                nextEl: '.size-guide-swiper-next',
+                prevEl: '.size-guide-swiper-prev',
+                disabledClass: 'swiper-button-disabled',
+            },
+            pagination: {
+                el: '.size-guide-swiper-pagination',
+                clickable: true,
+                bulletClass: 'h-1.5 w-1.5 rounded-full bg-mercury transition cursor-pointer',
+                bulletActiveClass: '!w-4 !bg-primary',
+            },
+        });
+    }
+
+    openBtns.forEach((btn) => btn.addEventListener('click', open));
+    if (closeBtn) closeBtn.addEventListener('click', close);
+    if (backdrop) backdrop.addEventListener('click', close);
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && root.getAttribute('aria-hidden') === 'false') close();
     });
+}
+
+function initShare() {
+    const root = document.querySelector('[data-share]');
+    if (!root) return;
+
+    const panel = root.querySelector('[data-share-panel]');
+    const backdrop = root.querySelector('[data-share-backdrop]');
+    const openBtns = document.querySelectorAll('[data-share-open]');
+    const closeBtn = root.querySelector('[data-share-close]');
+    const copyBtn = root.querySelector('[data-share-copy]');
+    const copyIcon = root.querySelector('[data-share-copy-icon]');
+    const copyLabel = root.querySelector('[data-share-copy-label]');
+    const igBtn = root.querySelector('[data-share-instagram]');
+    const urlEl = root.querySelector('[data-share-url]');
+    const shareUrl = urlEl ? urlEl.textContent.trim() : window.location.href;
+
+    const open = () => {
+        root.setAttribute('aria-hidden', 'false');
+        root.classList.remove('pointer-events-none');
+        backdrop.classList.remove('opacity-0');
+        backdrop.classList.add('opacity-100');
+        panel.classList.remove('translate-y-full');
+        document.body.style.overflow = 'hidden';
+    };
+
+    const close = () => {
+        root.setAttribute('aria-hidden', 'true');
+        backdrop.classList.add('opacity-0');
+        backdrop.classList.remove('opacity-100');
+        panel.classList.add('translate-y-full');
+        document.body.style.overflow = '';
+        setTimeout(() => root.classList.add('pointer-events-none'), 300);
+    };
+
+    if (copyBtn) {
+        copyBtn.addEventListener('click', async () => {
+            try {
+                await navigator.clipboard.writeText(shareUrl);
+            } catch (_) {
+                const ta = document.createElement('textarea');
+                ta.value = shareUrl;
+                document.body.appendChild(ta);
+                ta.select();
+                try { document.execCommand('copy'); } catch (_) {}
+                document.body.removeChild(ta);
+            }
+            if (copyIcon) {
+                copyIcon.classList.remove('ri-link');
+                copyIcon.classList.add('ri-check-line');
+            }
+            if (copyLabel) copyLabel.textContent = 'Tersalin';
+            setTimeout(() => {
+                if (copyIcon) {
+                    copyIcon.classList.add('ri-link');
+                    copyIcon.classList.remove('ri-check-line');
+                }
+                if (copyLabel) copyLabel.textContent = 'Salin Link';
+            }, 1800);
+        });
+    }
+
+    if (igBtn) {
+        igBtn.addEventListener('click', async () => {
+            try {
+                await navigator.clipboard.writeText(shareUrl);
+            } catch (_) {}
+            window.open('https://www.instagram.com/', '_blank', 'noopener');
+        });
+    }
+
+    openBtns.forEach((btn) => btn.addEventListener('click', open));
+    if (closeBtn) closeBtn.addEventListener('click', close);
+    if (backdrop) backdrop.addEventListener('click', close);
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && root.getAttribute('aria-hidden') === 'false') close();
+    });
+}
+
+function getBasePrice() {
+    const sleeve = document.querySelector('[data-sleeve][aria-pressed="true"]');
+    const cat = document.querySelector('[data-category][aria-pressed="true"]');
+    const catKey = cat ? cat.dataset.category : null;
+    if (sleeve && catKey) {
+        try {
+            const prices = JSON.parse(sleeve.dataset.sleevePrices || '{}');
+            if (prices[catKey] != null) return parseInt(prices[catKey], 10);
+        } catch (_) {}
+    }
+    const priceEl = document.querySelector('[data-merch-price]');
+    return priceEl ? parseInt(priceEl.dataset.price || '0', 10) : 0;
+}
+
+function refreshPriceDisplay() {
+    const priceEl = document.querySelector('[data-merch-price]');
+    if (!priceEl) return;
+    const base = getBasePrice();
+    priceEl.dataset.price = base;
+    priceEl.textContent = formatRupiah(base).replace(' ', '');
 }
 
 function initCategoryPicker() {
@@ -93,6 +235,17 @@ function initCategoryPicker() {
     buttons.forEach((btn) => {
         btn.addEventListener('click', () => {
             buttons.forEach((b) => b.setAttribute('aria-pressed', b === btn ? 'true' : 'false'));
+            refreshPriceDisplay();
+        });
+    });
+}
+
+function initSleevePicker() {
+    const buttons = document.querySelectorAll('[data-sleeve]');
+    buttons.forEach((btn) => {
+        btn.addEventListener('click', () => {
+            buttons.forEach((b) => b.setAttribute('aria-pressed', b === btn ? 'true' : 'false'));
+            refreshPriceDisplay();
         });
     });
 }
@@ -100,24 +253,65 @@ function initCategoryPicker() {
 function initSizePicker() {
     const buttons = document.querySelectorAll('[data-size]');
     const helper = document.querySelector('[data-size-helper]');
+    const customWrap = document.querySelector('[data-custom-size-wrap]');
+    const customInput = document.querySelector('[data-custom-size-input]');
+
+    const updateHelper = (btn) => {
+        if (!helper) return;
+        const fee = parseInt(btn.dataset.sizeFee || '0', 10);
+        const isCustom = btn.dataset.size === 'Kustom';
+        const customVal = customInput ? customInput.value.trim().toUpperCase() : '';
+        const label = isCustom && customVal ? `Kustom (${customVal})` : btn.dataset.size;
+        helper.innerHTML = `<i class="ri-check-line text-primary"></i> Ukuran <strong class="font-semibold text-foreground">${label}</strong> dipilih.`;
+    };
+
     buttons.forEach((btn) => {
         btn.addEventListener('click', () => {
             buttons.forEach((b) => b.setAttribute('aria-pressed', b === btn ? 'true' : 'false'));
-            if (helper) {
-                helper.innerHTML = `<i class="ri-check-line text-primary"></i> Ukuran <strong class="font-semibold text-foreground">${btn.dataset.size}</strong> dipilih.`;
-            }
+            const isCustom = btn.dataset.size === 'Kustom';
+            if (customWrap) customWrap.classList.toggle('hidden', !isCustom);
+            if (isCustom && customInput) setTimeout(() => customInput.focus(), 50);
+            updateHelper(btn);
         });
     });
+
+    if (customInput) {
+        customInput.addEventListener('input', () => {
+            const active = document.querySelector('[data-size][aria-pressed="true"]');
+            if (active && active.dataset.size === 'Kustom') updateHelper(active);
+        });
+    }
 }
 
 function getSelectedSize() {
     const active = document.querySelector('[data-size][aria-pressed="true"]');
-    return active ? active.dataset.size : null;
+    if (!active) return null;
+    if (active.dataset.size === 'Kustom') {
+        const customInput = document.querySelector('[data-custom-size-input]');
+        const val = customInput ? customInput.value.trim().toUpperCase() : '';
+        return val ? `Kustom (${val})` : null;
+    }
+    return active.dataset.size;
+}
+
+function getSelectedSizeFee() {
+    const active = document.querySelector('[data-size][aria-pressed="true"]');
+    return active ? parseInt(active.dataset.sizeFee || '0', 10) : 0;
+}
+
+function isCustomSizeSelected() {
+    const active = document.querySelector('[data-size][aria-pressed="true"]');
+    return !!(active && active.dataset.size === 'Kustom');
 }
 
 function getSelectedCategory() {
     const active = document.querySelector('[data-category][aria-pressed="true"]');
-    return active ? { key: active.dataset.category, name: active.querySelector('.block.text-xs')?.textContent?.trim() || active.dataset.category } : null;
+    return active ? { key: active.dataset.category, name: active.dataset.categoryName || active.dataset.category } : null;
+}
+
+function getSelectedSleeve() {
+    const active = document.querySelector('[data-sleeve][aria-pressed="true"]');
+    return active ? { key: active.dataset.sleeve, name: active.dataset.sleeveName || active.dataset.sleeve } : null;
 }
 
 function getQuantity() {
@@ -176,8 +370,6 @@ function initCart(alert) {
     const summaryEl = drawer.querySelector('[data-cart-summary]');
     const countEl = document.querySelector('[data-cart-count]');
 
-    const priceEl = document.querySelector('[data-merch-price]');
-    const price = priceEl ? parseInt(priceEl.dataset.price || '0', 10) : 175000;
     const nameEl = document.querySelector('[data-merch-name]');
     const productName = nameEl ? nameEl.textContent.trim() : 'Jersey';
 
@@ -234,7 +426,7 @@ function initCart(alert) {
                 </span>
                 <div class="flex-1">
                     <div class="text-xs font-bold text-foreground">${it.name}</div>
-                    <div class="mt-0.5 text-[10px] text-onyx">${it.category} · Ukuran ${it.size}</div>
+                    <div class="mt-0.5 text-[10px] text-onyx">${it.category} · ${it.sleeve} · ${it.size}${it.fee > 0 ? ` <span class="text-primary">(+${formatRupiah(it.fee)} kustom)</span>` : ''}</div>
                     <div class="mt-1 text-[11px] font-semibold text-primary">${formatRupiah(it.price)} × ${it.qty}</div>
                 </div>
                 <button type="button" class="flex h-8 w-8 items-center justify-center rounded-full bg-white text-foreground ring-1 ring-mercury" data-cart-remove="${i}" aria-label="Hapus item">
@@ -253,14 +445,27 @@ function initCart(alert) {
     };
 
     const addToCart = () => {
+        if (isCustomSizeSelected()) {
+            const customInput = document.querySelector('[data-custom-size-input]');
+            const val = customInput ? customInput.value.trim() : '';
+            if (!val) {
+                alert.show('Tulis ukuran kustom yang kamu inginkan (misal 2XL, 3XL).', 'Ukuran kustom kosong');
+                if (customInput) customInput.focus();
+                return false;
+            }
+        }
         const size = getSelectedSize();
         if (!size) {
             alert.show('Silakan pilih ukuran jersey terlebih dahulu sebelum menambahkan ke keranjang.');
             return false;
         }
         const cat = getSelectedCategory();
+        const sleeve = getSelectedSleeve();
         const qty = getQuantity();
-        const existing = items.find((it) => it.size === size && it.category === (cat?.name || '-'));
+        const fee = getSelectedSizeFee();
+        const itemPrice = getBasePrice() + fee;
+        const sleeveName = sleeve?.name || '-';
+        const existing = items.find((it) => it.size === size && it.category === (cat?.name || '-') && it.sleeve === sleeveName);
         if (existing) {
             existing.qty += qty;
         } else {
@@ -268,8 +473,10 @@ function initCart(alert) {
                 name: productName,
                 size,
                 category: cat?.name || '-',
+                sleeve: sleeveName,
                 qty,
-                price,
+                price: itemPrice,
+                fee,
             });
         }
         render();
@@ -296,8 +503,16 @@ function initCart(alert) {
                 alert.show('Silakan pilih ukuran jersey terlebih dahulu sebelum memesan.');
                 return;
             }
-            addToCart();
-            open();
+            if (addToCart()) {
+                window.location.href = '/checkout';
+            }
+        });
+    }
+
+    if (checkoutBtn) {
+        checkoutBtn.addEventListener('click', () => {
+            if (items.length === 0) return;
+            window.location.href = '/checkout';
         });
     }
 
@@ -336,8 +551,11 @@ function initQuantity() {
 
 document.querySelectorAll('[data-countdown]').forEach(initCountdown);
 initHeroSwiper();
-initGallerySwiper();
 initCategoryPicker();
+initSleevePicker();
+refreshPriceDisplay();
+initSizeGuide();
+initShare();
 initSizePicker();
 initQuantity();
 const merchAlert = initAlert();
