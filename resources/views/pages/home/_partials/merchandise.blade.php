@@ -10,16 +10,16 @@
         </a>
         <div class="flex flex-1 flex-col">
             <span class="text-[10px] font-medium uppercase tracking-wider text-white/80">Edisi Spesial</span>
-            <h4 class="text-sm font-bold leading-tight">the 7ourney</h4>
-            <p class="mt-1 text-[11px] text-white/85">Bersama jadi keluarga, satu jiwa untuk Macan Kemayoran.</p>
+            <h4 class="text-sm font-bold leading-tight">THE 7OURNEY</h4>
+            <p class="mt-1 text-[11px] text-white/85">Years of Stories, Loyalty, and Pride.</p>
             <div class="mt-2 flex items-baseline gap-2">
                 <span class="text-lg font-bold">+Rp135.000</span>
-                <span class="text-[11px] text-white/70 line-through">Rp185.000</span>
+                <span class="text-[11px] text-white/70 line-through">Rp175.000</span>
             </div>
             <span class="mt-1 w-fit rounded bg-yellow-300 px-1.5 py-0.5 text-[9px] font-bold text-primary">HEMAT 22%</span>
         </div>
     </div>
-    <div class="relative mt-3" data-countdown data-start="2026-05-20T00:00:00+07:00" data-end="2026-06-20T23:59:59+07:00">
+    <div class="relative mt-3" data-countdown data-start="2026-05-19T00:00:00+07:00" data-end="2026-06-20T23:59:59+07:00">
         <div class="mb-1.5 flex items-center justify-between text-[10px] font-medium text-white/85">
             <span data-countdown-label>Berakhir dalam</span>
             <span class="rounded bg-white/20 px-1.5 py-0.5 text-[9px] uppercase tracking-wide" data-countdown-status>Berlangsung</span>
