@@ -71,6 +71,7 @@
         </div>
     </section>
     @include('pages.merchandise._partials.cta')
+    @include('pages.merchandise._partials.drawer')
 @endsection
 
 @push('scripts')
