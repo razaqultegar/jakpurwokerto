@@ -8,6 +8,8 @@
         <hr class="m-0 h-2 w-full border-0 bg-skull p-0">
         @include('pages.checkout._partials.form')
         <hr class="m-0 h-2 w-full border-0 bg-skull p-0">
+        @include('pages.checkout._partials.shipping-method')
+        <hr class="m-0 h-2 w-full border-0 bg-skull p-0">
         @include('pages.checkout._partials.payment-type')
         <hr class="m-0 h-2 w-full border-0 bg-skull p-0">
         @include('pages.checkout._partials.payment-method')

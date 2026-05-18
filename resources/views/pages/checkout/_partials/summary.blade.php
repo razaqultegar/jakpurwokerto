@@ -14,7 +14,7 @@
                 <i class="ri-shopping-cart-line text-lg"></i>
             </span>
             <p class="text-xs font-bold text-foreground">Keranjang kosong</p>
-            <p class="text-[10px] text-onyx">Yuk pilih merchandise dulu sebelum checkout.</p>
+            <p class="text-[10px] text-onyx">Yuk pilih merchandise dulu sebelum lanjut.</p>
             <a href="{{ route('home') }}" class="mt-1 inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1.5 text-[11px] font-bold text-white">
                 <i class="ri-arrow-left-line"></i>
                 Cari Merchandise
@@ -33,10 +33,5 @@
             <dd class="text-base font-black text-primary" data-total>Rp0</dd>
         </div>
     </dl>
-    <p class="mt-2 flex items-center gap-1 text-[10px] text-onyx">
-        <i class="ri-truck-line"></i>
-        Ongkos kirim akan dihitung & dikonfirmasi terpisah via WhatsApp.
-    </p>
-
     <div data-cart-hidden-inputs></div>
 </section>

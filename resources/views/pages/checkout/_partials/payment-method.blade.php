@@ -51,8 +51,4 @@
             </div>
         </div>
     </div>
-    <div class="mt-3 flex items-start gap-2 rounded-2xl border border-dashed border-primary-soft bg-primary-softer p-3">
-        <i class="ri-information-2-line shrink-0 text-base text-primary"></i>
-        <p class="text-[11px] leading-relaxed text-onyx">Detail nomor rekening atau kode QRIS akan ditampilkan di halaman konfirmasi setelah checkout.</p>
-    </div>
 </section>

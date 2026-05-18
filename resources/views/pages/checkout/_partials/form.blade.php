@@ -35,13 +35,5 @@
             </div>
             <p class="mt-1 hidden text-[10px] text-red-600" data-error="phone"></p>
         </div>
-        <div>
-            <label for="checkout-note" class="mb-1 block text-[11px] font-semibold text-foreground">Catatan Tambahan <span class="font-normal text-onyx">(opsional)</span></label>
-            <textarea id="checkout-note" class="w-full resize-none rounded-xl border-2 border-mercury bg-white px-3 py-2.5 text-xs font-medium text-foreground placeholder:text-onyx/60 focus:border-primary focus:outline-none" name="note" placeholder="Misal: tolong dibungkus rapi, atau request khusus lain..." rows="3" maxlength="240" data-field="note"></textarea>
-            <p class="mt-1 flex items-center justify-between text-[10px] text-onyx">
-                <span><i class="ri-edit-2-line"></i> Maks 240 karakter</span>
-                <span><span data-note-count>0</span>/240</span>
-            </p>
-        </div>
     </div>
 </section>

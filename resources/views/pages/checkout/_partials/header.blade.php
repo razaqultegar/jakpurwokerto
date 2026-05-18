@@ -3,7 +3,7 @@
         <i class="ri-arrow-left-line text-lg"></i>
     </a>
     <div class="flex-1">
-        <h1 class="text-sm font-black text-foreground">Checkout</h1>
+        <h1 class="text-sm font-black text-foreground">Pembayaran</h1>
         <p class="text-[10px] text-onyx">Selesaikan pesananmu dalam beberapa langkah</p>
     </div>
     <span class="inline-flex items-center gap-1 rounded-full bg-primary-softer px-2.5 py-1 text-[10px] font-bold text-primary ring-1 ring-primary-soft">

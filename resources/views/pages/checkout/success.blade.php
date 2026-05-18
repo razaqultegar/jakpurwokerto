@@ -8,10 +8,17 @@
     $items = $order['items'] ?? [];
     $totalQty = collect($items)->sum('qty');
     $itemsLine = collect($items)->map(fn ($it) => "- {$it['name']} ({$it['category']} · {$it['sleeve']} · {$it['size']}) x{$it['qty']}")->implode('%0A');
+    $shipping = $order['shipping'] ?? null;
+    $shippingLine = $shipping ? "*Pengambilan:* {$shipping['name']}%0A" : '';
+    $addressLine = ($shipping && ($shipping['key'] ?? null) === 'kirim' && ! empty($shipping['address']))
+        ? "*Alamat Kirim:*%0A" . rawurlencode($shipping['address']) . "%0A"
+        : '';
     $waText = "Halo Admin JakPurwokerto, saya ingin konfirmasi pembayaran pesanan:%0A%0A"
         ."*ID Pesanan:* {$order['id']}%0A"
         ."*Nama:* {$order['customer']['name']}%0A"
         ."*Item:*%0A{$itemsLine}%0A"
+        ."{$shippingLine}"
+        ."{$addressLine}"
         ."*Jenis Pembayaran:* {$order['payment_type_label']}%0A"
         ."*Metode:* {$payment['label']}%0A"
         ."*Jumlah Dibayar:* {$rupiah($order['amount_due'])}%0A%0A"
@@ -199,6 +206,16 @@
                 <dt class="text-onyx">Email</dt>
                 <dd class="font-semibold text-foreground">{{ $order['customer']['email'] }}</dd>
             </div>
+            <div class="flex items-center justify-between">
+                <dt class="text-onyx">Metode Pengambilan</dt>
+                <dd class="font-semibold text-foreground">{{ $shipping['name'] ?? '-' }}</dd>
+            </div>
+            @if (($shipping['key'] ?? null) === 'kirim' && ! empty($shipping['address']))
+            <div class="flex items-start justify-between gap-3">
+                <dt class="shrink-0 text-onyx">Alamat</dt>
+                <dd class="whitespace-pre-line text-right font-semibold text-foreground">{{ $shipping['address'] }}</dd>
+            </div>
+            @endif
         </dl>
     </section>
     <div class="pointer-events-none fixed inset-x-0 bottom-0 z-40 mx-auto max-w-screen-sm px-3 pb-3">

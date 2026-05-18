@@ -13,10 +13,6 @@
                 <span class="block text-xs font-bold text-foreground peer-checked:text-primary">Down Payment (DP 50%)</span>
                 <span class="mt-0.5 block text-[10px] text-onyx">Bayar setengah dulu, sisanya saat barang siap kirim.</span>
             </span>
-            <span class="text-right">
-                <span class="block text-[10px] text-onyx">Bayar sekarang</span>
-                <span class="block text-sm font-black text-primary" data-payment-amount="dp">-</span>
-            </span>
             <span class="absolute right-2 top-2 hidden h-5 w-5 items-center justify-center rounded-full bg-primary text-white shadow peer-checked:flex">
                 <i class="ri-check-line text-xs"></i>
             </span>
@@ -29,10 +25,6 @@
             <span class="flex-1">
                 <span class="block text-xs font-bold text-foreground peer-checked:text-primary">Full Payment</span>
                 <span class="mt-0.5 block text-[10px] text-onyx">Bayar lunas sekarang, tinggal tunggu barangnya datang.</span>
-            </span>
-            <span class="text-right">
-                <span class="block text-[10px] text-onyx">Bayar sekarang</span>
-                <span class="block text-sm font-black text-primary" data-payment-amount="full">-</span>
             </span>
             <span class="absolute right-2 top-2 hidden h-5 w-5 items-center justify-center rounded-full bg-primary text-white shadow peer-checked:flex">
                 <i class="ri-check-line text-xs"></i>

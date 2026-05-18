@@ -16,6 +16,7 @@
         <main class="mx-auto my-0 min-h-full max-w-screen-sm">
             <div class="mx-auto my-0 min-h-screen max-w-480 overflow-x-hidden bg-white pb-16.5">
                 @yield('content')
+                <x-footer />
             </div>
         </main>
         @vite('resources/assets/js/app.js')

@@ -86,13 +86,13 @@ function renderCart(items) {
     empty.classList.add('hidden');
     empty.classList.remove('flex');
     list.classList.remove('hidden');
-    list.innerHTML = items.map((it) => {
+    list.innerHTML = items.map((it, i) => {
         const img = it.image
             ? `<img src="/build/${escapeHtml(it.image)}" alt="${escapeHtml(it.name)}" class="h-16 w-16 shrink-0 rounded-xl object-cover ring-1 ring-mercury">`
             : `<span class="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-white text-primary ring-1 ring-mercury"><i class="ri-shirt-fill text-2xl"></i></span>`;
         const feeText = it.fee > 0 ? ` <span class="text-primary">(+${formatRupiah(it.fee)} kustom)</span>` : '';
         return `
-            <div class="flex items-center gap-3 rounded-2xl bg-skull p-3 ring-1 ring-mercury">
+            <div class="relative flex items-center gap-3 rounded-2xl bg-skull p-3 pr-10 ring-1 ring-mercury">
                 ${img}
                 <div class="min-w-0 flex-1">
                     <div class="truncate text-xs font-bold text-foreground">${escapeHtml(it.name)}</div>
@@ -102,9 +102,20 @@ function renderCart(items) {
                         <span class="text-[11px] font-bold text-primary">${formatRupiah(it.price)}</span>
                     </div>
                 </div>
+                <button type="button" class="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-white text-red-500 ring-1 ring-mercury transition active:scale-95" data-cart-remove="${i}" aria-label="Hapus item">
+                    <i class="ri-delete-bin-line text-sm"></i>
+                </button>
             </div>
         `;
     }).join('');
+
+    list.querySelectorAll('[data-cart-remove]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            const idx = parseInt(btn.dataset.cartRemove, 10);
+            if (Number.isNaN(idx)) return;
+            removeCartItem(idx);
+        });
+    });
 
     return subtotal;
 }
@@ -140,14 +151,6 @@ function getSelectedPaymentType() {
     return el ? el.value : 'dp';
 }
 
-function updatePaymentAmounts() {
-    const { total } = getTotals();
-    const dpEl = document.querySelector('[data-payment-amount="dp"]');
-    const fullEl = document.querySelector('[data-payment-amount="full"]');
-    if (dpEl) dpEl.textContent = formatRupiah(Math.round(total * 0.5));
-    if (fullEl) fullEl.textContent = formatRupiah(total);
-}
-
 function updatePayCTA() {
     const { total } = getTotals();
     const type = getSelectedPaymentType();
@@ -174,13 +177,49 @@ function initPaymentType() {
     });
 }
 
-function initNoteCounter() {
-    const textarea = document.querySelector('[data-field="note"]');
-    const counter = document.querySelector('[data-note-count]');
+function initAddressCounter() {
+    const textarea = document.querySelector('[data-field="address"]');
+    const counter = document.querySelector('[data-address-count]');
     if (!textarea || !counter) return;
     const update = () => { counter.textContent = textarea.value.length; };
     textarea.addEventListener('input', update);
     update();
+}
+
+const SHIPPING_DETAILS = {
+    pickup: 'Hanya area Purwokerto kota. Titik temu & jadwal ditentukan admin via WhatsApp.',
+    kirim: 'Ongkos kirim dihitung & dikonfirmasi terpisah via WhatsApp sesuai alamat.',
+};
+
+function getSelectedShipping() {
+    const el = document.querySelector('input[name="shipping_method"]:checked');
+    return el ? el.value : 'pickup';
+}
+
+function applyShippingState() {
+    const method = getSelectedShipping();
+    const detailText = document.querySelector('[data-shipping-detail-text]');
+    if (detailText) detailText.textContent = SHIPPING_DETAILS[method] || '';
+
+    const wrap = document.querySelector('[data-address-wrap]');
+    const addr = document.querySelector('[data-field="address"]');
+    if (wrap && addr) {
+        const isKirim = method === 'kirim';
+        wrap.classList.toggle('hidden', !isKirim);
+        if (!isKirim) {
+            addr.value = '';
+            setFieldError('address', '');
+            const counter = document.querySelector('[data-address-count]');
+            if (counter) counter.textContent = '0';
+        }
+    }
+}
+
+function initShipping() {
+    document.querySelectorAll('input[name="shipping_method"]').forEach((el) => {
+        el.addEventListener('change', applyShippingState);
+    });
+    applyShippingState();
 }
 
 function setFieldError(name, message) {
@@ -216,7 +255,13 @@ function validateForm() {
     if (!phone) errors.phone = 'No. WhatsApp wajib diisi.';
     else if (!/^[0-9]{8,15}$/.test(phone)) errors.phone = 'Gunakan angka saja, 8–15 digit.';
 
-    ['name', 'email', 'phone'].forEach((f) => setFieldError(f, errors[f] || ''));
+    if (getSelectedShipping() === 'kirim') {
+        const address = get('address');
+        if (!address) errors.address = 'Alamat lengkap wajib diisi untuk pengiriman.';
+        else if (address.length < 10) errors.address = 'Alamat terlalu singkat, mohon lebih detail.';
+    }
+
+    ['name', 'email', 'phone', 'address'].forEach((f) => setFieldError(f, errors[f] || ''));
     return Object.keys(errors).length === 0;
 }
 
@@ -224,7 +269,7 @@ function initForm(alert, getCart) {
     const form = document.querySelector('form');
     if (!form) return;
 
-    ['name', 'email', 'phone'].forEach((f) => {
+    ['name', 'email', 'phone', 'address'].forEach((f) => {
         const el = document.querySelector(`[data-field="${f}"]`);
         if (el) el.addEventListener('input', () => setFieldError(f, ''));
     });
@@ -258,14 +303,27 @@ function initForm(alert, getCart) {
 let cart = loadCart();
 const getCart = () => cart;
 
+function removeCartItem(index) {
+    if (index < 0 || index >= cart.length) return;
+    cart.splice(index, 1);
+    saveCart(cart);
+    renderCart(cart);
+    syncHiddenInputs(cart);
+    updatePayCTA();
+    setPayButtonsDisabled(cart.length === 0);
+    if (cart.length === 0) {
+        alert.show('Keranjang sekarang kosong. Tambahkan merchandise dulu sebelum melanjutkan.', 'Keranjang kosong');
+    }
+}
+
 const alert = initAlert();
 renderCart(cart);
 syncHiddenInputs(cart);
-updatePaymentAmounts();
 updatePayCTA();
 setPayButtonsDisabled(cart.length === 0);
 initPaymentType();
-initNoteCounter();
+initShipping();
+initAddressCounter();
 initForm(alert, getCart);
 
 if (cart.length === 0) {

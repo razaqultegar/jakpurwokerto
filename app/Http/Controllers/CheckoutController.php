@@ -8,9 +8,32 @@ use Illuminate\Support\Str;
 
 class CheckoutController extends Controller
 {
+    private function shippingMethods()
+    {
+        return [
+            'pickup' => [
+                'key' => 'pickup',
+                'name' => 'Ambil di Tempat',
+                'desc' => 'Ketemuan langsung, titik temu diatur admin.',
+                'icon' => 'ri-map-pin-2-line',
+                'badge' => 'GRATIS',
+                'detail' => 'Hanya area Purwokerto kota. Titik temu & jadwal ditentukan admin via WhatsApp.',
+            ],
+            'kirim' => [
+                'key' => 'kirim',
+                'name' => 'Kirim (Kurir)',
+                'desc' => 'Dikirim ke alamatmu via ekspedisi.',
+                'icon' => 'ri-truck-line',
+                'badge' => 'ONGKIR',
+                'detail' => 'Ongkos kirim dihitung & dikonfirmasi terpisah via WhatsApp sesuai alamat.',
+            ],
+        ];
+    }
+
     private function checkoutData()
     {
         return [
+            'shipping_methods' => $this->shippingMethods(),
             'banks' => [
                 [
                     'key' => 'bca',
@@ -42,7 +65,7 @@ class CheckoutController extends Controller
     public function index()
     {
         return view('pages.checkout.index', [
-            'title' => 'Checkout',
+            'title' => 'Pembayaran',
             'checkout' => $this->checkoutData(),
         ]);
     }
@@ -53,7 +76,8 @@ class CheckoutController extends Controller
             'name' => ['required', 'string', 'min:3', 'max:120'],
             'email' => ['required', 'email', 'max:160'],
             'phone' => ['required', 'string', 'regex:/^[0-9]{8,15}$/'],
-            'note' => ['nullable', 'string', 'max:240'],
+            'shipping_method' => ['required', 'in:pickup,kirim'],
+            'address' => ['nullable', 'string', 'max:500', 'required_if:shipping_method,kirim'],
             'payment_type' => ['required', 'in:dp,full'],
             'payment_method' => ['required', 'string'],
             'items' => ['required', 'array', 'min:1'],
@@ -121,7 +145,8 @@ class CheckoutController extends Controller
             'customer_name' => $validated['name'],
             'customer_email' => $validated['email'],
             'customer_phone' => $validated['phone'],
-            'customer_note' => $validated['note'] ?? null,
+            'shipping_method' => $validated['shipping_method'],
+            'customer_address' => $validated['shipping_method'] === 'kirim' ? ($validated['address'] ?? null) : null,
             'item' => $items,
             'subtotal' => $subtotal,
             'amount_due' => $amount,
@@ -132,7 +157,7 @@ class CheckoutController extends Controller
             'status' => 'pending',
         ]);
 
-        return redirect()->route('checkout.success', ['orderId' => $order->order_id]);
+        return redirect()->route('checkout.success', ['orderId' => strtolower($order->order_id)]);
     }
 
     public function success(string $orderId)
@@ -150,8 +175,12 @@ class CheckoutController extends Controller
                 'name' => $order->customer_name,
                 'email' => $order->customer_email,
                 'phone' => $order->customer_phone,
-                'note' => $order->customer_note,
+                'address' => $order->customer_address,
             ],
+            'shipping' => array_merge(
+                $this->shippingMethods()[$order->shipping_method] ?? ['key' => $order->shipping_method, 'name' => $order->shipping_method],
+                ['address' => $order->customer_address]
+            ),
             'items' => $order->item ?? [],
             'subtotal' => $order->subtotal,
             'amount_due' => $order->amount_due,

@@ -14,7 +14,8 @@ return new class extends Migration
             $table->string('customer_name', 120);
             $table->string('customer_email', 160);
             $table->string('customer_phone', 20);
-            $table->string('customer_note', 240)->nullable();
+            $table->enum('shipping_method', ['pickup', 'kirim']);
+            $table->string('customer_address', 500)->nullable();
             $table->json('item');
             $table->unsignedInteger('subtotal');
             $table->unsignedInteger('amount_due');
