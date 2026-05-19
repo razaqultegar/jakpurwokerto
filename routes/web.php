@@ -6,8 +6,9 @@ use App\Http\Controllers\MerchandiseController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
-Route::get('/bayar', [CheckoutController::class, 'index'])->name('checkout');
-Route::post('/bayar', [CheckoutController::class, 'store'])->name('checkout.store');
+Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout');
+Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
+Route::get('/pembayaran/{orderId}', [CheckoutController::class, 'payment'])->name('checkout.payment');
+Route::post('/pembayaran/{orderId}/bukti', [CheckoutController::class, 'uploadProof'])->name('checkout.proof');
 Route::get('/terimakasih/{orderId}', [CheckoutController::class, 'success'])->name('checkout.success');
-Route::post('/terimakasih/{orderId}/bukti', [CheckoutController::class, 'uploadProof'])->name('checkout.proof');
 Route::get('/{slug}', [MerchandiseController::class, 'show'])->name('merchandise.show');

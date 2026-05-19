@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\OrderInvoice;
 use App\Models\Order;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -26,7 +29,7 @@ class CheckoutController extends Controller
                 'desc' => 'Dikirim ke alamatmu via ekspedisi.',
                 'icon' => 'ri-truck-line',
                 'badge' => 'ONGKIR',
-                'detail' => 'Ongkos kirim dihitung & dikonfirmasi terpisah via WhatsApp sesuai alamat.',
+                'detail' => 'Pengiriman menggunakan JNT Express dan untuk biaya ongkos kirim sepenuhnya di tanggung oleh pembeli.',
             ],
         ];
     }
@@ -68,7 +71,7 @@ class CheckoutController extends Controller
     public function index()
     {
         return view('pages.checkout.index', [
-            'title' => 'Pembayaran',
+            'title' => 'Checkout',
             'checkout' => $this->checkoutData(),
         ]);
     }
@@ -166,18 +169,12 @@ class CheckoutController extends Controller
             'status' => 'pending',
         ]);
 
-        return redirect()->route('checkout.success', ['orderId' => strtolower($order->order_id)]);
+        return redirect()->route('checkout.payment', ['orderId' => strtolower($order->order_id)]);
     }
 
-    public function success(string $orderId)
+    private function buildOrderView(Order $order): array
     {
-        $order = Order::where('order_id', $orderId)->first();
-        if (! $order) {
-            return redirect()->route('checkout')
-                ->with('status', 'Pesanan tidak ditemukan.');
-        }
-
-        $view = [
+        return [
             'id' => $order->order_id,
             'created_at' => $order->created_at?->toIso8601String(),
             'customer' => [
@@ -216,10 +213,41 @@ class CheckoutController extends Controller
             'status' => $order->status,
             'admin_whatsapp' => $this->checkoutData()['admin_whatsapp'],
         ];
+    }
+
+    public function payment(string $orderId)
+    {
+        $order = Order::where('order_id', $orderId)->first();
+        if (! $order) {
+            return redirect()->route('checkout')
+                ->with('status', 'Pesanan tidak ditemukan.');
+        }
+
+        if ($order->payment_proof) {
+            return redirect()->route('checkout.success', ['orderId' => strtolower($order->order_id)]);
+        }
+
+        return view('pages.checkout.payment', [
+            'title' => 'Pembayaran',
+            'order' => $this->buildOrderView($order),
+        ]);
+    }
+
+    public function success(string $orderId)
+    {
+        $order = Order::where('order_id', $orderId)->first();
+        if (! $order) {
+            return redirect()->route('checkout')
+                ->with('status', 'Pesanan tidak ditemukan.');
+        }
+
+        if (! $order->payment_proof) {
+            return redirect()->route('checkout.payment', ['orderId' => strtolower($order->order_id)]);
+        }
 
         return view('pages.checkout.success', [
             'title' => 'Terima Kasih',
-            'order' => $view,
+            'order' => $this->buildOrderView($order),
         ]);
     }
 
@@ -250,8 +278,17 @@ class CheckoutController extends Controller
             'status' => $order->status === 'pending' ? 'paid' : $order->status,
         ]);
 
+        try {
+            Mail::to($order->customer_email)->send(new OrderInvoice($this->buildOrderView($order)));
+        } catch (\Throwable $e) {
+            Log::error('Failed to send invoice email', [
+                'order_id' => $order->order_id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
         return redirect()->route('checkout.success', ['orderId' => strtolower($order->order_id)])
             ->with('proof_status', 'success')
-            ->with('proof_message', 'Bukti transfer berhasil diunggah. Admin akan segera verifikasi.');
+            ->with('proof_message', 'Bukti transfer berhasil diunggah. Invoice telah dikirim ke email kamu.');
     }
 }

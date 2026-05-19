@@ -16,7 +16,7 @@
         <main class="mx-auto my-0 min-h-full max-w-screen-sm">
             <div class="mx-auto my-0 min-h-screen max-w-480 overflow-x-hidden bg-white pb-16.5">
                 @yield('content')
-                @unless (in_array(Route::currentRouteName(), ['checkout', 'checkout.success'])) <x-footer /> @endunless
+                @unless (in_array(Route::currentRouteName(), ['checkout', 'checkout.payment', 'checkout.success'])) <x-footer /> @endunless
             </div>
         </main>
         @vite('resources/assets/js/app.js')
