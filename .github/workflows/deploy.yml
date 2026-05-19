@@ -63,6 +63,23 @@ jobs:
           chmod 600 ~/.ssh/config
           ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
 
+      - name: Ensure deploy directory exists
+        env:
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+        run: |
+          ssh -p ${{ secrets.SSH_PORT || 22 }} -i ~/.ssh/id_ed25519 \
+            ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
+            "DEPLOY_PATH='${DEPLOY_PATH}' bash -s" << 'EOF'
+            set -e
+            mkdir -p "$DEPLOY_PATH"/storage/app/public \
+                     "$DEPLOY_PATH"/storage/framework/cache/data \
+                     "$DEPLOY_PATH"/storage/framework/sessions \
+                     "$DEPLOY_PATH"/storage/framework/views \
+                     "$DEPLOY_PATH"/storage/logs \
+                     "$DEPLOY_PATH"/bootstrap/cache
+            chmod -R u+rwX "$DEPLOY_PATH"/storage "$DEPLOY_PATH"/bootstrap/cache
+          EOF
+
       - name: Rsync to VPS
         run: |
           rsync -az --delete \
@@ -90,6 +107,10 @@ jobs:
             set -e
             cd "$DEPLOY_PATH"
             "$PHP_BIN" -v
+            "$PHP_BIN" artisan config:clear || true
+            "$PHP_BIN" artisan route:clear || true
+            "$PHP_BIN" artisan view:clear || true
+            "$PHP_BIN" artisan event:clear || true
             "$PHP_BIN" artisan down --render="errors::503" || true
             "$PHP_BIN" artisan migrate --force
             "$PHP_BIN" artisan config:cache
