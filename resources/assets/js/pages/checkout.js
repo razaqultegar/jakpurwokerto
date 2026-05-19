@@ -188,7 +188,7 @@ function initAddressCounter() {
 
 const SHIPPING_DETAILS = {
     pickup: 'Pilih kota terdekat. Titik temu & jadwal ditentukan admin via WhatsApp.',
-    kirim: 'Ongkos kirim dihitung & dikonfirmasi terpisah via WhatsApp sesuai alamat.',
+    kirim: 'Pengiriman menggunakan JNT Express dan untuk biaya ongkos kirim sepenuhnya di tanggung oleh pembeli.',
 };
 
 function getSelectedShipping() {
