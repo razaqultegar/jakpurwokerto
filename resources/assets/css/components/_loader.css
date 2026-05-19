@@ -30,11 +30,16 @@
     justify-content: center;
     border-radius: 18px;
     background: rgba(255, 255, 255, 0.18);
-    color: #fff;
-    font-size: 32px;
     box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.3);
     backdrop-filter: blur(6px);
+    padding: 10px;
     animation: page-loader-pulse 1.4s ease-in-out infinite;
+}
+
+.page-loader__logo-img {
+    height: 100%;
+    width: 100%;
+    object-fit: contain;
 }
 
 .page-loader__label {

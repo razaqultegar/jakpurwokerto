@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class CheckoutController extends Controller
@@ -17,7 +18,7 @@ class CheckoutController extends Controller
                 'desc' => 'Ketemuan langsung, titik temu diatur admin.',
                 'icon' => 'ri-map-pin-2-line',
                 'badge' => 'GRATIS',
-                'detail' => 'Hanya area Purwokerto kota. Titik temu & jadwal ditentukan admin via WhatsApp.',
+                'detail' => 'Pilih kota terdekat. Titik temu & jadwal ditentukan admin via WhatsApp.',
             ],
             'kirim' => [
                 'key' => 'kirim',
@@ -30,35 +31,37 @@ class CheckoutController extends Controller
         ];
     }
 
+    private function pickupLocations()
+    {
+        return [
+            'purwokerto' => ['key' => 'purwokerto', 'name' => 'Purwokerto'],
+            'ajibarang' => ['key' => 'ajibarang', 'name' => 'Ajibarang'],
+            'jakarta' => ['key' => 'jakarta', 'name' => 'Jakarta'],
+        ];
+    }
+
     private function checkoutData()
     {
         return [
             'shipping_methods' => $this->shippingMethods(),
+            'pickup_locations' => $this->pickupLocations(),
             'banks' => [
                 [
-                    'key' => 'bca',
-                    'name' => 'Bank BCA',
-                    'logo_text' => 'BCA',
-                    'account_number' => '1234567890',
-                    'account_name' => 'JakPurwokerto Raya',
-                    'color' => 'bg-sky-600',
-                ],
-                [
-                    'key' => 'mandiri',
-                    'name' => 'Bank Mandiri',
-                    'logo_text' => 'MDR',
-                    'account_number' => '0987654321',
-                    'account_name' => 'JakPurwokerto Raya',
-                    'color' => 'bg-yellow-500',
+                    'key' => 'seabank',
+                    'name' => 'Seabank',
+                    'logo_text' => 'SEA',
+                    'account_number' => '901962260446',
+                    'account_name' => 'a.n. Tsani',
+                    'color' => 'bg-indigo-600',
                 ],
             ],
             'qris' => [
-                'key' => 'dana',
-                'name' => 'DANA',
-                'merchant' => 'JakPurwokerto Raya',
-                'image' => 'medias/qris-dana.png',
+                'key' => 'qris',
+                'name' => 'QRIS',
+                'merchant' => 'a.n. Tsani',
+                'image' => 'medias/payments/qris.jpeg',
             ],
-            'admin_whatsapp' => '6281234567890',
+            'admin_whatsapp' => '6282298001051',
         ];
     }
 
@@ -77,6 +80,7 @@ class CheckoutController extends Controller
             'email' => ['required', 'email', 'max:160'],
             'phone' => ['required', 'string', 'regex:/^[0-9]{8,15}$/'],
             'shipping_method' => ['required', 'in:pickup,kirim'],
+            'pickup_location' => ['nullable', 'in:purwokerto,ajibarang,jakarta', 'required_if:shipping_method,pickup'],
             'address' => ['nullable', 'string', 'max:500', 'required_if:shipping_method,kirim'],
             'payment_type' => ['required', 'in:dp,full'],
             'payment_method' => ['required', 'string'],
@@ -129,7 +133,7 @@ class CheckoutController extends Controller
             ];
         } elseif ($methodType === 'qris') {
             $paymentData = [
-                'label' => 'QRIS '.$data['qris']['name'],
+                'label' => $data['qris']['name'],
                 'merchant' => $data['qris']['merchant'],
                 'image' => $data['qris']['image'],
             ];
@@ -146,7 +150,12 @@ class CheckoutController extends Controller
             'customer_email' => $validated['email'],
             'customer_phone' => $validated['phone'],
             'shipping_method' => $validated['shipping_method'],
-            'customer_address' => $validated['shipping_method'] === 'kirim' ? ($validated['address'] ?? null) : null,
+            'pickup_location' => $validated['shipping_method'] === 'pickup'
+                ? ($validated['pickup_location'] ?? null)
+                : null,
+            'customer_address' => $validated['shipping_method'] === 'kirim'
+                ? ($validated['address'] ?? null)
+                : null,
             'item' => $items,
             'subtotal' => $subtotal,
             'amount_due' => $amount,
@@ -178,14 +187,28 @@ class CheckoutController extends Controller
                 'address' => $order->customer_address,
             ],
             'shipping' => array_merge(
-                $this->shippingMethods()[$order->shipping_method] ?? ['key' => $order->shipping_method, 'name' => $order->shipping_method],
-                ['address' => $order->customer_address]
+                $this->shippingMethods()[$order->shipping_method]
+                    ?? ['key' => $order->shipping_method, 'name' => $order->shipping_method],
+                [
+                    'address' => $order->customer_address,
+                    'pickup_location' => $order->pickup_location,
+                    'pickup_location_label' => $order->pickup_location
+                        ? ($this->pickupLocations()[$order->pickup_location]['name']
+                            ?? ucfirst($order->pickup_location))
+                        : null,
+                ]
             ),
+            'payment_proof' => $order->payment_proof,
+            'payment_proof_url' => $order->payment_proof
+                ? asset('storage/'.$order->payment_proof)
+                : null,
             'items' => $order->item ?? [],
             'subtotal' => $order->subtotal,
             'amount_due' => $order->amount_due,
             'payment_type' => $order->payment_type,
-            'payment_type_label' => $order->payment_type === 'dp' ? 'Down Payment (DP 50%)' : 'Full Payment',
+            'payment_type_label' => $order->payment_type === 'dp'
+                ? 'Down Payment (DP 50%)'
+                : 'Full Payment',
             'payment' => array_merge(
                 ['type' => $order->payment_method_type, 'key' => $order->payment_method_key],
                 $order->payment_data ?? []
@@ -198,5 +221,37 @@ class CheckoutController extends Controller
             'title' => 'Terima Kasih',
             'order' => $view,
         ]);
+    }
+
+    public function uploadProof(Request $request, string $orderId)
+    {
+        $order = Order::where('order_id', $orderId)->first();
+        if (! $order) {
+            return back()->with('proof_status', 'error')
+                ->with('proof_message', 'Pesanan tidak ditemukan.');
+        }
+
+        $validated = $request->validate([
+            'proof' => ['required', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:5120'],
+        ], [
+            'proof.required' => 'File bukti transfer wajib dipilih.',
+            'proof.mimes' => 'Format file harus jpg, jpeg, png, webp, atau pdf.',
+            'proof.max' => 'Ukuran file maksimal 5MB.',
+        ]);
+
+        if ($order->payment_proof) {
+            Storage::disk('public')->delete($order->payment_proof);
+        }
+
+        $path = $validated['proof']->store('proofs', 'public');
+
+        $order->update([
+            'payment_proof' => $path,
+            'status' => $order->status === 'pending' ? 'paid' : $order->status,
+        ]);
+
+        return redirect()->route('checkout.success', ['orderId' => strtolower($order->order_id)])
+            ->with('proof_status', 'success')
+            ->with('proof_message', 'Bukti transfer berhasil diunggah. Admin akan segera verifikasi.');
     }
 }

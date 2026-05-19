@@ -19,7 +19,7 @@
                     </span>
                     <span class="flex-1">
                         <span class="block text-xs font-bold text-foreground">{{ $bank['name'] }}</span>
-                        <span class="mt-0.5 block text-[10px] text-onyx">Transfer ke rekening JakPurwokerto</span>
+                        <span class="mt-0.5 block text-[10px] text-onyx">Transfer ke rekening</span>
                     </span>
                     <span class="hidden h-5 w-5 items-center justify-center rounded-full bg-primary text-white shadow peer-checked:flex">
                         <i class="ri-check-line text-xs"></i>
@@ -36,12 +36,10 @@
             </div>
             <div class="space-y-2">
                 <label class="relative flex cursor-pointer items-center gap-3 rounded-2xl border-2 border-mercury bg-white p-3 transition has-[input:checked]:border-primary has-[input:checked]:bg-primary-softer has-[input:checked]:shadow-sm">
-                    <input type="radio" class="peer sr-only" name="payment_method" value="qris:dana">
-                    <span class="flex h-10 w-14 shrink-0 items-center justify-center rounded-lg bg-sky-500 text-[10px] font-black uppercase tracking-wider text-white shadow-sm">
-                        DANA
-                    </span>
+                    <input type="radio" class="peer sr-only" name="payment_method" value="qris:{{ $checkout['qris']['key'] }}">
+                    <span class="flex h-10 w-14 shrink-0 items-center justify-center rounded-lg bg-foreground text-[10px] font-black uppercase tracking-wider text-white shadow-sm">QRIS</span>
                     <span class="flex-1">
-                        <span class="block text-xs font-bold text-foreground">QRIS {{ $checkout['qris']['name'] }}</span>
+                        <span class="block text-xs font-bold text-foreground">QRIS</span>
                         <span class="mt-0.5 block text-[10px] text-onyx">Scan via DANA, GoPay, OVO, ShopeePay, mobile banking</span>
                     </span>
                     <span class="hidden h-5 w-5 items-center justify-center rounded-full bg-primary text-white shadow peer-checked:flex">

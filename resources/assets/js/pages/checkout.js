@@ -187,7 +187,7 @@ function initAddressCounter() {
 }
 
 const SHIPPING_DETAILS = {
-    pickup: 'Hanya area Purwokerto kota. Titik temu & jadwal ditentukan admin via WhatsApp.',
+    pickup: 'Pilih kota terdekat. Titik temu & jadwal ditentukan admin via WhatsApp.',
     kirim: 'Ongkos kirim dihitung & dikonfirmasi terpisah via WhatsApp sesuai alamat.',
 };
 
@@ -201,16 +201,27 @@ function applyShippingState() {
     const detailText = document.querySelector('[data-shipping-detail-text]');
     if (detailText) detailText.textContent = SHIPPING_DETAILS[method] || '';
 
-    const wrap = document.querySelector('[data-address-wrap]');
+    const addrWrap = document.querySelector('[data-address-wrap]');
     const addr = document.querySelector('[data-field="address"]');
-    if (wrap && addr) {
+    if (addrWrap && addr) {
         const isKirim = method === 'kirim';
-        wrap.classList.toggle('hidden', !isKirim);
+        addrWrap.classList.toggle('hidden', !isKirim);
         if (!isKirim) {
             addr.value = '';
             setFieldError('address', '');
             const counter = document.querySelector('[data-address-count]');
             if (counter) counter.textContent = '0';
+        }
+    }
+
+    const pickupWrap = document.querySelector('[data-pickup-wrap]');
+    const pickup = document.querySelector('[data-field="pickup_location"]');
+    if (pickupWrap && pickup) {
+        const isPickup = method === 'pickup';
+        pickupWrap.classList.toggle('hidden', !isPickup);
+        if (!isPickup) {
+            pickup.value = '';
+            setFieldError('pickup_location', '');
         }
     }
 }
@@ -255,13 +266,17 @@ function validateForm() {
     if (!phone) errors.phone = 'No. WhatsApp wajib diisi.';
     else if (!/^[0-9]{8,15}$/.test(phone)) errors.phone = 'Gunakan angka saja, 8–15 digit.';
 
-    if (getSelectedShipping() === 'kirim') {
+    const shipping = getSelectedShipping();
+    if (shipping === 'kirim') {
         const address = get('address');
         if (!address) errors.address = 'Alamat lengkap wajib diisi untuk pengiriman.';
         else if (address.length < 10) errors.address = 'Alamat terlalu singkat, mohon lebih detail.';
+    } else if (shipping === 'pickup') {
+        const loc = get('pickup_location');
+        if (!loc) errors.pickup_location = 'Pilih kota pengambilan dulu.';
     }
 
-    ['name', 'email', 'phone', 'address'].forEach((f) => setFieldError(f, errors[f] || ''));
+    ['name', 'email', 'phone', 'address', 'pickup_location'].forEach((f) => setFieldError(f, errors[f] || ''));
     return Object.keys(errors).length === 0;
 }
 
@@ -269,9 +284,9 @@ function initForm(alert, getCart) {
     const form = document.querySelector('form');
     if (!form) return;
 
-    ['name', 'email', 'phone', 'address'].forEach((f) => {
+    ['name', 'email', 'phone', 'address', 'pickup_location'].forEach((f) => {
         const el = document.querySelector(`[data-field="${f}"]`);
-        if (el) el.addEventListener('input', () => setFieldError(f, ''));
+        if (el) el.addEventListener(el.tagName === 'SELECT' ? 'change' : 'input', () => setFieldError(f, ''));
     });
 
     form.addEventListener('submit', (e) => {
