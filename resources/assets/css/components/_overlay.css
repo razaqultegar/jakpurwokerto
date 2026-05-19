@@ -3,6 +3,10 @@
         @apply pointer-events-none fixed inset-0 z-50;
     }
 
+    .overlay[aria-hidden='false'] {
+        @apply pointer-events-auto;
+    }
+
     .overlay-backdrop {
         @apply absolute inset-0 bg-foreground/50 opacity-0 transition-opacity duration-300;
     }

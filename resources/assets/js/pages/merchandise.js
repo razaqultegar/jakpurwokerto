@@ -101,7 +101,6 @@ function initSizeGuide() {
 
     const open = () => {
         root.setAttribute('aria-hidden', 'false');
-        root.classList.remove('pointer-events-none');
         backdrop.classList.remove('opacity-0');
         backdrop.classList.add('opacity-100');
         panel.classList.remove('scale-95', 'opacity-0');
@@ -117,7 +116,6 @@ function initSizeGuide() {
         panel.classList.add('scale-95', 'opacity-0');
         panel.classList.remove('scale-100', 'opacity-100');
         document.body.style.overflow = '';
-        setTimeout(() => root.classList.add('pointer-events-none'), 300);
     };
 
     if (swiperEl) {
@@ -164,7 +162,6 @@ function initShare() {
 
     const open = () => {
         root.setAttribute('aria-hidden', 'false');
-        root.classList.remove('pointer-events-none');
         backdrop.classList.remove('opacity-0');
         backdrop.classList.add('opacity-100');
         panel.classList.remove('translate-y-full');
@@ -177,7 +174,6 @@ function initShare() {
         backdrop.classList.remove('opacity-100');
         panel.classList.add('translate-y-full');
         document.body.style.overflow = '';
-        setTimeout(() => root.classList.add('pointer-events-none'), 300);
     };
 
     if (copyBtn) {
@@ -455,7 +451,6 @@ function initCart(alert) {
 
     const open = () => {
         drawer.setAttribute('aria-hidden', 'false');
-        drawer.classList.remove('pointer-events-none');
         backdrop.classList.remove('opacity-0');
         backdrop.classList.add('opacity-100');
         panel.classList.remove('translate-x-full');
@@ -468,7 +463,6 @@ function initCart(alert) {
         backdrop.classList.remove('opacity-100');
         panel.classList.add('translate-x-full');
         document.body.style.overflow = '';
-        setTimeout(() => drawer.classList.add('pointer-events-none'), 300);
     };
 
     const render = () => {
