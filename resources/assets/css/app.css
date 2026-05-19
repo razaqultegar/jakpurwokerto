@@ -11,3 +11,13 @@
 /* Components */
 @import "./components/_loader";
 @import "./components/_swiper";
+@import "./components/_section";
+@import "./components/_header";
+@import "./components/_button";
+@import "./components/_card";
+@import "./components/_form";
+@import "./components/_option";
+@import "./components/_badge";
+@import "./components/_overlay";
+@import "./components/_countdown";
+@import "./components/_menu";

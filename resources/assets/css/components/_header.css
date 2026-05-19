@@ -1,0 +1,13 @@
+@layer components {
+    .app-header {
+        @apply sticky top-0 z-30 flex items-center gap-3 border-b border-mercury bg-white/95 px-4 py-3 backdrop-blur-md;
+    }
+
+    .app-header__title {
+        @apply text-sm font-black text-foreground;
+    }
+
+    .app-header__subtitle {
+        @apply text-[10px] text-onyx;
+    }
+}

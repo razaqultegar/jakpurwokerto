@@ -1,0 +1,17 @@
+@layer components {
+    .card {
+        @apply rounded-2xl bg-white p-4 ring-1 ring-mercury;
+    }
+
+    .card-skull {
+        @apply rounded-2xl bg-skull p-3 ring-1 ring-mercury;
+    }
+
+    .card-skull-lg {
+        @apply rounded-2xl bg-skull p-4 ring-1 ring-mercury;
+    }
+
+    .alert-soft {
+        @apply flex items-start gap-2 rounded-2xl border border-dashed border-primary-soft bg-primary-softer p-3;
+    }
+}

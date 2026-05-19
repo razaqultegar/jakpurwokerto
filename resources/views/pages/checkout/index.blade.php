@@ -5,13 +5,13 @@
     <form action="{{ route('checkout.store') }}" method="post" class="pb-6" novalidate>
         @csrf
         @include('pages.checkout._partials.summary')
-        <hr class="m-0 h-2 w-full border-0 bg-skull p-0">
+        <hr class="section-divider">
         @include('pages.checkout._partials.form')
-        <hr class="m-0 h-2 w-full border-0 bg-skull p-0">
+        <hr class="section-divider">
         @include('pages.checkout._partials.shipping-method')
-        <hr class="m-0 h-2 w-full border-0 bg-skull p-0">
+        <hr class="section-divider">
         @include('pages.checkout._partials.payment-type')
-        <hr class="m-0 h-2 w-full border-0 bg-skull p-0">
+        <hr class="section-divider">
         @include('pages.checkout._partials.payment-method')
         @include('pages.checkout._partials.cta')
     </form>

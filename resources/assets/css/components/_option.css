@@ -1,0 +1,63 @@
+@layer components {
+    .option-card {
+        @apply relative flex cursor-pointer flex-col items-center gap-2 rounded-2xl border-2 border-mercury bg-white p-3 text-center transition;
+    }
+
+    .option-card:has(input:checked) {
+        @apply border-primary bg-primary-softer shadow-sm;
+    }
+
+    .option-card-row {
+        @apply relative flex cursor-pointer items-center gap-3 rounded-2xl border-2 border-mercury bg-white p-3 transition;
+    }
+
+    .option-card-row:has(input:checked) {
+        @apply border-primary bg-primary-softer shadow-sm;
+    }
+
+    .choice-card {
+        @apply relative flex items-center gap-3 rounded-2xl border-2 border-mercury bg-white p-3 text-left transition aria-pressed:border-primary aria-pressed:bg-primary-softer aria-pressed:shadow-sm;
+    }
+
+    .option-icon {
+        @apply flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary-softer text-primary ring-1 ring-primary-soft;
+    }
+
+    .option-card:has(input:checked) .option-icon,
+    .option-card-row:has(input:checked) .option-icon,
+    .choice-card[aria-pressed="true"] .option-icon {
+        @apply bg-primary text-white ring-primary;
+    }
+
+    .option-check {
+        @apply absolute right-2 top-2 hidden h-5 w-5 items-center justify-center rounded-full bg-primary text-white shadow;
+    }
+
+    .option-card:has(input:checked) .option-check,
+    .option-card-row:has(input:checked) .option-check,
+    .choice-card[aria-pressed="true"] .option-check {
+        @apply flex;
+    }
+
+    .option-check-inline {
+        @apply hidden h-5 w-5 items-center justify-center rounded-full bg-primary text-white shadow;
+    }
+
+    .option-card-row:has(input:checked) .option-check-inline {
+        @apply flex;
+    }
+
+    .option-label {
+        @apply block text-xs font-bold text-foreground;
+    }
+
+    .option-card:has(input:checked) .option-label,
+    .option-card-row:has(input:checked) .option-label,
+    .choice-card[aria-pressed="true"] .option-label {
+        @apply text-primary;
+    }
+
+    .size-btn {
+        @apply rounded-xl border-2 border-mercury bg-white py-2.5 text-xs font-bold text-foreground transition aria-pressed:border-primary aria-pressed:bg-primary aria-pressed:text-white aria-pressed:shadow-md;
+    }
+}

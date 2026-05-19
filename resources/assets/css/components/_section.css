@@ -1,0 +1,29 @@
+@layer components {
+    .section {
+        @apply px-4 py-5;
+    }
+
+    .section-divider {
+        @apply m-0 h-2 w-full border-0 bg-skull p-0;
+    }
+
+    .section-header {
+        @apply mb-3 flex items-center gap-2;
+    }
+
+    .section-header-between {
+        @apply mb-3 flex items-center justify-between;
+    }
+
+    .section-bar {
+        @apply h-5 w-1 rounded-full bg-primary;
+    }
+
+    .section-title {
+        @apply text-sm font-bold text-foreground;
+    }
+
+    .section-meta {
+        @apply text-[10px] text-onyx;
+    }
+}

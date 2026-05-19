@@ -3,6 +3,6 @@
         <div class="page-loader__logo">
             <img src="{{ asset('build/medias/logo.png') }}" class="page-loader__logo-img" alt="{{ config('app.name') }} logo">
         </div>
-        <div class="page-loader__label">{{ config('app.name') }}</div>
+        <div class="page-loader__label">Mohon tunggu...</div>
     </div>
 </div>

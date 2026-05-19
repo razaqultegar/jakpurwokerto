@@ -3,10 +3,10 @@
 @endphp
 
 <section class="py-5">
-    <div class="mb-3 flex items-center justify-between gap-2 px-4">
+    <div class="section-header-between gap-2 px-4">
         <div class="flex items-center gap-2">
-            <span class="h-5 w-1 rounded-full bg-primary"></span>
-            <h3 class="text-sm font-bold text-foreground">Galeri</h3>
+            <span class="section-bar"></span>
+            <h3 class="section-title">Galeri</h3>
         </div>
         <span class="text-[11px] font-semibold text-onyx">{{ count($galleryImages) }} foto</span>
     </div>
@@ -24,10 +24,10 @@
                 @endforeach
             </div>
         </div>
-        <button type="button" class="gallery-swiper-next absolute right-2 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white text-foreground shadow-lg ring-1 ring-mercury transition disabled:pointer-events-none disabled:opacity-0">
+        <button type="button" class="icon-btn-nav right-2 gallery-swiper-next">
             <i class="ri-arrow-right-s-line text-lg"></i>
         </button>
-        <button type="button" class="gallery-swiper-prev absolute left-2 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white text-foreground shadow-lg ring-1 ring-mercury transition disabled:pointer-events-none disabled:opacity-0">
+        <button type="button" class="icon-btn-nav left-2 gallery-swiper-prev">
             <i class="ri-arrow-left-s-line text-lg"></i>
         </button>
     </div>

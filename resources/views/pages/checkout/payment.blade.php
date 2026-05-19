@@ -17,25 +17,25 @@
 @endphp
 
 @section('content')
-    <header class="sticky top-0 z-30 flex items-center gap-3 border-b border-mercury bg-white/95 px-4 py-3 backdrop-blur-md">
-        <a href="{{ route('home') }}" class="flex h-10 w-10 items-center justify-center rounded-full bg-skull text-foreground ring-1 ring-mercury">
+    <header class="app-header">
+        <a href="{{ route('home') }}" class="icon-btn">
             <i class="ri-home-5-line text-lg"></i>
         </a>
         <div class="flex-1">
-            <h1 class="text-sm font-black text-foreground">Pembayaran</h1>
-            <p class="text-[10px] text-onyx">Selangkah lagi untuk menyelesaikan pesanan</p>
+            <h1 class="app-header__title">Pembayaran</h1>
+            <p class="app-header__subtitle">Selangkah lagi untuk menyelesaikan pesanan</p>
         </div>
-        <span class="inline-flex items-center gap-1 rounded-full bg-yellow-50 px-2.5 py-1 text-[10px] font-bold text-yellow-600 ring-1 ring-yellow-200">
+        <span class="badge badge-yellow">
             <i class="ri-time-line"></i>
             Menunggu Pembayaran
         </span>
     </header>
-    <section class="px-4 py-5">
-        <div class="mb-3 flex items-center gap-2">
-            <span class="h-5 w-1 rounded-full bg-primary"></span>
-            <h2 class="text-sm font-bold text-foreground">Total Pembayaran</h2>
+    <section class="section">
+        <div class="section-header">
+            <span class="section-bar"></span>
+            <h2 class="section-title">Total Pembayaran</h2>
         </div>
-        <div class="rounded-2xl bg-skull p-4 ring-1 ring-mercury">
+        <div class="card-skull-lg">
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-[10px] text-onyx">{{ $order['payment_type_label'] }}</p>
@@ -59,14 +59,14 @@
             @endif
         </div>
     </section>
-    <hr class="m-0 h-2 w-full border-0 bg-skull p-0">
-    <section class="px-4 py-5">
-        <div class="mb-3 flex items-center gap-2">
-            <span class="h-5 w-1 rounded-full bg-primary"></span>
-            <h2 class="text-sm font-bold text-foreground">Detail Pembayaran</h2>
+    <hr class="section-divider">
+    <section class="section">
+        <div class="section-header">
+            <span class="section-bar"></span>
+            <h2 class="section-title">Detail Pembayaran</h2>
         </div>
         @if ($isBank)
-        <div class="rounded-2xl bg-white p-4 ring-1 ring-mercury">
+        <div class="card">
             <div class="flex items-center gap-3">
                 <span class="flex h-12 w-16 shrink-0 items-center justify-center rounded-lg {{ $payment['color'] }} text-[11px] font-black uppercase tracking-wider text-white shadow-sm">{{ $payment['logo_text'] }}</span>
                 <div class="flex-1">
@@ -100,7 +100,7 @@
             </ol>
         </div>
         @elseif ($isQris)
-        <div class="rounded-2xl bg-white p-4 ring-1 ring-mercury">
+        <div class="card">
             <div class="flex items-center gap-3">
                 <span class="flex h-12 w-16 shrink-0 items-center justify-center rounded-lg bg-sky-500 text-[11px] font-black uppercase tracking-wider text-white shadow-sm">QRIS</span>
                 <div class="flex-1">
@@ -131,11 +131,11 @@
         </div>
         @endif
     </section>
-    <hr class="m-0 h-2 w-full border-0 bg-skull p-0">
-    <section class="px-4 py-5" id="proof-section">
-        <div class="mb-3 flex items-center gap-2">
-            <span class="h-5 w-1 rounded-full bg-primary"></span>
-            <h2 class="text-sm font-bold text-foreground">Bukti Transfer</h2>
+    <hr class="section-divider">
+    <section class="section" id="proof-section">
+        <div class="section-header">
+            <span class="section-bar"></span>
+            <h2 class="section-title">Bukti Transfer</h2>
         </div>
         @if (session('proof_status') === 'error')
         <div class="mb-3 flex items-start gap-2 rounded-2xl border border-red-200 bg-red-50 p-3 text-[11px] leading-snug text-red-700">
@@ -144,7 +144,7 @@
         </div>
         @endif
         @if ($hasProof)
-        <div class="rounded-2xl bg-white p-4 ring-1 ring-mercury">
+        <div class="card">
             <div class="flex items-center gap-3">
                 <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600 ring-1 ring-emerald-200">
                     <i class="ri-shield-check-fill text-xl"></i>
@@ -187,24 +187,24 @@
                     <p class="truncate text-xs font-semibold text-foreground" data-proof-preview-name>-</p>
                     <p class="text-[10px] text-onyx" data-proof-preview-size>-</p>
                 </div>
-                <button type="button" class="flex h-8 w-8 items-center justify-center rounded-full bg-skull text-foreground ring-1 ring-mercury" data-proof-clear aria-label="Hapus file">
+                <button type="button" class="icon-btn-xs" data-proof-clear aria-label="Hapus file">
                     <i class="ri-close-line text-sm"></i>
                 </button>
             </div>
             @error('proof')
             <p class="mt-2 text-[10px] text-red-600">{{ $message }}</p>
             @enderror
-            <button type="submit" class="mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 text-xs font-bold text-white shadow-sm transition active:scale-95 disabled:opacity-50" data-proof-submit disabled>
+            <button type="submit" class="btn-primary mt-3 w-full disabled:opacity-50" data-proof-submit disabled>
                 <i class="ri-upload-2-line text-base"></i>
                 <span data-proof-submit-label>Kirim Bukti Transfer</span>
             </button>
         </form>
     </section>
-    <div class="pointer-events-none fixed inset-x-0 bottom-0 z-40 mx-auto max-w-screen-sm px-3 pb-3">
-        <div class="pointer-events-auto mx-auto flex max-w-480 flex-col gap-2">
+    <div class="cta-floating">
+        <div class="cta-floating__inner">
             <div class="overflow-hidden" data-copy-toast>
-                <div class="flex w-full translate-y-[calc(100%+1rem)] items-start gap-2.5 rounded-2xl bg-foreground/95 px-3.5 py-3 text-white shadow-[0_10px_30px_-5px_rgba(0,0,0,0.45)] ring-1 ring-white/10 backdrop-blur-md transition-transform duration-300 ease-out" data-copy-toast-panel>
-                    <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-400 text-foreground">
+                <div class="toast-panel" data-copy-toast-panel>
+                    <span class="toast-icon-ok">
                         <i class="ri-check-line text-base"></i>
                     </span>
                     <div class="flex-1">

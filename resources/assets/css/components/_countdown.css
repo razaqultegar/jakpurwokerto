@@ -1,0 +1,9 @@
+@layer components {
+    .countdown-cell {
+        @apply rounded-xl bg-white/10 py-2.5 ring-1 ring-white/15 backdrop-blur-sm;
+    }
+
+    .countdown-cell-sm {
+        @apply rounded-lg bg-white/15 py-2 ring-1 ring-white/20;
+    }
+}

@@ -25,19 +25,19 @@
             <span class="rounded bg-white/20 px-1.5 py-0.5 text-[9px] uppercase tracking-wide" data-countdown-status>Berlangsung</span>
         </div>
         <div class="grid grid-cols-4 gap-2 text-center text-[11px]">
-            <div class="rounded-lg bg-white/15 py-2 ring-1 ring-white/20">
+            <div class="countdown-cell-sm">
                 <div class="text-base font-bold leading-none" data-countdown-days>00</div>
                 <div class="mt-1 text-[10px] text-white/80">Hari</div>
             </div>
-            <div class="rounded-lg bg-white/15 py-2 ring-1 ring-white/20">
+            <div class="countdown-cell-sm">
                 <div class="text-base font-bold leading-none" data-countdown-hours>00</div>
                 <div class="mt-1 text-[10px] text-white/80">Jam</div>
             </div>
-            <div class="rounded-lg bg-white/15 py-2 ring-1 ring-white/20">
+            <div class="countdown-cell-sm">
                 <div class="text-base font-bold leading-none" data-countdown-minutes>00</div>
                 <div class="mt-1 text-[10px] text-white/80">Menit</div>
             </div>
-            <div class="rounded-lg bg-white/15 py-2 ring-1 ring-white/20">
+            <div class="countdown-cell-sm">
                 <div class="text-base font-bold leading-none" data-countdown-seconds>00</div>
                 <div class="mt-1 text-[10px] text-white/80">Detik</div>
             </div>
