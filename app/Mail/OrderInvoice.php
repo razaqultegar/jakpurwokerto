@@ -17,7 +17,7 @@ class OrderInvoice extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Invoice Pesanan ' . $this->order['id'],
+            subject: 'Invoice Pesanan '.$this->order['id'],
         );
     }
 
