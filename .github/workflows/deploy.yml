@@ -66,19 +66,24 @@ jobs:
             ./ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.DEPLOY_PATH }}/
 
       - name: Run post-deploy tasks
+        env:
+          PHP_BIN: ${{ secrets.PHP_BIN || 'php' }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
         run: |
           ssh -p ${{ secrets.SSH_PORT || 22 }} -i ~/.ssh/id_ed25519 \
-            ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+            ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
+            "PHP_BIN='${PHP_BIN}' DEPLOY_PATH='${DEPLOY_PATH}' bash -s" << 'EOF'
             set -e
-            cd ${{ secrets.DEPLOY_PATH }}
-            php artisan down --render="errors::503" || true
-            php artisan migrate --force
-            php artisan config:cache
-            php artisan route:cache
-            php artisan view:cache
-            php artisan event:cache
-            php artisan storage:link || true
-            php artisan up
+            cd "$DEPLOY_PATH"
+            "$PHP_BIN" -v
+            "$PHP_BIN" artisan down --render="errors::503" || true
+            "$PHP_BIN" artisan migrate --force
+            "$PHP_BIN" artisan config:cache
+            "$PHP_BIN" artisan route:cache
+            "$PHP_BIN" artisan view:cache
+            "$PHP_BIN" artisan event:cache
+            "$PHP_BIN" artisan storage:link || true
+            "$PHP_BIN" artisan up
           EOF
 
       - name: Cleanup SSH
