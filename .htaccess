@@ -1,0 +1,11 @@
+# Blok akses ke folder Laravel internal (security)
+RedirectMatch 403 ^/(\.env|\.git|app|bootstrap|config|database|resources|routes|storage|tests|vendor)(/|$)
+RedirectMatch 403 ^/(composer\.(json|lock)|package(-lock)?\.json|artisan|vite\.config\.js|\.editorconfig|\.npmrc|\.gitattributes|\.gitignore|README\.md)$
+
+# Forward semua request ke folder Laravel public/
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
