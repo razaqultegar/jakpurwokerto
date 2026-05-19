@@ -1,5 +1,5 @@
 <div class="px-4">
-    <div class="border-b py-4 text-center text-sm text-onyx">Berdiri sejak 2007 dan terdaftar secara resmi menjadi <br> Biro Pertama the Jakmania pada tahun 2019.</div>
+    <div class="border-b py-4 text-center text-sm text-onyx">Berdiri sejak 2008 dan terdaftar secara resmi menjadi <br> Biro Pertama the Jakmania pada tahun 2019.</div>
     <div class="pt-6">
         <div class="mb-8 text-center text-sm text-onyx">
             <a href="#" class="text-onyx" target="" rel="">Tentang Kami</a> |

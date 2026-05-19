@@ -41,9 +41,12 @@
         </div>
         <div class="rounded-2xl bg-white/95 p-2 shadow-[0_10px_30px_-5px_rgba(0,0,0,0.25)] ring-1 ring-mercury backdrop-blur-md">
             <div class="flex items-center gap-2">
+                <a href="https://wa.me/628975851952?text={{ rawurlencode('Halo Admin, saya ingin tanya seputar produk merchandise ' . $merch['name'] . '.') }}" target="_blank" rel="noopener" class="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white text-foreground ring-2 ring-mercury shadow-sm transition active:scale-95" aria-label="Tanya admin via WhatsApp" title="Tanya seputar produk">
+                    <i class="ri-customer-service-2-fill text-lg"></i>
+                </a>
                 <button type="button" class="relative flex h-12 flex-1 items-center justify-center gap-2 rounded-xl border-2 border-primary bg-white text-sm font-bold text-primary" data-cart-add>
                     <i class="ri-shopping-cart-2-line text-base"></i>
-                    Masukkan ke Keranjang
+                    Keranjang
                 </button>
                 <button type="button" class="relative flex h-12 flex-1 items-center justify-center gap-2 overflow-hidden rounded-xl bg-linear-to-r from-primary via-primary-light to-primary-lighter text-sm font-bold text-white shadow-lg" data-cart-order>
                     <span class="pointer-events-none absolute -left-6 top-0 h-full w-12 -skew-x-12 bg-white/20"></span>

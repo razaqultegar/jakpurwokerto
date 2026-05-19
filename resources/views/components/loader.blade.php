@@ -1,8 +1,8 @@
 <div id="page-loader" class="page-loader" aria-hidden="true">
     <div class="page-loader__inner">
         <div class="page-loader__logo">
-            <i class="ri-shield-star-fill"></i>
+            <img src="{{ asset('build/medias/logo.png') }}" class="page-loader__logo-img" alt="{{ config('app.name') }} logo">
         </div>
-        <div class="page-loader__label">JakPurwokerto</div>
+        <div class="page-loader__label">{{ config('app.name') }}</div>
     </div>
 </div>

@@ -569,7 +569,7 @@ function initCart(alert) {
         orderBtn.addEventListener('click', () => {
             if (items.length > 0) {
                 hideSelectedStrip();
-                open();
+                window.location.href = '/bayar';
                 return;
             }
             const size = getSelectedSize();
