@@ -9,11 +9,19 @@
     $totalQty = collect($items)->sum('qty');
     $itemsLine = collect($items)->map(fn ($it) => "- {$it['name']} ({$it['category']} · {$it['sleeve']} · {$it['size']}) x{$it['qty']}")->implode('%0A');
     $shipping = $order['shipping'] ?? null;
-    $shippingLine = $shipping ? "*Pengambilan:* {$shipping['name']}%0A" : '';
+    $shippingName = $shipping['name'] ?? '';
+    if ($shipping && ($shipping['key'] ?? null) === 'pickup' && ! empty($shipping['pickup_location_label'])) {
+        $shippingName .= ' - ' . $shipping['pickup_location_label'];
+    }
+    $shippingLine = $shipping ? "*Pengambilan:* {$shippingName}%0A" : '';
     $addressLine = ($shipping && ($shipping['key'] ?? null) === 'kirim' && ! empty($shipping['address']))
         ? "*Alamat Kirim:*%0A" . rawurlencode($shipping['address']) . "%0A"
         : '';
-    $waText = "Halo Admin JakPurwokerto, saya ingin konfirmasi pembayaran pesanan:%0A%0A"
+    $hasProof = ! empty($order['payment_proof']);
+    $proofUrl = $order['payment_proof_url'] ?? null;
+    $proofExt = $hasProof ? strtolower(pathinfo($order['payment_proof'], PATHINFO_EXTENSION)) : null;
+    $proofIsImage = in_array($proofExt, ['jpg', 'jpeg', 'png', 'webp']);
+    $waText = "Halo Admin, saya ingin konfirmasi pembayaran pesanan:%0A%0A"
         ."*ID Pesanan:* {$order['id']}%0A"
         ."*Nama:* {$order['customer']['name']}%0A"
         ."*Item:*%0A{$itemsLine}%0A"
@@ -24,8 +32,8 @@
         ."*Jumlah Dibayar:* {$rupiah($order['amount_due'])}%0A%0A"
         ."Bukti transfer akan saya kirim setelah pesan ini. Terima kasih!";
     $waUrl = 'https://wa.me/' . $order['admin_whatsapp'] . '?text=' . $waText;
-    $qrSrc = $isQris
-        ? 'https://api.qrserver.com/v1/create-qr-code/?size=320x320&margin=8&data=' . urlencode($order['id'].'|' . $payment['merchant'] . '|' . $order['amount_due'])
+    $qrSrc = $isQris && ! empty($payment['image'])
+        ? asset('build/' . $payment['image'])
         : null;
 @endphp
 
@@ -170,6 +178,80 @@
     <section class="px-4 py-5">
         <div class="mb-3 flex items-center gap-2">
             <span class="h-5 w-1 rounded-full bg-primary"></span>
+            <h2 class="text-sm font-bold text-foreground">Bukti Transfer</h2>
+        </div>
+        @if (session('proof_status') === 'success')
+        <div class="mb-3 flex items-start gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 p-3 text-[11px] leading-snug text-emerald-700">
+            <i class="ri-checkbox-circle-fill shrink-0 text-base"></i>
+            <span>{{ session('proof_message') }}</span>
+        </div>
+        @elseif (session('proof_status') === 'error')
+        <div class="mb-3 flex items-start gap-2 rounded-2xl border border-red-200 bg-red-50 p-3 text-[11px] leading-snug text-red-700">
+            <i class="ri-error-warning-fill shrink-0 text-base"></i>
+            <span>{{ session('proof_message') }}</span>
+        </div>
+        @endif
+        @if ($hasProof)
+        <div class="rounded-2xl bg-white p-4 ring-1 ring-mercury">
+            <div class="flex items-center gap-3">
+                <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600 ring-1 ring-emerald-200">
+                    <i class="ri-shield-check-fill text-xl"></i>
+                </span>
+                <div class="flex-1">
+                    <p class="text-xs font-bold text-foreground">Bukti sudah terkirim</p>
+                    <p class="text-[10px] text-onyx">Admin akan verifikasi & konfirmasi via WhatsApp.</p>
+                </div>
+            </div>
+            @if ($proofIsImage)
+            <a href="{{ $proofUrl }}" target="_blank" rel="noopener" class="mt-3 block overflow-hidden rounded-xl ring-1 ring-mercury">
+                <img src="{{ $proofUrl }}" class="h-auto w-full object-contain" alt="Bukti Transfer" loading="lazy">
+            </a>
+            @else
+            <a href="{{ $proofUrl }}" class="mt-3 flex items-center gap-2 rounded-xl bg-skull p-3 ring-1 ring-mercury" target="_blank" rel="noopener">
+                <i class="ri-file-pdf-2-line text-2xl text-red-500"></i>
+                <span class="flex-1 truncate text-[11px] font-semibold text-foreground">Lihat bukti (PDF)</span>
+                <i class="ri-external-link-line text-base text-onyx"></i>
+            </a>
+            @endif
+            <p class="mt-3 text-[10px] text-onyx">Mau ganti file? Upload ulang di bawah ini.</p>
+        </div>
+        @endif
+        <form action="{{ route('checkout.proof', ['orderId' => strtolower($order['id'])]) }}" method="post" enctype="multipart/form-data" class="{{ $hasProof ? 'mt-3' : '' }}" data-proof-form>
+            @csrf
+            <label for="proof-file" class="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-primary-soft bg-primary-softer p-5 text-center transition hover:bg-primary-softer/80" data-proof-dropzone>
+                <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-primary ring-1 ring-primary-soft">
+                    <i class="ri-upload-cloud-2-line text-2xl"></i>
+                </span>
+                <span class="text-xs font-bold text-foreground" data-proof-label>{{ $hasProof ? 'Ganti bukti transfer' : 'Pilih file bukti transfer' }}</span>
+                <span class="text-[10px] text-onyx">JPG/PNG/WEBP/PDF · maks 5MB</span>
+                <input type="file" id="proof-file" class="sr-only" name="proof" accept=".jpg,.jpeg,.png,.webp,.pdf,image/*,application/pdf" data-proof-input required>
+            </label>
+            <div class="mt-3 hidden items-center gap-3 rounded-xl bg-white p-3 ring-1 ring-mercury" data-proof-preview>
+                <span class="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-skull text-primary ring-1 ring-mercury">
+                    <i class="ri-file-line text-xl" data-proof-preview-icon></i>
+                    <img class="hidden h-full w-full object-cover" alt="" data-proof-preview-image>
+                </span>
+                <div class="min-w-0 flex-1">
+                    <p class="truncate text-xs font-semibold text-foreground" data-proof-preview-name>-</p>
+                    <p class="text-[10px] text-onyx" data-proof-preview-size>-</p>
+                </div>
+                <button type="button" class="flex h-8 w-8 items-center justify-center rounded-full bg-skull text-foreground ring-1 ring-mercury" data-proof-clear aria-label="Hapus file">
+                    <i class="ri-close-line text-sm"></i>
+                </button>
+            </div>
+            @error('proof')
+            <p class="mt-2 text-[10px] text-red-600">{{ $message }}</p>
+            @enderror
+            <button type="submit" class="mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 text-xs font-bold text-white shadow-sm transition active:scale-95 disabled:opacity-50" data-proof-submit disabled>
+                <i class="ri-upload-2-line text-base"></i>
+                <span data-proof-submit-label>Kirim Bukti Transfer</span>
+            </button>
+        </form>
+    </section>
+    <hr class="m-0 h-2 w-full border-0 bg-skull p-0">
+    <section class="px-4 py-5">
+        <div class="mb-3 flex items-center gap-2">
+            <span class="h-5 w-1 rounded-full bg-primary"></span>
             <h2 class="text-sm font-bold text-foreground">Ringkasan Pesanan</h2>
         </div>
         <div class="space-y-2">
@@ -210,6 +292,12 @@
                 <dt class="text-onyx">Metode Pengambilan</dt>
                 <dd class="font-semibold text-foreground">{{ $shipping['name'] ?? '-' }}</dd>
             </div>
+            @if (($shipping['key'] ?? null) === 'pickup' && ! empty($shipping['pickup_location_label']))
+            <div class="flex items-center justify-between">
+                <dt class="text-onyx">Kota Pengambilan</dt>
+                <dd class="font-semibold text-foreground">{{ $shipping['pickup_location_label'] }}</dd>
+            </div>
+            @endif
             @if (($shipping['key'] ?? null) === 'kirim' && ! empty($shipping['address']))
             <div class="flex items-start justify-between gap-3">
                 <dt class="shrink-0 text-onyx">Alamat</dt>
