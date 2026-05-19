@@ -165,4 +165,8 @@ return [
         // Hanya fitur login yang diaktifkan untuk admin.
     ],
 
+    'paths' => [
+        'login' => '/masuk',
+    ],
+
 ];

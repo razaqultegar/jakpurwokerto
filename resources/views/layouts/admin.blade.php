@@ -51,8 +51,11 @@
             </div>
         </div>
         @else
-        <main class="flex min-h-screen items-center justify-center px-4 py-12">
-            @yield('content')
+        <main class="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-4 py-12">
+            <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,theme(colors.primary-soft)_0%,transparent_45%),radial-gradient(circle_at_bottom_right,theme(colors.primary-softer)_0%,transparent_50%)]"></div>
+            <div class="relative z-10 flex w-full justify-center">
+                @yield('content')
+            </div>
         </main>
         @endauth
         @vite('resources/assets/js/app.js')
