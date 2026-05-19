@@ -6,8 +6,9 @@
 @unless ($isBeforeStart)
 <div class="cta-floating">
     <div class="cta-floating__inner">
-        <div class="overflow-hidden" data-merch-selected>
-            <div class="flex translate-y-[calc(100%+1rem)] items-center gap-3 rounded-2xl bg-linear-to-r from-foreground via-primary to-primary-lighter px-3.5 py-2.5 text-white shadow-[0_10px_30px_-5px_rgba(0,0,0,0.35)] ring-1 ring-white/15 backdrop-blur-md transition-transform duration-300 ease-out" data-merch-selected-panel>
+        <div class="cta-collapse" data-merch-selected>
+            <div class="cta-collapse__inner">
+            <div class="flex translate-y-[calc(100%+1rem)] items-center gap-3 rounded-2xl bg-linear-to-r from-foreground via-primary to-primary-lighter px-3.5 py-2.5 text-white ring-1 ring-white/15 backdrop-blur-md transition-transform duration-300 ease-out" data-merch-selected-panel>
                 <span class="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/15 text-yellow-300 ring-1 ring-white/20">
                     <i class="ri-price-tag-3-fill text-lg"></i>
                     <span class="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-yellow-300 px-1 text-[9px] font-black text-primary" data-merch-selected-qty>1</span>
@@ -24,8 +25,10 @@
                     <span class="text-base font-black text-white" data-merch-selected-total>Rp0</span>
                 </div>
             </div>
+            </div>
         </div>
-        <div class="overflow-hidden" data-merch-alert>
+        <div class="cta-collapse" data-merch-alert>
+            <div class="cta-collapse__inner">
             <div class="toast-panel" data-merch-alert-panel>
                 <span class="toast-icon-warn">
                     <i class="ri-error-warning-fill text-base"></i>
@@ -37,6 +40,7 @@
                 <button type="button" class="toast-close" data-merch-alert-close>
                     <i class="ri-close-line text-sm"></i>
                 </button>
+            </div>
             </div>
         </div>
         <div class="cta-card">

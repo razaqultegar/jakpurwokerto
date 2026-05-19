@@ -24,7 +24,23 @@
     }
 
     .cta-floating__inner {
-        @apply pointer-events-auto mx-auto flex max-w-480 flex-col gap-2;
+        @apply pointer-events-auto mx-auto flex max-w-480 flex-col;
+    }
+
+    .cta-collapse {
+        display: grid;
+        grid-template-rows: 0fr;
+        margin-bottom: 0;
+        transition: grid-template-rows 300ms ease-out, margin-bottom 300ms ease-out;
+    }
+
+    .cta-collapse.is-open {
+        grid-template-rows: 1fr;
+        margin-bottom: 0.375rem;
+    }
+
+    .cta-collapse__inner {
+        @apply min-h-0 overflow-hidden;
     }
 
     .cta-card {

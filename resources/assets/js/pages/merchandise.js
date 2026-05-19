@@ -307,6 +307,7 @@ function refreshSelectedStrip() {
     if (!activeSize || !cat || !sleeve) {
         panel.classList.add(hiddenClass);
         panel.classList.remove('translate-y-0');
+        strip.classList.remove('is-open');
         return;
     }
 
@@ -325,6 +326,7 @@ function refreshSelectedStrip() {
     if (qtyEl) qtyEl.textContent = qty;
     panel.classList.remove(hiddenClass);
     panel.classList.add('translate-y-0');
+    strip.classList.add('is-open');
 }
 
 function hideSelectedStrip() {
@@ -333,6 +335,7 @@ function hideSelectedStrip() {
     const panel = strip.querySelector('[data-merch-selected-panel]');
     panel.classList.add('translate-y-[calc(100%+1rem)]');
     panel.classList.remove('translate-y-0');
+    strip.classList.remove('is-open');
 }
 
 function getSelectedSize() {
@@ -386,11 +389,13 @@ function initAlert() {
     const hide = () => {
         panel.classList.add(hiddenClass);
         panel.classList.remove('translate-y-0');
+        root.classList.remove('is-open');
     };
 
     const show = (message, title = 'Pilih ukuran dulu') => {
         if (titleEl) titleEl.textContent = title;
         if (msgEl) msgEl.textContent = message;
+        root.classList.add('is-open');
         panel.classList.remove(hiddenClass);
         panel.classList.add('translate-y-0');
         if (timer) clearTimeout(timer);
