@@ -26,8 +26,8 @@ class MerchandiseController extends Controller
             'gallery' => [
                 'medias/the-7ourney/artboard1.jpg',
                 'medias/the-7ourney/artboard2.jpg',
+                'medias/the-7ourney/artboard3.jpg',
                 'medias/the-7ourney/artboard4.jpg',
-                'medias/the-7ourney/artboard5.jpg',
             ],
             'categories' => [
                 ['key' => 'dewasa', 'name' => 'Dewasa', 'desc' => '15+ tahun', 'icon' => 'ri-user-3-fill', 'active' => true, 'price' => 175000],

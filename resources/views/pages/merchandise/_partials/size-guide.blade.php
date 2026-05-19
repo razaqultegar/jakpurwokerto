@@ -19,7 +19,7 @@
             <div class="relative">
                 <div class="swiper size-guide-swiper" data-size-guide-swiper>
                     <div class="swiper-wrapper">
-                        @foreach (['artboard6.jpg', 'artboard7.jpg'] as $i => $img)
+                        @foreach (['artboard5.jpg', 'artboard6.jpg'] as $i => $img)
                         <div class="swiper-slide">
                             <div class="relative aspect-square w-full overflow-hidden rounded-2xl bg-skull ring-1 ring-mercury">
                                 <img src="{{ asset('build/medias/the-7ourney/' . $img) }}" class="h-full w-full object-contain" alt="Panduan ukuran #{{ $i + 1 }}" loading="lazy">

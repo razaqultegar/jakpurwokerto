@@ -34,7 +34,7 @@
             </div>
             <button type="button" class="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-linear-to-r from-primary via-primary-light to-primary-lighter text-sm font-bold text-white shadow-lg disabled:cursor-not-allowed disabled:opacity-60" data-cart-checkout disabled>
                 <i class="ri-secure-payment-line text-base"></i>
-                Lanjut ke Pembayaran
+                Selesaikan Pesanan
             </button>
         </footer>
     </aside>
