@@ -70,7 +70,7 @@ class AdminController extends Controller
             }
 
             $base->where(function ($q) use ($search, $statusMatch) {
-                $like = '%' . $search . '%';
+                $like = '%'.$search.'%';
                 $q->where('order_id', 'like', $like)
                     ->orWhere('customer_name', 'like', $like)
                     ->orWhere('customer_email', 'like', $like)
@@ -185,7 +185,7 @@ class AdminController extends Controller
         return response()->json([
             'ok' => true,
             'html' => $this->renderDetail($order),
-            'title' => 'Detail Pesanan ' . $order->order_id,
+            'title' => 'Detail Pesanan '.$order->order_id,
         ]);
     }
 
@@ -194,30 +194,30 @@ class AdminController extends Controller
         $statusMeta = $this->statusMeta($order->status);
         $payment = $this->paymentLabel($order);
 
-        $amountHtml = '<div class="font-bold text-foreground">Rp' . number_format($order->amount_due, 0, ',', '.') . '</div>';
+        $amountHtml = '<div class="font-bold text-foreground">Rp'.number_format($order->amount_due, 0, ',', '.').'</div>';
         if ($order->payment_type === 'dp') {
-            $amountHtml .= '<div class="text-[10px] text-onyx">DP dari Rp' . number_format($order->subtotal, 0, ',', '.') . '</div>';
+            $amountHtml .= '<div class="text-[10px] text-onyx">DP dari Rp'.number_format($order->subtotal, 0, ',', '.').'</div>';
         }
 
         $createdAt = $order->created_at;
         $dateLabel = $createdAt
             ? $createdAt->locale('id')->translatedFormat('d F Y')
             : '-';
-        $timeLabel = $createdAt ? $createdAt->format('H:i') . ' WIB' : '';
+        $timeLabel = $createdAt ? $createdAt->format('H:i').' WIB' : '';
 
         return [
-            'order_id' => '<span class="font-mono text-[13px] font-semibold text-foreground">' . e($order->order_id) . '</span>',
-            'customer' => '<div class="text-[13px] font-semibold text-foreground">' . e($order->customer_name) . '</div>',
+            'order_id' => '<span class="font-mono text-[13px] font-semibold text-foreground">'.e($order->order_id).'</span>',
+            'customer' => '<div class="text-[13px] font-semibold text-foreground">'.e($order->customer_name).'</div>',
             'payment' => '<div class="inline-flex items-center gap-1.5 rounded-lg bg-skull px-2.5 py-1 text-[12px] font-semibold text-foreground ring-1 ring-mercury">'
-                . '<i class="' . $payment['icon'] . ' text-' . $payment['color'] . '"></i>'
-                . e($payment['label'])
-                . '</div>',
+                .'<i class="'.$payment['icon'].' text-'.$payment['color'].'"></i>'
+                .e($payment['label'])
+                .'</div>',
             'amount' => $amountHtml,
-            'status' => '<span class="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[12px] font-bold ' . $statusMeta['class'] . '">'
-                . '<i class="' . $statusMeta['icon'] . '"></i> ' . $statusMeta['label']
-                . '</span>',
-            'created_at' => '<div class="text-[13px] font-medium text-foreground">' . e($dateLabel) . '</div>'
-                . ($timeLabel ? '<div class="text-[11px] text-onyx">' . e($timeLabel) . '</div>' : ''),
+            'status' => '<span class="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[12px] font-bold '.$statusMeta['class'].'">'
+                .'<i class="'.$statusMeta['icon'].'"></i> '.$statusMeta['label']
+                .'</span>',
+            'created_at' => '<div class="text-[13px] font-medium text-foreground">'.e($dateLabel).'</div>'
+                .($timeLabel ? '<div class="text-[11px] text-onyx">'.e($timeLabel).'</div>' : ''),
             'actions' => $this->renderActions($order),
         ];
     }
@@ -236,11 +236,13 @@ class AdminController extends Controller
     {
         if ($order->payment_method_type === 'bank') {
             $name = $order->payment_data['label'] ?? 'Transfer Bank';
-            return ['label' => 'Transfer Bank · ' . $name, 'icon' => 'ri-bank-line', 'color' => 'blue-600'];
+
+            return ['label' => 'Transfer Bank · '.$name, 'icon' => 'ri-bank-line', 'color' => 'blue-600'];
         }
         if ($order->payment_method_type === 'qris') {
             return ['label' => 'QRIS', 'icon' => 'ri-qr-code-line', 'color' => 'primary'];
         }
+
         return ['label' => ucfirst($order->payment_method_type ?? '-'), 'icon' => 'ri-wallet-3-line', 'color' => 'onyx'];
     }
 
@@ -248,11 +250,11 @@ class AdminController extends Controller
     {
         $statusMeta = $this->statusMeta($order->status);
         $payment = $this->paymentLabel($order);
-        $rupiah = fn ($n) => 'Rp' . number_format((int) $n, 0, ',', '.');
+        $rupiah = fn ($n) => 'Rp'.number_format((int) $n, 0, ',', '.');
 
         $createdAt = $order->created_at;
         $dateText = $createdAt
-            ? $createdAt->locale('id')->translatedFormat('d F Y') . ' · ' . $createdAt->format('H:i') . ' WIB'
+            ? $createdAt->locale('id')->translatedFormat('d F Y').' · '.$createdAt->format('H:i').' WIB'
             : '-';
 
         $initials = collect(preg_split('/\s+/', trim($order->customer_name)))
@@ -275,27 +277,27 @@ class AdminController extends Controller
             $variant = trim(implode(' · ', array_filter([$line['category'] ?? '', $line['sleeve'] ?? '', $line['size'] ?? ''])));
 
             $itemsHtml .= '<div class="flex items-center gap-3 rounded-xl border border-mercury bg-white px-3 py-2.5">'
-                . '<div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary-softer text-primary ring-1 ring-primary-soft">'
-                . '<i class="ri-shirt-line text-xl"></i>'
-                . '</div>'
-                . '<div class="min-w-0 flex-1">'
-                . '<div class="truncate text-[13px] font-bold text-foreground">' . e($line['name'] ?? '-') . '</div>'
-                . '<div class="mt-0.5 text-[11px] text-onyx">' . e($variant) . '</div>'
-                . '</div>'
-                . '<div class="text-right">'
-                . '<div class="text-[11px] text-onyx">' . $qty . '× · ' . $rupiah($price + $fee) . '</div>'
-                . '<div class="text-[13px] font-bold text-foreground">' . $rupiah($lineTotal) . '</div>'
-                . '</div>'
-                . '</div>';
+                .'<div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary-softer text-primary ring-1 ring-primary-soft">'
+                .'<i class="ri-shirt-line text-xl"></i>'
+                .'</div>'
+                .'<div class="min-w-0 flex-1">'
+                .'<div class="truncate text-[13px] font-bold text-foreground">'.e($line['name'] ?? '-').'</div>'
+                .'<div class="mt-0.5 text-[11px] text-onyx">'.e($variant).'</div>'
+                .'</div>'
+                .'<div class="text-right">'
+                .'<div class="text-[11px] text-onyx">'.$qty.'× · '.$rupiah($price + $fee).'</div>'
+                .'<div class="text-[13px] font-bold text-foreground">'.$rupiah($lineTotal).'</div>'
+                .'</div>'
+                .'</div>';
         }
 
         // Proof chips
         $proofs = [];
         if ($order->payment_proof) {
-            $proofs[] = '<a href="' . e(asset('storage/' . $order->payment_proof)) . '" target="_blank" class="detail-chip detail-chip--primary"><i class="ri-image-line"></i> Bukti Pembayaran <i class="ri-external-link-line text-[10px]"></i></a>';
+            $proofs[] = '<a href="'.e(asset('storage/'.$order->payment_proof)).'" target="_blank" class="detail-chip detail-chip--primary"><i class="ri-image-line"></i> Bukti Pembayaran <i class="ri-external-link-line text-[10px]"></i></a>';
         }
         if ($order->payment_type === 'dp' && $order->dp_settlement_proof) {
-            $proofs[] = '<a href="' . e(asset('storage/' . $order->dp_settlement_proof)) . '" target="_blank" class="detail-chip detail-chip--success"><i class="ri-checkbox-circle-line"></i> Bukti Pelunasan DP <i class="ri-external-link-line text-[10px]"></i></a>';
+            $proofs[] = '<a href="'.e(asset('storage/'.$order->dp_settlement_proof)).'" target="_blank" class="detail-chip detail-chip--success"><i class="ri-checkbox-circle-line"></i> Bukti Pelunasan DP <i class="ri-external-link-line text-[10px]"></i></a>';
         }
         if (empty($proofs)) {
             $proofs[] = '<span class="detail-chip detail-chip--muted"><i class="ri-image-add-line"></i> Belum ada bukti</span>';
@@ -304,12 +306,12 @@ class AdminController extends Controller
 
         // Field row helper
         $field = fn ($label, $value, $icon = null) => '<div class="flex gap-3">'
-            . ($icon ? '<div class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-skull text-onyx ring-1 ring-mercury"><i class="' . e($icon) . ' text-base"></i></div>' : '')
-            . '<div class="min-w-0 flex-1">'
-            . '<div class="text-[10px] font-bold uppercase tracking-wider text-onyx">' . e($label) . '</div>'
-            . '<div class="mt-0.5 text-[13px] font-medium text-foreground break-words">' . $value . '</div>'
-            . '</div>'
-            . '</div>';
+            .($icon ? '<div class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-skull text-onyx ring-1 ring-mercury"><i class="'.e($icon).' text-base"></i></div>' : '')
+            .'<div class="min-w-0 flex-1">'
+            .'<div class="text-[10px] font-bold uppercase tracking-wider text-onyx">'.e($label).'</div>'
+            .'<div class="mt-0.5 text-[13px] font-medium text-foreground break-words">'.$value.'</div>'
+            .'</div>'
+            .'</div>';
 
         // Pengiriman block (kirim vs pickup specifics)
         $pickupLocations = [
@@ -322,7 +324,7 @@ class AdminController extends Controller
             $shipAddrHtml = $field('Alamat Pengiriman', nl2br(e($order->customer_address ?? '-')), 'ri-map-pin-2-line');
             $trackingHtml = $field('Nomor Resi',
                 $order->shipping_tracking
-                    ? '<span class="font-mono text-foreground">' . e($order->shipping_tracking) . '</span>'
+                    ? '<span class="font-mono text-foreground">'.e($order->shipping_tracking).'</span>'
                     : '<span class="italic text-onyx">belum diinput</span>',
                 'ri-barcode-line'
             );
@@ -339,91 +341,91 @@ class AdminController extends Controller
         return '<div class="detail-modal text-left">'
 
             // Hero header
-            . '<div class="detail-hero">'
-            . '<div class="detail-hero__bg"></div>'
-            . '<div class="relative flex flex-col gap-4">'
-            . '<div>'
-            . '<span class="detail-chip detail-chip--glass"><i class="ri-hashtag"></i> ' . e($order->order_id) . '</span>'
-            . '</div>'
-            . '<div class="flex items-center gap-3">'
-            . '<div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white text-lg font-black text-primary shadow-md">' . e($initials) . '</div>'
-            . '<div class="min-w-0 flex-1 text-white">'
-            . '<div class="text-base font-black leading-tight">' . e($order->customer_name) . '</div>'
-            . '<div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-white/85">'
-            . '<span class="inline-flex items-center gap-1"><i class="ri-calendar-line"></i> ' . e($dateText) . '</span>'
-            . '<span class="inline-flex items-center gap-1"><i class="' . $shipIcon . '"></i> ' . e($shipLabel) . '</span>'
-            . '</div>'
-            . '</div>'
-            . '<span class="detail-chip detail-chip--status ' . $statusMeta['class'] . '"><i class="' . $statusMeta['icon'] . '"></i> ' . $statusMeta['label'] . '</span>'
-            . '</div>'
-            . '</div>'
-            . '</div>'
+            .'<div class="detail-hero">'
+            .'<div class="detail-hero__bg"></div>'
+            .'<div class="relative flex flex-col gap-4">'
+            .'<div>'
+            .'<span class="detail-chip detail-chip--glass"><i class="ri-hashtag"></i> '.e($order->order_id).'</span>'
+            .'</div>'
+            .'<div class="flex items-center gap-3">'
+            .'<div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white text-lg font-black text-primary shadow-md">'.e($initials).'</div>'
+            .'<div class="min-w-0 flex-1 text-white">'
+            .'<div class="text-base font-black leading-tight">'.e($order->customer_name).'</div>'
+            .'<div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-white/85">'
+            .'<span class="inline-flex items-center gap-1"><i class="ri-calendar-line"></i> '.e($dateText).'</span>'
+            .'<span class="inline-flex items-center gap-1"><i class="'.$shipIcon.'"></i> '.e($shipLabel).'</span>'
+            .'</div>'
+            .'</div>'
+            .'<span class="detail-chip detail-chip--status '.$statusMeta['class'].'"><i class="'.$statusMeta['icon'].'"></i> '.$statusMeta['label'].'</span>'
+            .'</div>'
+            .'</div>'
+            .'</div>'
 
             // Two-column: contact + shipping
-            . '<div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">'
-            . '<div class="detail-card">'
-            . '<div class="detail-card__title"><i class="ri-user-3-line"></i> Pelanggan</div>'
-            . '<div class="space-y-2.5">'
-            . $field('Email', '<a href="mailto:' . e($order->customer_email) . '" class="text-primary hover:underline">' . e($order->customer_email) . '</a>', 'ri-mail-line')
-            . $field('Telepon', '<span class="font-mono text-foreground">' . e($order->customer_phone) . '</span>', 'ri-phone-line')
-            . '</div>'
-            . '</div>'
+            .'<div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">'
+            .'<div class="detail-card">'
+            .'<div class="detail-card__title"><i class="ri-user-3-line"></i> Pelanggan</div>'
+            .'<div class="space-y-2.5">'
+            .$field('Email', '<a href="mailto:'.e($order->customer_email).'" class="text-primary hover:underline">'.e($order->customer_email).'</a>', 'ri-mail-line')
+            .$field('Telepon', '<span class="font-mono text-foreground">'.e($order->customer_phone).'</span>', 'ri-phone-line')
+            .'</div>'
+            .'</div>'
 
-            . '<div class="detail-card">'
-            . '<div class="detail-card__title"><i class="' . $shipIcon . '"></i> Pengiriman</div>'
-            . '<div class="space-y-2.5">'
-            . $shipAddrHtml
-            . $trackingHtml
-            . $shipNoteHtml
-            . '</div>'
-            . '</div>'
-            . '</div>'
+            .'<div class="detail-card">'
+            .'<div class="detail-card__title"><i class="'.$shipIcon.'"></i> Pengiriman</div>'
+            .'<div class="space-y-2.5">'
+            .$shipAddrHtml
+            .$trackingHtml
+            .$shipNoteHtml
+            .'</div>'
+            .'</div>'
+            .'</div>'
 
             // Payment summary
-            . '<div class="detail-card mt-3">'
-            . '<div class="detail-card__title"><i class="ri-wallet-3-line"></i> Pembayaran</div>'
-            . '<div class="grid grid-cols-1 gap-3 sm:grid-cols-3">'
-            . '<div class="rounded-xl bg-skull/70 p-3 ring-1 ring-mercury">'
-            . '<div class="text-[10px] font-bold uppercase tracking-wider text-onyx">Metode</div>'
-            . '<div class="mt-1 inline-flex items-center gap-1.5 text-[13px] font-bold text-foreground"><i class="' . $payment['icon'] . ' text-' . $payment['color'] . '"></i> ' . e($payment['label']) . '</div>'
-            . '</div>'
-            . '<div class="rounded-xl bg-skull/70 p-3 ring-1 ring-mercury">'
-            . '<div class="text-[10px] font-bold uppercase tracking-wider text-onyx">Tipe</div>'
-            . '<div class="mt-1 text-[13px] font-bold text-foreground">' . ($order->payment_type === 'dp' ? 'DP (50%)' : 'Bayar Lunas') . '</div>'
-            . '</div>'
-            . '<div class="rounded-xl bg-linear-to-br from-primary via-primary-light to-primary-lighter p-3 text-white shadow-sm">'
-            . '<div class="text-[10px] font-bold uppercase tracking-wider text-white/80">Sudah Dibayar</div>'
-            . '<div class="mt-1 text-base font-black">' . $rupiah($order->amount_due) . '</div>'
-            . ($order->payment_type === 'dp' ? '<div class="text-[10px] text-white/80">dari total ' . $rupiah($order->subtotal) . '</div>' : '')
-            . '</div>'
-            . '</div>'
-            . ($order->payment_type === 'dp'
+            .'<div class="detail-card mt-3">'
+            .'<div class="detail-card__title"><i class="ri-wallet-3-line"></i> Pembayaran</div>'
+            .'<div class="grid grid-cols-1 gap-3 sm:grid-cols-3">'
+            .'<div class="rounded-xl bg-skull/70 p-3 ring-1 ring-mercury">'
+            .'<div class="text-[10px] font-bold uppercase tracking-wider text-onyx">Metode</div>'
+            .'<div class="mt-1 inline-flex items-center gap-1.5 text-[13px] font-bold text-foreground"><i class="'.$payment['icon'].' text-'.$payment['color'].'"></i> '.e($payment['label']).'</div>'
+            .'</div>'
+            .'<div class="rounded-xl bg-skull/70 p-3 ring-1 ring-mercury">'
+            .'<div class="text-[10px] font-bold uppercase tracking-wider text-onyx">Tipe</div>'
+            .'<div class="mt-1 text-[13px] font-bold text-foreground">'.($order->payment_type === 'dp' ? 'DP (50%)' : 'Bayar Lunas').'</div>'
+            .'</div>'
+            .'<div class="rounded-xl bg-linear-to-br from-primary via-primary-light to-primary-lighter p-3 text-white shadow-sm">'
+            .'<div class="text-[10px] font-bold uppercase tracking-wider text-white/80">Sudah Dibayar</div>'
+            .'<div class="mt-1 text-base font-black">'.$rupiah($order->amount_due).'</div>'
+            .($order->payment_type === 'dp' ? '<div class="text-[10px] text-white/80">dari total '.$rupiah($order->subtotal).'</div>' : '')
+            .'</div>'
+            .'</div>'
+            .($order->payment_type === 'dp'
                 ? '<div class="mt-3 flex items-center justify-between rounded-xl border-2 border-dashed border-amber-300 bg-amber-50 px-4 py-3">'
-                    . '<div class="inline-flex items-center gap-2 text-amber-800">'
-                    . '<i class="ri-alarm-warning-line text-base"></i>'
-                    . '<span class="text-[12px] font-semibold">' . ($order->dp_settlement_proof ? 'Pelunasan diterima' : 'Sisa pelunasan DP') . '</span>'
-                    . '</div>'
-                    . '<span class="text-[14px] font-black ' . ($order->dp_settlement_proof ? 'text-emerald-700' : 'text-amber-700') . '">'
-                    . ($order->dp_settlement_proof
+                    .'<div class="inline-flex items-center gap-2 text-amber-800">'
+                    .'<i class="ri-alarm-warning-line text-base"></i>'
+                    .'<span class="text-[12px] font-semibold">'.($order->dp_settlement_proof ? 'Pelunasan diterima' : 'Sisa pelunasan DP').'</span>'
+                    .'</div>'
+                    .'<span class="text-[14px] font-black '.($order->dp_settlement_proof ? 'text-emerald-700' : 'text-amber-700').'">'
+                    .($order->dp_settlement_proof
                         ? '<i class="ri-checkbox-circle-fill"></i> Lunas'
                         : $rupiah(max(0, $order->subtotal - $order->amount_due)))
-                    . '</span>'
-                    . '</div>'
+                    .'</span>'
+                    .'</div>'
                 : '')
-            . '<div class="mt-3 flex flex-wrap gap-2">' . $proofHtml . '</div>'
-            . '</div>'
+            .'<div class="mt-3 flex flex-wrap gap-2">'.$proofHtml.'</div>'
+            .'</div>'
 
             // Items
-            . '<div class="detail-card mt-3">'
-            . '<div class="detail-card__title"><i class="ri-shopping-bag-3-line"></i> Item Pesanan</div>'
-            . '<div class="flex flex-col gap-2">' . $itemsHtml . '</div>'
-            . '<div class="mt-3 flex items-center justify-between border-t border-mercury pt-2.5">'
-            . '<span class="text-[11px] font-semibold uppercase tracking-wider text-onyx">Subtotal</span>'
-            . '<span class="text-base font-black text-foreground">' . $rupiah($order->subtotal) . '</span>'
-            . '</div>'
-            . '</div>'
+            .'<div class="detail-card mt-3">'
+            .'<div class="detail-card__title"><i class="ri-shopping-bag-3-line"></i> Item Pesanan</div>'
+            .'<div class="flex flex-col gap-2">'.$itemsHtml.'</div>'
+            .'<div class="mt-3 flex items-center justify-between border-t border-mercury pt-2.5">'
+            .'<span class="text-[11px] font-semibold uppercase tracking-wider text-onyx">Subtotal</span>'
+            .'<span class="text-base font-black text-foreground">'.$rupiah($order->subtotal).'</span>'
+            .'</div>'
+            .'</div>'
 
-            . '</div>';
+            .'</div>';
     }
 
     private function renderActions(Order $order): string
@@ -434,13 +436,13 @@ class AdminController extends Controller
 
         $items = [];
         $item = fn (array $opts) => '<button type="button" role="menuitem"'
-            . ' data-action="' . e($opts['action']) . '"'
-            . ' data-order="' . $orderId . '"'
-            . (isset($opts['status']) ? ' data-status="' . e($opts['status']) . '"' : '')
-            . (isset($opts['tracking']) ? ' data-tracking="' . e($opts['tracking']) . '"' : '')
-            . ' class="dropdown-item' . (isset($opts['tone']) ? ' dropdown-item--' . e($opts['tone']) : '') . '">'
-            . '<i class="' . e($opts['icon']) . '"></i><span>' . e($opts['label']) . '</span>'
-            . '</button>';
+            .' data-action="'.e($opts['action']).'"'
+            .' data-order="'.$orderId.'"'
+            .(isset($opts['status']) ? ' data-status="'.e($opts['status']).'"' : '')
+            .(isset($opts['tracking']) ? ' data-tracking="'.e($opts['tracking']).'"' : '')
+            .' class="dropdown-item'.(isset($opts['tone']) ? ' dropdown-item--'.e($opts['tone']) : '').'">'
+            .'<i class="'.e($opts['icon']).'"></i><span>'.e($opts['label']).'</span>'
+            .'</button>';
 
         $items[] = $item(['action' => 'detail', 'icon' => 'ri-eye-line', 'label' => 'Lihat Detail']);
 
@@ -469,12 +471,12 @@ class AdminController extends Controller
         }
 
         return '<div class="orders-dropdown" data-dropdown>'
-            . '<button type="button" class="dropdown-trigger" data-dropdown-toggle aria-haspopup="true" aria-expanded="false">'
-            . '<i class="ri-more-2-fill"></i>'
-            . '</button>'
-            . '<div class="dropdown-menu" role="menu">'
-            . implode('', $items)
-            . '</div>'
-            . '</div>';
+            .'<button type="button" class="dropdown-trigger" data-dropdown-toggle aria-haspopup="true" aria-expanded="false">'
+            .'<i class="ri-more-2-fill"></i>'
+            .'</button>'
+            .'<div class="dropdown-menu" role="menu">'
+            .implode('', $items)
+            .'</div>'
+            .'</div>';
     }
 }

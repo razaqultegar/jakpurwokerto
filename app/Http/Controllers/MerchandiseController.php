@@ -93,6 +93,7 @@ class MerchandiseController extends Controller
                     }
                 }
             });
+
         return $sold;
     }
 }
