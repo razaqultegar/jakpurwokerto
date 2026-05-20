@@ -366,6 +366,35 @@ class AdminController extends Controller
         ]);
     }
 
+    public function syncPayment(Request $request, Order $order)
+    {
+        if ($order->payment_type !== 'dp') {
+            return response()->json(['ok' => false, 'message' => 'Sinkronisasi hanya untuk pesanan DP.'], 422);
+        }
+
+        if ($order->status === 'cancelled') {
+            return response()->json(['ok' => false, 'message' => 'Pesanan sudah dibatalkan.'], 422);
+        }
+
+        $validated = $request->validate([
+            'amount_due' => ['required', 'integer', 'min:1', 'max:'.(int) $order->subtotal],
+        ]);
+
+        $order->update(['amount_due' => $validated['amount_due']]);
+
+        return response()->json([
+            'ok' => true,
+            'message' => 'Total pembayaran diperbarui.',
+            'stats' => $this->orderStats(),
+            'order' => [
+                'order_id' => $order->order_id,
+                'amount_due' => (int) $order->amount_due,
+                'subtotal' => (int) $order->subtotal,
+                'remaining' => max(0, (int) $order->subtotal - (int) $order->amount_due),
+            ],
+        ]);
+    }
+
     public function uploadDpProof(Request $request, Order $order)
     {
         if ($order->payment_type !== 'dp') {
@@ -737,6 +766,12 @@ class AdminController extends Controller
         if ($order->status === 'pending') {
             $items .= '<button type="button" role="menuitem" data-action="status" data-status="verified" data-order="'.$orderId.'" class="dropdown-item dropdown-item--success">'
                 .'<i class="ri-shield-check-line"></i><span>Pembayaran Diterima</span>'
+                .'</button>';
+        }
+
+        if ($order->payment_type === 'dp' && $order->status !== 'cancelled' && $order->status !== 'completed') {
+            $items .= '<button type="button" role="menuitem" data-action="sync-payment" data-order="'.$orderId.'" data-subtotal="'.(int) $order->subtotal.'" data-amount-due="'.(int) $order->amount_due.'" class="dropdown-item dropdown-item--info">'
+                .'<i class="ri-refresh-line"></i><span>Sinkronisasi Pembayaran</span>'
                 .'</button>';
         }
 

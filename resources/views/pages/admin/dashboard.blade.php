@@ -94,6 +94,7 @@
             data-export-url="{{ route('admin.orders.export') }}"
             data-detail-url="{{ url('admin/orders/__ORDER__') }}"
             data-status-url="{{ url('admin/orders/__ORDER__/status') }}"
+            data-sync-payment-url="{{ url('admin/orders/__ORDER__/sync-payment') }}"
             data-delete-url="{{ url('admin/orders/__ORDER__') }}">
             <div class="orders-filters grid grid-cols-1 gap-3 border-b border-mercury bg-skull/40 p-4 sm:grid-cols-2 lg:grid-cols-4">
                 <div>
@@ -164,6 +165,83 @@
             </button>
             <h2 id="order-detail-modal-title" class="sr-only">Detail Pesanan</h2>
             <div class="order-modal__body" data-modal-content></div>
+        </div>
+    </div>
+
+    <div id="sync-payment-modal" class="order-modal" hidden aria-hidden="true">
+        <div class="order-modal__backdrop" data-sync-close></div>
+        <div class="order-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="sync-payment-modal-title">
+            <button type="button" class="order-modal__close" data-sync-close aria-label="Tutup">
+                <i class="ri-close-line"></i>
+            </button>
+            <div class="order-modal__body">
+                <div class="detail-hero">
+                    <div class="detail-hero__bg"></div>
+                    <div class="relative flex flex-col gap-2 pr-12">
+                        <span class="detail-chip detail-chip--glass w-fit font-mono"><i class="ri-refresh-line"></i> <span data-sync-order-id>—</span></span>
+                        <h2 id="sync-payment-modal-title" class="text-base font-black leading-tight text-white">Sinkronisasi Pembayaran</h2>
+                        <p class="text-[12px] leading-relaxed text-white/85">Perbarui total pembayaran DP bila nominal yang ditransfer melebihi 50% dari subtotal.</p>
+                    </div>
+                </div>
+
+                <form data-sync-form class="flex flex-col gap-4 px-5 py-5">
+                    <div class="rounded-2xl border border-mercury bg-skull/40 p-4">
+                        <div class="grid grid-cols-3 divide-x divide-mercury">
+                            <div class="flex flex-col items-start pr-3">
+                                <span class="text-[10px] font-bold uppercase tracking-wider text-onyx">Subtotal</span>
+                                <span class="mt-1 text-[14px] font-black leading-tight text-foreground" data-sync-subtotal>Rp0</span>
+                            </div>
+                            <div class="flex flex-col items-start px-3">
+                                <span class="text-[10px] font-bold uppercase tracking-wider text-onyx">Saat Ini</span>
+                                <span class="mt-1 text-[14px] font-black leading-tight text-foreground" data-sync-current>Rp0</span>
+                            </div>
+                            <div class="flex flex-col items-start pl-3">
+                                <span class="text-[10px] font-bold uppercase tracking-wider text-amber-700">Sisa Setelahnya</span>
+                                <span class="mt-1 text-[14px] font-black leading-tight text-amber-800" data-sync-remaining>Rp0</span>
+                            </div>
+                        </div>
+
+                        <div class="mt-3">
+                            <div class="relative h-2 w-full overflow-hidden rounded-full bg-white ring-1 ring-mercury">
+                                <div class="absolute inset-y-0 left-0 bg-linear-to-r from-primary to-primary-light transition-[width] duration-200" style="width: 0%" data-sync-progress></div>
+                            </div>
+                            <div class="mt-1.5 flex items-center justify-between text-[10px] font-bold text-onyx">
+                                <span><span data-sync-percent>0</span>% dari subtotal</span>
+                                <span data-sync-percent-label class="text-onyx">Belum dibayar</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="mb-1.5 flex items-end justify-between">
+                            <label for="sync-amount-input" class="text-[11px] font-bold uppercase tracking-wider text-onyx">Total Pembayaran Baru</label>
+                            <span class="text-[10px] font-semibold text-onyx">Maks. <span data-sync-max>Rp0</span></span>
+                        </div>
+                        <div class="group relative">
+                            <span class="pointer-events-none absolute inset-y-0 left-0 flex w-12 items-center justify-center border-r border-mercury text-[13px] font-bold text-onyx">Rp</span>
+                            <input id="sync-amount-input" type="text" inputmode="numeric" autocomplete="off" data-sync-input
+                                class="h-12 w-full rounded-xl border border-mercury bg-white pl-14 pr-4 text-[16px] font-black tabular-nums text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20" />
+                        </div>
+                        <p class="mt-1.5 hidden text-[11px] font-semibold text-red-600" data-sync-error></p>
+                    </div>
+
+                    <div>
+                        <div class="mb-1.5 text-[11px] font-bold uppercase tracking-wider text-onyx">Isi Cepat</div>
+                        <div class="grid grid-cols-3 gap-2">
+                            <button type="button" data-sync-preset="50" class="inline-flex h-9 items-center justify-center gap-1 rounded-lg border border-mercury bg-white px-2 text-[11px] font-bold text-foreground transition hover:border-primary hover:bg-primary-softer hover:text-primary"><i class="ri-percent-line text-[12px]"></i> 50% DP</button>
+                            <button type="button" data-sync-preset="75" class="inline-flex h-9 items-center justify-center gap-1 rounded-lg border border-mercury bg-white px-2 text-[11px] font-bold text-foreground transition hover:border-primary hover:bg-primary-softer hover:text-primary"><i class="ri-percent-line text-[12px]"></i> 75%</button>
+                            <button type="button" data-sync-preset="100" class="inline-flex h-9 items-center justify-center gap-1 rounded-lg border border-emerald-200 bg-emerald-50 px-2 text-[11px] font-bold text-emerald-700 transition hover:bg-emerald-100"><i class="ri-checkbox-circle-line text-[12px]"></i> Lunas</button>
+                        </div>
+                    </div>
+
+                    <div class="-mx-5 -mb-5 mt-1 flex items-center justify-end gap-2 border-t border-mercury bg-skull/40 px-5 py-3">
+                        <button type="button" data-sync-close class="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg border border-mercury bg-white px-4 text-[13px] font-semibold text-foreground transition hover:bg-skull">Batal</button>
+                        <button type="submit" data-sync-submit class="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg bg-primary px-4 text-[13px] font-bold text-white shadow-sm transition hover:bg-primary-light disabled:cursor-not-allowed disabled:opacity-60">
+                            <i class="ri-save-3-line"></i> Simpan Perubahan
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 @endsection
