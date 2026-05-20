@@ -223,10 +223,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const status = btn.dataset.status;
         const confirmMap = {
             verified: {
-                title: 'Verifikasi pembayaran?',
-                text: 'Pesanan akan ditandai sudah diverifikasi dan terhitung ke stok.',
+                title: 'Terima pembayaran?',
+                text: 'Pembayaran pesanan akan ditandai sudah diterima dan terhitung ke stok dan pendapatan.',
                 icon: 'question',
-                confirmText: 'Ya, verifikasi',
+                confirmText: 'Ya, diterima',
             },
         };
         const cfg = confirmMap[status];
@@ -253,7 +253,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error(payload?.message || 'Terjadi kesalahan.');
             }
             applyStats(payload.stats);
-            toast?.fire({ icon: 'success', title: 'Status diperbarui', text: 'Pembayaran berhasil diverifikasi.' });
+            toast?.fire({ icon: 'success', title: 'Status diperbarui', text: 'Pembayaran berhasil diterima.' });
             dt.ajax.reload(null, false);
         } catch (e) {
             Swal.fire({ icon: 'error', title: 'Gagal', text: e.message });
@@ -263,12 +263,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const handleDelete = async (btn) => {
         const orderId = btn.dataset.order;
         const result = await Swal.fire({
-            title: 'Hapus pesanan?',
-            html: `Pesanan <b>${orderId}</b> akan dihapus permanen beserta bukti pembayarannya. Aksi ini tidak bisa dibatalkan.`,
+            title: 'Batalkan pesanan?',
+            html: `Pesanan <b>${orderId}</b> akan ditandai sebagai dibatalkan. Data pesanan tetap tersimpan.`,
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonText: 'Ya, hapus',
-            cancelButtonText: 'Batal',
+            confirmButtonText: 'Ya, batalkan',
+            cancelButtonText: 'Tutup',
             confirmButtonColor: '#dc2626',
         });
         if (!result.isConfirmed) return;
@@ -281,9 +281,9 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             let payload = null;
             try { payload = await res.json(); } catch (_) {}
-            if (!res.ok || !payload?.ok) throw new Error(payload?.message || 'Gagal menghapus.');
+            if (!res.ok || !payload?.ok) throw new Error(payload?.message || 'Gagal membatalkan.');
             applyStats(payload.stats);
-            toast?.fire({ icon: 'success', title: 'Dihapus', text: `Pesanan ${orderId} dihapus.` });
+            toast?.fire({ icon: 'success', title: 'Dibatalkan', text: `Pesanan ${orderId} dibatalkan.` });
             dt.ajax.reload(null, false);
             // If deleted order is the currently open one, close modal; else refresh detail to update duplicate list
             const openOrder = detailModalContent?.querySelector('.detail-modal')?.dataset?.order;

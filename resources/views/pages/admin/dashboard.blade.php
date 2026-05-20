@@ -111,7 +111,7 @@
                         <option value="pending">Menunggu Pembayaran</option>
                         <option value="verified">Pembayaran Diterima</option>
                         <option value="completed">Selesai</option>
-                        <option value="cancelled">Batal</option>
+                        <option value="cancelled">Dibatalkan</option>
                     </select>
                 </div>
                 <div>

@@ -175,7 +175,7 @@ class AdminController extends Controller
             'pending' => 'Menunggu Pembayaran',
             'verified' => 'Pembayaran Diterima',
             'completed' => 'Selesai',
-            'cancelled' => 'Batal',
+            'cancelled' => 'Dibatalkan',
         ];
         $paymentTypeLabels = ['dp' => 'DP (50%)', 'full' => 'Bayar Lunas'];
         $shippingLabels = ['kirim' => 'Dikirim', 'pickup' => 'Ambil di Tempat'];
@@ -356,18 +356,12 @@ class AdminController extends Controller
 
     public function destroyOrder(Order $order)
     {
-        if ($order->payment_proof) {
-            Storage::disk('public')->delete($order->payment_proof);
-        }
-        if ($order->dp_settlement_proof) {
-            Storage::disk('public')->delete($order->dp_settlement_proof);
-        }
-
-        $order->delete();
+        $order->status = 'cancelled';
+        $order->save();
 
         return response()->json([
             'ok' => true,
-            'message' => 'Pesanan dihapus.',
+            'message' => 'Pesanan dibatalkan.',
             'stats' => $this->orderStats(),
         ]);
     }
@@ -444,7 +438,7 @@ class AdminController extends Controller
             'pending' => ['label' => 'Menunggu Pembayaran', 'class' => 'bg-amber-100 text-amber-700', 'icon' => 'ri-time-line'],
             'verified' => ['label' => 'Pembayaran Diterima', 'class' => 'bg-emerald-100 text-emerald-700', 'icon' => 'ri-shield-check-line'],
             'completed' => ['label' => 'Selesai', 'class' => 'bg-sky-100 text-sky-700', 'icon' => 'ri-flag-line'],
-            'cancelled' => ['label' => 'Batal', 'class' => 'bg-red-100 text-red-700', 'icon' => 'ri-close-circle-line'],
+            'cancelled' => ['label' => 'Dibatalkan', 'class' => 'bg-red-100 text-red-700', 'icon' => 'ri-close-circle-line'],
         ][$status] ?? ['label' => ucfirst($status), 'class' => 'bg-gray-100 text-gray-700', 'icon' => 'ri-question-line'];
     }
 
@@ -720,14 +714,14 @@ class AdminController extends Controller
                 .'</div>'
                 .'<div class="flex items-center gap-1.5">'
                 .'<button type="button" data-action="detail" data-order="'.e($d->order_id).'" class="inline-flex items-center gap-1 rounded-md bg-amber-100 px-2 py-1 text-[11px] font-bold text-amber-700 hover:bg-amber-200"><i class="ri-eye-line"></i> Lihat</button>'
-                .'<button type="button" data-action="delete" data-order="'.e($d->order_id).'" class="inline-flex items-center gap-1 rounded-md bg-red-100 px-2 py-1 text-[11px] font-bold text-red-700 hover:bg-red-200"><i class="ri-delete-bin-line"></i> Hapus</button>'
+                .'<button type="button" data-action="delete" data-order="'.e($d->order_id).'" class="inline-flex items-center gap-1 rounded-md bg-red-100 px-2 py-1 text-[11px] font-bold text-red-700 hover:bg-red-200"><i class="ri-close-circle-line"></i> Batalkan</button>'
                 .'</div>'
                 .'</div>';
         }
 
         return '<div class="detail-card mt-3 border-amber-200 bg-amber-50/40">'
             .'<div class="detail-card__title text-amber-800"><i class="ri-error-warning-line"></i> Kemungkinan Pesanan Duplikat ('.$dupes->count().')</div>'
-            .'<div class="text-[12px] text-amber-800/80">Pelanggan ini punya pesanan lain yang masih menunggu pembayaran tanpa bukti. Hapus yang tidak terpakai.</div>'
+            .'<div class="text-[12px] text-amber-800/80">Pelanggan ini punya pesanan lain yang masih menunggu pembayaran tanpa bukti. Batalkan yang tidak terpakai.</div>'
             .'<div class="mt-2 flex flex-col gap-2">'.$itemsHtml.'</div>'
             .'</div>';
     }
@@ -742,13 +736,15 @@ class AdminController extends Controller
 
         if ($order->status === 'pending') {
             $items .= '<button type="button" role="menuitem" data-action="status" data-status="verified" data-order="'.$orderId.'" class="dropdown-item dropdown-item--success">'
-                .'<i class="ri-shield-check-line"></i><span>Verifikasi Pembayaran</span>'
+                .'<i class="ri-shield-check-line"></i><span>Pembayaran Diterima</span>'
                 .'</button>';
         }
 
-        $items .= '<button type="button" role="menuitem" data-action="delete" data-order="'.$orderId.'" class="dropdown-item dropdown-item--danger">'
-            .'<i class="ri-delete-bin-line"></i><span>Hapus Pesanan</span>'
-            .'</button>';
+        if ($order->status !== 'cancelled') {
+            $items .= '<button type="button" role="menuitem" data-action="delete" data-order="'.$orderId.'" class="dropdown-item dropdown-item--danger">'
+                .'<i class="ri-close-circle-line"></i><span>Batalkan Pesanan</span>'
+                .'</button>';
+        }
 
         return '<div class="orders-dropdown" data-dropdown>'
             .'<button type="button" class="dropdown-trigger" data-dropdown-toggle aria-haspopup="true" aria-expanded="false">'
