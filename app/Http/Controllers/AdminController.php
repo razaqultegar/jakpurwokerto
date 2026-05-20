@@ -265,7 +265,11 @@ class AdminController extends Controller
         $initials = $initials ?: 'JP';
 
         $shipIcon = $order->shipping_method === 'pickup' ? 'ri-store-2-line' : 'ri-truck-line';
-        $shipLabel = $order->shipping_method === 'pickup' ? 'Ambil di Toko' : 'Dikirim';
+        $shipLabel = $order->shipping_method === 'pickup' ? 'Ambil di Tempat' : 'Dikirim';
+
+        $rawPhone = preg_replace('/\D+/', '', (string) $order->customer_phone);
+        $waPhone = $rawPhone !== '' ? (str_starts_with($rawPhone, '0') ? '62'.substr($rawPhone, 1) : (str_starts_with($rawPhone, '62') ? $rawPhone : '62'.$rawPhone)) : '';
+        $phoneDisplay = $rawPhone !== '' ? '+62 '.ltrim(preg_replace('/^62/', '', $rawPhone), '0') : '-';
 
         // Items
         $itemsHtml = '';
@@ -343,20 +347,20 @@ class AdminController extends Controller
             // Hero header
             .'<div class="detail-hero">'
             .'<div class="detail-hero__bg"></div>'
-            .'<div class="relative flex flex-col gap-4">'
-            .'<div>'
-            .'<span class="detail-chip detail-chip--glass"><i class="ri-hashtag"></i> '.e($order->order_id).'</span>'
+            .'<div class="relative flex flex-col gap-4 pr-12">'
+            .'<div class="flex flex-wrap items-center gap-2">'
+            .'<span class="detail-chip detail-chip--glass">'.e($order->order_id).'</span>'
+            .'<span class="detail-chip detail-chip--status '.$statusMeta['class'].'"><i class="'.$statusMeta['icon'].'"></i> '.$statusMeta['label'].'</span>'
             .'</div>'
             .'<div class="flex items-center gap-3">'
             .'<div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white text-lg font-black text-primary shadow-md">'.e($initials).'</div>'
             .'<div class="min-w-0 flex-1 text-white">'
-            .'<div class="text-base font-black leading-tight">'.e($order->customer_name).'</div>'
+            .'<div class="truncate text-base font-black leading-tight">'.e($order->customer_name).'</div>'
             .'<div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-white/85">'
             .'<span class="inline-flex items-center gap-1"><i class="ri-calendar-line"></i> '.e($dateText).'</span>'
             .'<span class="inline-flex items-center gap-1"><i class="'.$shipIcon.'"></i> '.e($shipLabel).'</span>'
             .'</div>'
             .'</div>'
-            .'<span class="detail-chip detail-chip--status '.$statusMeta['class'].'"><i class="'.$statusMeta['icon'].'"></i> '.$statusMeta['label'].'</span>'
             .'</div>'
             .'</div>'
             .'</div>'
@@ -366,8 +370,15 @@ class AdminController extends Controller
             .'<div class="detail-card">'
             .'<div class="detail-card__title"><i class="ri-user-3-line"></i> Pelanggan</div>'
             .'<div class="space-y-2.5">'
-            .$field('Email', '<a href="mailto:'.e($order->customer_email).'" class="text-primary hover:underline">'.e($order->customer_email).'</a>', 'ri-mail-line')
-            .$field('Telepon', '<span class="font-mono text-foreground">'.e($order->customer_phone).'</span>', 'ri-phone-line')
+            .$field('Email', '<span class="break-all text-foreground">'.e($order->customer_email).'</span>', 'ri-mail-line')
+            .$field('Telepon',
+                '<div class="flex flex-wrap items-center gap-2">'
+                .'<span class="font-mono text-foreground">'.e($phoneDisplay).'</span>'
+                .($waPhone !== ''
+                    ? '<a href="https://wa.me/'.e($waPhone).'" target="_blank" rel="noopener" class="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 hover:bg-emerald-100 transition"><i class="ri-whatsapp-line text-[12px]"></i> Follow up</a>'
+                    : '')
+                .'</div>',
+                'ri-phone-line')
             .'</div>'
             .'</div>'
 
