@@ -112,6 +112,11 @@
                 <div class="rounded-2xl bg-white p-3 ring-1 ring-mercury">
                     <img src="{{ $qrSrc }}" alt="Kode QR Pembayaran" class="h-48 w-48 object-contain" loading="lazy">
                 </div>
+                <a href="{{ $qrSrc }}" download="qris-{{ strtolower($order['id']) }}.{{ pathinfo($payment['image'], PATHINFO_EXTENSION) ?: 'png' }}"
+                    class="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-[11px] font-bold text-white shadow-sm transition active:scale-95 hover:bg-primary/90">
+                    <i class="ri-download-2-line text-xs"></i>
+                    Unduh Kode QR
+                </a>
                 <p class="mt-3 text-center text-[11px] leading-snug text-onyx">Scan kode QR di atas pakai DANA, GoPay, OVO, ShopeePay, atau mobile banking.</p>
             </div>
             <ol class="mt-3 space-y-1.5 text-[11px] text-onyx">
