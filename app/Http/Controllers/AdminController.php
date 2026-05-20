@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Order;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -21,7 +22,33 @@ class AdminController extends Controller
         return view('pages.admin.dashboard', [
             'title' => 'Beranda',
             'stats' => $this->orderStats(),
+            'stockCards' => $this->stockCards(),
         ]);
+    }
+
+    private function stockCards(): array
+    {
+        $catalog = [
+            'the-7ourney' => ['name' => 'THE 7OURNEY', 'limit' => self::MERCH_STOCK_LIMITS['the-7ourney'] ?? 0],
+        ];
+
+        $cards = [];
+        foreach ($catalog as $slug => $meta) {
+            $sold = $this->countSoldForSlug($slug);
+            $limit = (int) $meta['limit'];
+            $remaining = $limit > 0 ? max(0, $limit - $sold) : null;
+            $progress = $limit > 0 ? min(100, (int) round(($sold / $limit) * 100)) : 0;
+            $cards[] = [
+                'slug' => $slug,
+                'name' => $meta['name'],
+                'sold' => $sold,
+                'limit' => $limit,
+                'remaining' => $remaining,
+                'progress' => $progress,
+            ];
+        }
+
+        return $cards;
     }
 
     private function orderStats(): array
@@ -45,13 +72,14 @@ class AdminController extends Controller
 
         $columns = [
             0 => 'order_id',
-            1 => 'customer_name',
-            2 => 'payment_method_type',
-            3 => 'amount_due',
-            4 => 'status',
-            5 => 'created_at',
+            1 => 'created_at',
+            2 => 'customer_name',
+            3 => 'created_at',
+            4 => 'amount_due',
+            5 => 'payment_method_type',
+            6 => 'status',
         ];
-        $orderColIdx = (int) $request->input('order.0.column', 5);
+        $orderColIdx = (int) $request->input('order.0.column', 1);
         $orderDir = $request->input('order.0.dir', 'desc') === 'asc' ? 'asc' : 'desc';
         $orderCol = $columns[$orderColIdx] ?? 'created_at';
 
@@ -326,6 +354,24 @@ class AdminController extends Controller
         return response()->json(['ok' => true, 'message' => 'Nomor resi tersimpan.']);
     }
 
+    public function destroyOrder(Order $order)
+    {
+        if ($order->payment_proof) {
+            Storage::disk('public')->delete($order->payment_proof);
+        }
+        if ($order->dp_settlement_proof) {
+            Storage::disk('public')->delete($order->dp_settlement_proof);
+        }
+
+        $order->delete();
+
+        return response()->json([
+            'ok' => true,
+            'message' => 'Pesanan dihapus.',
+            'stats' => $this->orderStats(),
+        ]);
+    }
+
     public function uploadDpProof(Request $request, Order $order)
     {
         if ($order->payment_type !== 'dp') {
@@ -371,9 +417,13 @@ class AdminController extends Controller
             : '-';
         $timeLabel = $createdAt ? $createdAt->format('H:i').' WIB' : '';
 
+        $itemCount = collect($order->item ?? [])->sum(fn ($l) => (int) ($l['qty'] ?? 0));
+        $itemHtml = '<span class="inline-flex items-center justify-center rounded-md bg-skull px-2 py-0.5 text-[12px] font-bold text-foreground ring-1 ring-mercury">'.$itemCount.'×</span>';
+
         return [
             'order_id' => '<button type="button" data-action="detail" data-order="'.e($order->order_id).'" class="order-id-link font-mono text-[13px] font-semibold text-primary hover:underline focus:outline-none focus-visible:underline">'.e($order->order_id).'</button>',
             'customer' => '<div class="text-[13px] font-semibold text-foreground">'.e($order->customer_name).'</div>',
+            'item_count' => $itemHtml,
             'payment' => '<div class="inline-flex items-center gap-1.5 rounded-lg bg-skull px-2.5 py-1 text-[12px] font-semibold text-foreground ring-1 ring-mercury">'
                 .'<i class="'.$payment['icon'].' text-'.$payment['color'].'"></i>'
                 .e($payment['label'])
@@ -410,6 +460,52 @@ class AdminController extends Controller
         }
 
         return ['label' => ucfirst($order->payment_method_type ?? '-'), 'icon' => 'ri-wallet-3-line', 'color' => 'onyx'];
+    }
+
+    private const MERCH_STOCK_LIMITS = [
+        'the-7ourney' => 300,
+    ];
+
+    private function findDuplicatePendingOrders(Order $order): Collection
+    {
+        $email = trim((string) $order->customer_email);
+        $phone = preg_replace('/\D+/', '', (string) $order->customer_phone);
+
+        if ($email === '' && $phone === '') {
+            return collect();
+        }
+
+        return Order::where('id', '!=', $order->id)
+            ->where('status', 'pending')
+            ->whereNull('payment_proof')
+            ->where(function ($q) use ($email, $phone) {
+                if ($email !== '') {
+                    $q->orWhere('customer_email', $email);
+                }
+                if ($phone !== '') {
+                    $q->orWhereRaw("REPLACE(REPLACE(REPLACE(customer_phone, ' ', ''), '-', ''), '+', '') LIKE ?", ['%'.$phone.'%']);
+                }
+            })
+            ->orderBy('created_at', 'desc')
+            ->get();
+    }
+
+    private function countSoldForSlug(string $slug): int
+    {
+        $sold = 0;
+        Order::whereIn('status', ['verified', 'completed'])
+            ->select(['item'])
+            ->chunk(200, function ($orders) use (&$sold, $slug) {
+                foreach ($orders as $order) {
+                    foreach ($order->item ?? [] as $line) {
+                        if (($line['slug'] ?? null) === $slug) {
+                            $sold += (int) ($line['qty'] ?? 0);
+                        }
+                    }
+                }
+            });
+
+        return $sold;
     }
 
     private function renderDetail(Order $order): string
@@ -506,7 +602,7 @@ class AdminController extends Controller
         }
 
         // ===== Build HTML =====
-        return '<div class="detail-modal text-left">'
+        return '<div class="detail-modal text-left" data-order="'.e($order->order_id).'">'
 
             // Hero header
             .'<div class="detail-hero">'
@@ -528,6 +624,9 @@ class AdminController extends Controller
             .'</div>'
             .'</div>'
             .'</div>'
+
+            // Duplicate pending orders warning (above customer/shipping)
+            .$this->renderDuplicateCard($order)
 
             // Two-column: contact + shipping
             .'<div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">'
@@ -602,6 +701,37 @@ class AdminController extends Controller
             .'</div>';
     }
 
+    private function renderDuplicateCard(Order $order): string
+    {
+        $dupes = $this->findDuplicatePendingOrders($order);
+        if ($dupes->isEmpty()) {
+            return '';
+        }
+
+        $itemsHtml = '';
+        foreach ($dupes as $d) {
+            $created = $d->created_at
+                ? $d->created_at->locale('id')->translatedFormat('d M Y · H:i').' WIB'
+                : '-';
+            $itemsHtml .= '<div class="flex items-center justify-between gap-2 rounded-lg bg-white px-3 py-2 ring-1 ring-amber-200">'
+                .'<div class="min-w-0">'
+                .'<div class="font-mono text-[12px] font-bold text-foreground">'.e($d->order_id).'</div>'
+                .'<div class="text-[11px] text-onyx">'.e($created).' · Rp'.number_format((int) $d->amount_due, 0, ',', '.').'</div>'
+                .'</div>'
+                .'<div class="flex items-center gap-1.5">'
+                .'<button type="button" data-action="detail" data-order="'.e($d->order_id).'" class="inline-flex items-center gap-1 rounded-md bg-amber-100 px-2 py-1 text-[11px] font-bold text-amber-700 hover:bg-amber-200"><i class="ri-eye-line"></i> Lihat</button>'
+                .'<button type="button" data-action="delete" data-order="'.e($d->order_id).'" class="inline-flex items-center gap-1 rounded-md bg-red-100 px-2 py-1 text-[11px] font-bold text-red-700 hover:bg-red-200"><i class="ri-delete-bin-line"></i> Hapus</button>'
+                .'</div>'
+                .'</div>';
+        }
+
+        return '<div class="detail-card mt-3 border-amber-200 bg-amber-50/40">'
+            .'<div class="detail-card__title text-amber-800"><i class="ri-error-warning-line"></i> Kemungkinan Pesanan Duplikat ('.$dupes->count().')</div>'
+            .'<div class="text-[12px] text-amber-800/80">Pelanggan ini punya pesanan lain yang masih menunggu pembayaran tanpa bukti. Hapus yang tidak terpakai.</div>'
+            .'<div class="mt-2 flex flex-col gap-2">'.$itemsHtml.'</div>'
+            .'</div>';
+    }
+
     private function renderActions(Order $order): string
     {
         $orderId = e($order->order_id);
@@ -615,6 +745,10 @@ class AdminController extends Controller
                 .'<i class="ri-shield-check-line"></i><span>Verifikasi Pembayaran</span>'
                 .'</button>';
         }
+
+        $items .= '<button type="button" role="menuitem" data-action="delete" data-order="'.$orderId.'" class="dropdown-item dropdown-item--danger">'
+            .'<i class="ri-delete-bin-line"></i><span>Hapus Pesanan</span>'
+            .'</button>';
 
         return '<div class="orders-dropdown" data-dropdown>'
             .'<button type="button" class="dropdown-trigger" data-dropdown-toggle aria-haspopup="true" aria-expanded="false">'
