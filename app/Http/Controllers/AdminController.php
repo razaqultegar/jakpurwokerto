@@ -59,7 +59,7 @@ class AdminController extends Controller
             'verified' => Order::where('status', 'verified')->count(),
             'completed' => Order::where('status', 'completed')->count(),
             'cancelled' => Order::where('status', 'cancelled')->count(),
-            'revenue' => Order::whereIn('status', ['verified', 'completed'])->sum('amount_due'),
+            'revenue' => Order::where('status', 'verified')->sum('amount_due'),
         ];
     }
 
