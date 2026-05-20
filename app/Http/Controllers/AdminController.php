@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -121,13 +122,13 @@ class AdminController extends Controller
         $dateTo = $request->input('filter_date_to');
         if ($dateFrom) {
             try {
-                $query->where('created_at', '>=', \Carbon\Carbon::parse($dateFrom)->startOfDay());
+                $query->where('created_at', '>=', Carbon::parse($dateFrom)->startOfDay());
             } catch (\Throwable $e) {
             }
         }
         if ($dateTo) {
             try {
-                $query->where('created_at', '<=', \Carbon\Carbon::parse($dateTo)->endOfDay());
+                $query->where('created_at', '<=', Carbon::parse($dateTo)->endOfDay());
             } catch (\Throwable $e) {
             }
         }
