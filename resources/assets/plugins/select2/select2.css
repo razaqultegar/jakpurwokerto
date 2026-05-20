@@ -1,0 +1,74 @@
+@import 'select2/dist/css/select2.css';
+
+/* ===== Branded Select2 ===== */
+.select2-container .select2-selection--single {
+    height: 40px !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 0.625rem !important;
+    background: #fff !important;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 38px !important;
+    padding-left: 0.875rem !important;
+    padding-right: 2rem !important;
+    font-size: 0.8125rem !important;
+    font-weight: 600 !important;
+    color: #0f172a !important;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__placeholder {
+    color: #94a3b8 !important;
+    font-weight: 500 !important;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 38px !important;
+    right: 0.5rem !important;
+}
+
+.select2-container--default.select2-container--open .select2-selection--single,
+.select2-container--default.select2-container--focus .select2-selection--single {
+    border-color: #d84315 !important;
+    box-shadow: 0 0 0 3px rgba(216, 67, 21, 0.12) !important;
+    outline: none !important;
+}
+
+.select2-dropdown {
+    border: 1px solid #e5e7eb !important;
+    border-radius: 0.75rem !important;
+    overflow: hidden;
+    box-shadow: 0 10px 25px -8px rgba(15, 23, 42, 0.18) !important;
+}
+
+.select2-container--default .select2-results__option {
+    padding: 0.5rem 0.875rem !important;
+    font-size: 0.8125rem !important;
+    font-weight: 500 !important;
+    color: #1f2937;
+}
+
+.select2-container--default .select2-results__option--highlighted.select2-results__option--selectable {
+    background-color: #fdece4 !important;
+    color: #d84315 !important;
+}
+
+.select2-container--default .select2-results__option--selected {
+    background-color: #fff7f2 !important;
+    color: #d84315 !important;
+    font-weight: 700 !important;
+}
+
+.select2-search--dropdown .select2-search__field {
+    border-radius: 0.5rem !important;
+    border: 1px solid #e5e7eb !important;
+    padding: 0.5rem 0.75rem !important;
+    font-size: 0.8125rem !important;
+}
+
+.select2-search--dropdown .select2-search__field:focus {
+    border-color: #d84315 !important;
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(216, 67, 21, 0.12) !important;
+}
