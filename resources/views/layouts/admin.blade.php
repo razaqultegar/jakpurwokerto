@@ -4,6 +4,7 @@
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="csrf-token" content="{{ csrf_token() }}">
         <title>{{ $title }} | {{ config('app.name') }}</title>
         <link rel="icon" type="image/png" href="{{ asset('build/medias/logo.png') }}">
         <link rel="apple-touch-icon" href="{{ asset('build/medias/logo.png') }}">
@@ -11,6 +12,7 @@
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300..900;1,300..900&display=swap">
         @vite('resources/assets/css/app.css')
+        @stack('styles')
     </head>
     <body class="min-h-screen bg-gray-100 text-gray-900">
         @auth
@@ -52,7 +54,7 @@
         </div>
         @else
         <main class="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-4 py-12">
-            <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,theme(colors.primary-soft)_0%,transparent_45%),radial-gradient(circle_at_bottom_right,theme(colors.primary-softer)_0%,transparent_50%)]"></div>
+            <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,var(--primary-soft)_0%,transparent_45%),radial-gradient(circle_at_bottom_right,var(--primary-softer)_0%,transparent_50%)]"></div>
             <div class="relative z-10 flex w-full justify-center">
                 @yield('content')
             </div>
