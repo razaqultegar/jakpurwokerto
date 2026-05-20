@@ -3,7 +3,12 @@
 @section('heading', 'Dashboard')
 
 @push('styles')
-@vite(['resources/assets/plugins/datatables/datatables.css', 'resources/assets/plugins/sweetalert2/sweetalert2.css'])
+@vite([
+    'resources/assets/plugins/datatables/datatables.css',
+    'resources/assets/plugins/sweetalert2/sweetalert2.css',
+    'resources/assets/plugins/select2/select2.css',
+    'resources/assets/plugins/flatpickr/flatpickr.css',
+])
 @endpush
 
 @section('content')
@@ -44,6 +49,41 @@
             data-status-url="{{ url('admin/orders/__ORDER__/status') }}"
             data-shipping-url="{{ url('admin/orders/__ORDER__/shipping') }}"
             data-dp-proof-url="{{ url('admin/orders/__ORDER__/dp-proof') }}">
+            <div class="orders-filters grid grid-cols-1 gap-3 border-b border-mercury bg-skull/40 p-4 sm:grid-cols-2 lg:grid-cols-4">
+                <div>
+                    <label class="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-onyx">Tipe Pembayaran</label>
+                    <select class="orders-filter w-full" data-filter="payment_type">
+                        <option value="">Semua Tipe</option>
+                        <option value="dp">DP (50%)</option>
+                        <option value="full">Bayar Lunas</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-onyx">Status Pesanan</label>
+                    <select class="orders-filter w-full" data-filter="status">
+                        <option value="">Semua Status</option>
+                        <option value="pending">Menunggu</option>
+                        <option value="verified">Diverifikasi</option>
+                        <option value="completed">Selesai</option>
+                        <option value="cancelled">Batal</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-onyx">Rentang Tanggal</label>
+                    <div class="jpw-flatpickr-wrap">
+                        <input type="text" class="jpw-flatpickr" data-filter="date_range" placeholder="Pilih rentang tanggal…" autocomplete="off" />
+                        <button type="button" class="jpw-flatpickr-clear" data-filter-date-clear aria-label="Hapus tanggal" hidden>
+                            <i class="ri-close-line"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="flex items-end">
+                    <button type="button" data-filter-reset
+                        class="inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-lg border border-mercury bg-white px-4 text-[13px] font-semibold text-foreground transition hover:bg-skull">
+                        <i class="ri-refresh-line"></i> Reset Filter
+                    </button>
+                </div>
+            </div>
             <div class="overflow-x-auto">
                 <table id="orders-table" class="display w-full">
                     <thead>
@@ -75,5 +115,11 @@
 @endsection
 
 @push('scripts')
-@vite(['resources/assets/plugins/sweetalert2/sweetalert2.js', 'resources/assets/plugins/datatables/datatables.js', 'resources/assets/js/pages/admin-dashboard.js'])
+@vite([
+    'resources/assets/plugins/sweetalert2/sweetalert2.js',
+    'resources/assets/plugins/datatables/datatables.js',
+    'resources/assets/plugins/select2/select2.js',
+    'resources/assets/plugins/flatpickr/flatpickr.js',
+    'resources/assets/js/pages/admin-dashboard.js',
+])
 @endpush

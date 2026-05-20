@@ -15,10 +15,26 @@ document.addEventListener('DOMContentLoaded', () => {
     const headers = { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' };
     const buildUrl = (template, orderId) => template.replace('__ORDER__', encodeURIComponent(orderId));
 
+    const filters = {
+        payment_type: '',
+        status: '',
+        date_from: '',
+        date_to: '',
+    };
+
     const dt = new window.DataTable(tableEl, {
         processing: true,
         serverSide: true,
-        ajax: { url: endpoints.data, type: 'GET' },
+        ajax: {
+            url: endpoints.data,
+            type: 'GET',
+            data: (d) => {
+                d.filter_payment_type = filters.payment_type;
+                d.filter_status = filters.status;
+                d.filter_date_from = filters.date_from;
+                d.filter_date_to = filters.date_to;
+            },
+        },
         order: [[5, 'desc']],
         language: {
             searchPlaceholder: 'Cari order, nama, email, telepon…',
@@ -32,6 +48,89 @@ document.addEventListener('DOMContentLoaded', () => {
             { data: 'created_at' },
             { data: 'actions', orderable: false, className: 'text-right whitespace-nowrap' },
         ],
+    });
+
+    const $ = window.jQuery;
+    const filterRoot = root;
+
+    const paymentSelect = filterRoot?.querySelector('[data-filter="payment_type"]');
+    const statusSelect = filterRoot?.querySelector('[data-filter="status"]');
+    const dateInput = filterRoot?.querySelector('[data-filter="date_range"]');
+    const resetBtn = filterRoot?.querySelector('[data-filter-reset]');
+
+    if ($ && typeof $.fn?.select2 === 'function') {
+        [paymentSelect, statusSelect].forEach((el) => {
+            if (!el) return;
+            $(el).select2({
+                minimumResultsForSearch: Infinity,
+                width: '100%',
+                dropdownParent: $(filterRoot),
+            });
+        });
+    }
+
+    [paymentSelect, statusSelect].forEach((el) => {
+        if (!el) return;
+        el.addEventListener('change', () => {
+            filters[el.dataset.filter] = el.value || '';
+            dt.ajax.reload();
+        });
+    });
+
+    let datePicker = null;
+    const dateClearBtn = filterRoot?.querySelector('[data-filter-date-clear]');
+    const toggleDateClear = (visible) => {
+        if (!dateClearBtn) return;
+        if (visible) dateClearBtn.removeAttribute('hidden');
+        else dateClearBtn.setAttribute('hidden', '');
+    };
+
+    if (dateInput && typeof window.flatpickr === 'function') {
+        datePicker = window.flatpickr(dateInput, {
+            mode: 'range',
+            dateFormat: 'Y-m-d',
+            altInput: true,
+            altFormat: 'd M Y',
+            altInputClass: 'jpw-flatpickr',
+            allowInput: false,
+            onChange: (selectedDates) => {
+                if (selectedDates.length === 2) {
+                    const fmt = (d) => d.toISOString().slice(0, 10);
+                    filters.date_from = fmt(selectedDates[0]);
+                    filters.date_to = fmt(selectedDates[1]);
+                    toggleDateClear(true);
+                    dt.ajax.reload();
+                } else if (selectedDates.length === 0) {
+                    filters.date_from = '';
+                    filters.date_to = '';
+                    toggleDateClear(false);
+                    dt.ajax.reload();
+                }
+            },
+        });
+    }
+
+    dateClearBtn?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        datePicker?.clear();
+    });
+
+    resetBtn?.addEventListener('click', () => {
+        filters.payment_type = '';
+        filters.status = '';
+        filters.date_from = '';
+        filters.date_to = '';
+        if (paymentSelect) {
+            paymentSelect.value = '';
+            if ($ && $.fn?.select2) $(paymentSelect).trigger('change.select2');
+        }
+        if (statusSelect) {
+            statusSelect.value = '';
+            if ($ && $.fn?.select2) $(statusSelect).trigger('change.select2');
+        }
+        datePicker?.clear();
+        toggleDateClear(false);
+        dt.ajax.reload();
     });
 
     dt.on('processing.dt', (e, settings, processing) => {

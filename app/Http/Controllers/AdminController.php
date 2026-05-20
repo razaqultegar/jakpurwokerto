@@ -50,6 +50,31 @@ class AdminController extends Controller
         $base = Order::query();
         $total = (clone $base)->count();
 
+        $paymentType = $request->input('filter_payment_type');
+        if (in_array($paymentType, ['dp', 'full'], true)) {
+            $base->where('payment_type', $paymentType);
+        }
+
+        $statusFilter = $request->input('filter_status');
+        if (in_array($statusFilter, ['pending', 'verified', 'completed', 'cancelled'], true)) {
+            $base->where('status', $statusFilter);
+        }
+
+        $dateFrom = $request->input('filter_date_from');
+        $dateTo = $request->input('filter_date_to');
+        if ($dateFrom) {
+            try {
+                $base->where('created_at', '>=', \Carbon\Carbon::parse($dateFrom)->startOfDay());
+            } catch (\Throwable $e) {
+            }
+        }
+        if ($dateTo) {
+            try {
+                $base->where('created_at', '<=', \Carbon\Carbon::parse($dateTo)->endOfDay());
+            } catch (\Throwable $e) {
+            }
+        }
+
         if ($search !== '') {
             $statusAliases = [
                 'menunggu' => 'pending',
