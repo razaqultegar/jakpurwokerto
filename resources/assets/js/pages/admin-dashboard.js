@@ -1,3 +1,6 @@
+import { createSwal, createToast } from '../utils/swal-factory.js';
+import { initSelect2, resetSelect2 } from '../utils/select2-init.js';
+
 document.addEventListener('DOMContentLoaded', () => {
     const tableEl = document.getElementById('orders-table');
     if (!tableEl || typeof window.DataTable === 'undefined') return;
@@ -51,7 +54,6 @@ document.addEventListener('DOMContentLoaded', () => {
         ],
     });
 
-    const $ = window.jQuery;
     const filterRoot = root;
 
     const paymentSelect = filterRoot?.querySelector('[data-filter="payment_type"]');
@@ -59,16 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const dateInput = filterRoot?.querySelector('[data-filter="date_range"]');
     const resetBtn = filterRoot?.querySelector('[data-filter-reset]');
 
-    if ($ && typeof $.fn?.select2 === 'function') {
-        [paymentSelect, statusSelect].forEach((el) => {
-            if (!el) return;
-            $(el).select2({
-                minimumResultsForSearch: Infinity,
-                width: '100%',
-                dropdownParent: $(filterRoot),
-            });
-        });
-    }
+    initSelect2([paymentSelect, statusSelect], { dropdownParent: filterRoot });
 
     [paymentSelect, statusSelect].forEach((el) => {
         if (!el) return;
@@ -121,14 +114,8 @@ document.addEventListener('DOMContentLoaded', () => {
         filters.status = '';
         filters.date_from = '';
         filters.date_to = '';
-        if (paymentSelect) {
-            paymentSelect.value = '';
-            if ($ && $.fn?.select2) $(paymentSelect).trigger('change.select2');
-        }
-        if (statusSelect) {
-            statusSelect.value = '';
-            if ($ && $.fn?.select2) $(statusSelect).trigger('change.select2');
-        }
+        resetSelect2(paymentSelect);
+        resetSelect2(statusSelect);
         datePicker?.clear();
         toggleDateClear(false);
         dt.ajax.reload();
@@ -151,25 +138,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (wrap) wrap.classList.toggle('is-loading', processing);
     });
 
-    const Swal = window.Swal?.mixin({
-        buttonsStyling: true,
-        customClass: {
-            popup: 'jpw-swal',
-            container: 'jpw-swal-backdrop',
-        },
-    });
-
-    const toast = window.Swal?.mixin({
-        toast: true,
-        position: 'top-end',
-        timer: 3500,
-        showConfirmButton: false,
-        timerProgressBar: true,
-        customClass: {
-            popup: 'jpw-toast',
-            container: 'jpw-toast-container',
-        },
-    });
+    const Swal = createSwal();
+    const toast = createToast();
 
     const notify = (icon, title, text) => toast?.fire({ icon, title, text });
 
