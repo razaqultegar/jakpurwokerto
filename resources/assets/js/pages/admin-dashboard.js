@@ -1,3 +1,6 @@
+import { createSwal, createToast } from '../utils/swal-factory.js';
+import { initSelect2, resetSelect2 } from '../utils/select2-init.js';
+
 document.addEventListener('DOMContentLoaded', () => {
     const tableEl = document.getElementById('orders-table');
     if (!tableEl || typeof window.DataTable === 'undefined') return;
@@ -6,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
     const endpoints = {
         data: root?.dataset.dataUrl,
+        export: root?.dataset.exportUrl,
         detail: root?.dataset.detailUrl,
         status: root?.dataset.statusUrl,
         shipping: root?.dataset.shippingUrl,
@@ -15,10 +19,26 @@ document.addEventListener('DOMContentLoaded', () => {
     const headers = { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' };
     const buildUrl = (template, orderId) => template.replace('__ORDER__', encodeURIComponent(orderId));
 
+    const filters = {
+        payment_type: '',
+        status: '',
+        date_from: '',
+        date_to: '',
+    };
+
     const dt = new window.DataTable(tableEl, {
         processing: true,
         serverSide: true,
-        ajax: { url: endpoints.data, type: 'GET' },
+        ajax: {
+            url: endpoints.data,
+            type: 'GET',
+            data: (d) => {
+                d.filter_payment_type = filters.payment_type;
+                d.filter_status = filters.status;
+                d.filter_date_from = filters.date_from;
+                d.filter_date_to = filters.date_to;
+            },
+        },
         order: [[5, 'desc']],
         language: {
             searchPlaceholder: 'Cari order, nama, email, telepon…',
@@ -34,20 +54,94 @@ document.addEventListener('DOMContentLoaded', () => {
         ],
     });
 
+    const filterRoot = root;
+
+    const paymentSelect = filterRoot?.querySelector('[data-filter="payment_type"]');
+    const statusSelect = filterRoot?.querySelector('[data-filter="status"]');
+    const dateInput = filterRoot?.querySelector('[data-filter="date_range"]');
+    const resetBtn = filterRoot?.querySelector('[data-filter-reset]');
+
+    initSelect2([paymentSelect, statusSelect], { dropdownParent: filterRoot });
+
+    [paymentSelect, statusSelect].forEach((el) => {
+        if (!el) return;
+        el.addEventListener('change', () => {
+            filters[el.dataset.filter] = el.value || '';
+            dt.ajax.reload();
+        });
+    });
+
+    let datePicker = null;
+    const dateClearBtn = filterRoot?.querySelector('[data-filter-date-clear]');
+    const toggleDateClear = (visible) => {
+        if (!dateClearBtn) return;
+        if (visible) dateClearBtn.removeAttribute('hidden');
+        else dateClearBtn.setAttribute('hidden', '');
+    };
+
+    if (dateInput && typeof window.flatpickr === 'function') {
+        datePicker = window.flatpickr(dateInput, {
+            mode: 'range',
+            dateFormat: 'Y-m-d',
+            altInput: true,
+            altFormat: 'd M Y',
+            altInputClass: 'jpw-flatpickr',
+            allowInput: false,
+            onChange: (selectedDates) => {
+                if (selectedDates.length === 2) {
+                    const fmt = (d) => d.toISOString().slice(0, 10);
+                    filters.date_from = fmt(selectedDates[0]);
+                    filters.date_to = fmt(selectedDates[1]);
+                    toggleDateClear(true);
+                    dt.ajax.reload();
+                } else if (selectedDates.length === 0) {
+                    filters.date_from = '';
+                    filters.date_to = '';
+                    toggleDateClear(false);
+                    dt.ajax.reload();
+                }
+            },
+        });
+    }
+
+    dateClearBtn?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        datePicker?.clear();
+    });
+
+    resetBtn?.addEventListener('click', () => {
+        filters.payment_type = '';
+        filters.status = '';
+        filters.date_from = '';
+        filters.date_to = '';
+        resetSelect2(paymentSelect);
+        resetSelect2(statusSelect);
+        datePicker?.clear();
+        toggleDateClear(false);
+        dt.ajax.reload();
+    });
+
+    const exportBtn = filterRoot?.querySelector('[data-export-orders]');
+    exportBtn?.addEventListener('click', () => {
+        if (!endpoints.export) return;
+        const params = new URLSearchParams();
+        if (filters.payment_type) params.set('filter_payment_type', filters.payment_type);
+        if (filters.status) params.set('filter_status', filters.status);
+        if (filters.date_from) params.set('filter_date_from', filters.date_from);
+        if (filters.date_to) params.set('filter_date_to', filters.date_to);
+        const qs = params.toString();
+        window.location.href = endpoints.export + (qs ? '?' + qs : '');
+    });
+
     dt.on('processing.dt', (e, settings, processing) => {
         const wrap = tableEl.closest('.dt-table-wrap');
         if (wrap) wrap.classList.toggle('is-loading', processing);
     });
 
-    const toast = window.Swal?.mixin({
-        toast: true,
-        position: 'top-end',
-        timer: 2500,
-        showConfirmButton: false,
-        timerProgressBar: true,
-    });
+    const Swal = createSwal();
+    const toast = createToast();
 
-    const notify = (icon, title) => toast?.fire({ icon, title });
+    const notify = (icon, title, text) => toast?.fire({ icon, title, text });
 
     const postForm = async (url, formData) => {
         const res = await fetch(url, { method: 'POST', headers, body: formData });
@@ -61,6 +155,24 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const reload = () => dt.ajax.reload(null, false);
+
+    const statsRoot = document.querySelector('[data-stats-root]');
+    const formatNumber = (n) => new Intl.NumberFormat('id-ID').format(Number(n) || 0);
+    const formatRupiah = (n) => 'Rp' + formatNumber(n);
+    const applyStats = (stats) => {
+        if (!stats || !statsRoot) return;
+        statsRoot.querySelectorAll('[data-stat]').forEach((el) => {
+            const key = el.dataset.stat;
+            if (!(key in stats)) return;
+            const next = key === 'revenue' ? formatRupiah(stats[key]) : formatNumber(stats[key]);
+            if (el.textContent !== next) {
+                el.textContent = next;
+                el.classList.remove('stat-flash');
+                void el.offsetWidth;
+                el.classList.add('stat-flash');
+            }
+        });
+    };
 
     const detailModal = document.getElementById('order-detail-modal');
     const detailModalContent = detailModal?.querySelector('[data-modal-content]');
@@ -102,7 +214,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!payload?.ok) throw new Error(payload?.message || 'Gagal memuat detail.');
             openDetailModal(payload.html);
         } catch (e) {
-            window.Swal.fire({ icon: 'error', title: 'Gagal', text: e.message });
+            Swal.fire({ icon: 'error', title: 'Gagal', text: e.message });
         }
     };
 
@@ -118,7 +230,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const cfg = confirmMap[status];
         if (!cfg) return;
 
-        const result = await window.Swal.fire({
+        const result = await Swal.fire({
             title: cfg.title, text: cfg.text, icon: cfg.icon,
             showCancelButton: true, confirmButtonText: cfg.confirmText,
             cancelButtonText: 'Batal', confirmButtonColor: '#d84315',
@@ -128,18 +240,19 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const fd = new FormData();
             fd.append('status', status);
-            await postForm(buildUrl(endpoints.status, orderId), fd);
-            notify('success', 'Status diperbarui');
+            const payload = await postForm(buildUrl(endpoints.status, orderId), fd);
+            applyStats(payload.stats);
+            notify('success', 'Status diperbarui', 'Selamat, status pesanan berhasil diperbarui.');
             reload();
         } catch (e) {
-            window.Swal.fire({ icon: 'error', title: 'Gagal', text: e.message });
+            Swal.fire({ icon: 'error', title: 'Gagal', text: e.message });
         }
     };
 
     const handleShipping = async (btn) => {
         const orderId = btn.dataset.order;
         const current = btn.dataset.tracking || '';
-        const { value, isConfirmed } = await window.Swal.fire({
+        const { value, isConfirmed } = await Swal.fire({
             title: 'Nomor Resi Pengiriman',
             input: 'text', inputValue: current,
             inputPlaceholder: 'Contoh: JX1234567890',
@@ -153,16 +266,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const fd = new FormData();
             fd.append('tracking', value.trim());
             await postForm(buildUrl(endpoints.shipping, orderId), fd);
-            notify('success', 'Resi tersimpan');
+            notify('success', 'Resi tersimpan', 'Nomor resi pengiriman berhasil disimpan.');
             reload();
         } catch (e) {
-            window.Swal.fire({ icon: 'error', title: 'Gagal', text: e.message });
+            Swal.fire({ icon: 'error', title: 'Gagal', text: e.message });
         }
     };
 
     const handleDpProof = async (btn) => {
         const orderId = btn.dataset.order;
-        const { value: file, isConfirmed } = await window.Swal.fire({
+        const { value: file, isConfirmed } = await Swal.fire({
             title: 'Upload Bukti Pelunasan DP',
             input: 'file',
             inputAttributes: { accept: 'image/*,application/pdf' },
@@ -175,10 +288,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const fd = new FormData();
             fd.append('proof', file);
             await postForm(buildUrl(endpoints.dpProof, orderId), fd);
-            notify('success', 'Bukti pelunasan diunggah');
+            notify('success', 'Bukti pelunasan diunggah', 'Bukti pelunasan DP berhasil diunggah.');
             reload();
         } catch (e) {
-            window.Swal.fire({ icon: 'error', title: 'Gagal', text: e.message });
+            Swal.fire({ icon: 'error', title: 'Gagal', text: e.message });
         }
     };
 

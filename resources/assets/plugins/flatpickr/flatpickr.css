@@ -1,0 +1,133 @@
+@import 'flatpickr/dist/flatpickr.css';
+
+/* ===== Branded Flatpickr ===== */
+.jpw-flatpickr-wrap {
+    position: relative;
+    width: 100%;
+}
+
+input.jpw-flatpickr,
+input.flatpickr-input.jpw-flatpickr {
+    height: 40px;
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.625rem;
+    padding: 0 2.25rem 0 2.5rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #0f172a;
+    background-color: #fff;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23d84315' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3crect x='3' y='4' width='18' height='18' rx='2' ry='2'/%3e%3cline x1='16' y1='2' x2='16' y2='6'/%3e%3cline x1='8' y1='2' x2='8' y2='6'/%3e%3cline x1='3' y1='10' x2='21' y2='10'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: 0.875rem center;
+    background-size: 1.05rem 1.05rem;
+    cursor: pointer;
+    transition: border-color 0.15s, box-shadow 0.15s, background-color 0.15s;
+}
+
+input.jpw-flatpickr:hover {
+    border-color: #d4d4d8;
+}
+
+input.jpw-flatpickr::placeholder {
+    color: #94a3b8;
+    font-weight: 500;
+}
+
+input.jpw-flatpickr:focus,
+input.jpw-flatpickr.active,
+input.jpw-flatpickr.flatpickr-mobile:focus {
+    border-color: #d84315;
+    box-shadow: 0 0 0 3px rgba(216, 67, 21, 0.12);
+    outline: none;
+}
+
+/* The original input becomes type=hidden when altInput is true — keep it hidden,
+   but never hide the visible alt-input that carries the .jpw-flatpickr class. */
+.jpw-flatpickr-wrap > input.flatpickr-input[type="hidden"] {
+    display: none !important;
+}
+
+.jpw-flatpickr-clear {
+    position: absolute;
+    top: 50%;
+    right: 0.5rem;
+    transform: translateY(-50%);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    border: 0;
+    border-radius: 9999px;
+    background: #f1f5f9;
+    color: #64748b;
+    cursor: pointer;
+    font-size: 0.875rem;
+    line-height: 1;
+    transition: background-color 0.15s, color 0.15s;
+}
+
+.jpw-flatpickr-clear:hover {
+    background: #fdece4;
+    color: #d84315;
+}
+
+.jpw-flatpickr-clear[hidden] {
+    display: none;
+}
+
+.flatpickr-calendar {
+    border-radius: 0.875rem !important;
+    box-shadow: 0 12px 28px -10px rgba(15, 23, 42, 0.25) !important;
+    border: 1px solid #e5e7eb;
+    font-family: inherit;
+}
+
+.flatpickr-day.selected,
+.flatpickr-day.startRange,
+.flatpickr-day.endRange,
+.flatpickr-day.selected.inRange,
+.flatpickr-day.startRange.inRange,
+.flatpickr-day.endRange.inRange,
+.flatpickr-day.selected:focus,
+.flatpickr-day.startRange:focus,
+.flatpickr-day.endRange:focus,
+.flatpickr-day.selected:hover,
+.flatpickr-day.startRange:hover,
+.flatpickr-day.endRange:hover {
+    background: #d84315 !important;
+    border-color: #d84315 !important;
+    color: #fff !important;
+}
+
+.flatpickr-day.inRange {
+    background: #fdece4 !important;
+    border-color: #fdece4 !important;
+    color: #d84315 !important;
+    box-shadow: -5px 0 0 #fdece4, 5px 0 0 #fdece4;
+}
+
+.flatpickr-day.today {
+    border-color: #d84315 !important;
+}
+
+.flatpickr-day.today:hover {
+    background: #fdece4 !important;
+    color: #d84315 !important;
+}
+
+.flatpickr-months .flatpickr-month,
+.flatpickr-current-month .flatpickr-monthDropdown-months,
+.flatpickr-current-month input.cur-year,
+.flatpickr-weekdays,
+span.flatpickr-weekday {
+    color: #0f172a !important;
+    fill: #0f172a !important;
+}
+
+.flatpickr-months .flatpickr-prev-month:hover svg,
+.flatpickr-months .flatpickr-next-month:hover svg {
+    fill: #d84315 !important;
+}

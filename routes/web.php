@@ -16,6 +16,7 @@ Route::get('/terimakasih/{orderId}', [CheckoutController::class, 'success'])->na
 Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
     Route::get('/orders/data', [AdminController::class, 'ordersData'])->name('orders.data');
+    Route::get('/orders/export', [AdminController::class, 'exportOrders'])->name('orders.export');
     Route::get('/orders/{order}', [AdminController::class, 'showOrder'])->name('orders.show');
     Route::post('/orders/{order}/status', [AdminController::class, 'updateStatus'])->name('orders.status');
     Route::post('/orders/{order}/shipping', [AdminController::class, 'updateShipping'])->name('orders.shipping');

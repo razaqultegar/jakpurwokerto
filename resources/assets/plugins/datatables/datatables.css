@@ -328,7 +328,7 @@ div.dt-container .dt-paging .ellipsis {
 }
 
 div.dt-container .dt-processing {
-    @apply z-30 inline-flex items-center justify-center gap-2.5 rounded-full border border-mercury bg-white text-xs font-semibold text-foreground shadow-lg;
+    @apply z-30 inline-flex items-center justify-center rounded-full border border-mercury bg-white text-xs font-semibold text-foreground shadow-lg;
     position: absolute !important;
     top: 50% !important;
     left: 50% !important;
@@ -336,7 +336,8 @@ div.dt-container .dt-processing {
     width: auto !important;
     height: auto !important;
     margin: 0 !important;
-    padding: 0.5rem 1rem 0.5rem 0.75rem !important;
+    padding: 0.5rem 1.125rem 0.5rem 0.875rem !important;
+    gap: 0.625rem !important;
     border-radius: 9999px !important;
     line-height: 1 !important;
     white-space: nowrap;
@@ -346,6 +347,15 @@ div.dt-container .dt-processing > span {
     display: inline-flex;
     align-items: center;
     line-height: 1;
+}
+
+div.dt-container .dt-processing > span + span {
+    margin-left: 0.625rem;
+    letter-spacing: 0.01em;
+}
+
+div.dt-container .dt-processing .dt-spinner {
+    margin-right: 0.125rem;
 }
 
 /* DataTables 2.x always appends an extra <div><div/>×4</div> after the
@@ -425,6 +435,17 @@ div.dt-container .dt-processing > div:last-child {
 .orders-dropdown .dropdown-item--danger > i,
 .orders-dropdown .dropdown-item--danger:hover > i {
     @apply text-red-600;
+}
+
+/* ===== Stat card flash on update ===== */
+.stat-flash {
+    animation: statFlash 900ms ease-out;
+}
+
+@keyframes statFlash {
+    0%   { transform: scale(1); color: inherit; }
+    20%  { transform: scale(1.08); }
+    100% { transform: scale(1); }
 }
 
 /* ===== Order detail modal ===== */
