@@ -12,8 +12,6 @@ document.addEventListener('DOMContentLoaded', () => {
         export: root?.dataset.exportUrl,
         detail: root?.dataset.detailUrl,
         status: root?.dataset.statusUrl,
-        shipping: root?.dataset.shippingUrl,
-        dpProof: root?.dataset.dpProofUrl,
     };
 
     const headers = { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' };
@@ -45,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         columns: [
             { data: 'order_id' },
-            { data: 'customer', orderable: false },
+            { data: 'customer' },
             { data: 'payment' },
             { data: 'amount', className: 'text-right' },
             { data: 'status' },
@@ -139,40 +137,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     const Swal = createSwal();
-    const toast = createToast();
-
-    const notify = (icon, title, text) => toast?.fire({ icon, title, text });
-
-    const postForm = async (url, formData) => {
-        const res = await fetch(url, { method: 'POST', headers, body: formData });
-        let payload = null;
-        try { payload = await res.json(); } catch (_) {}
-        if (!res.ok || !payload?.ok) {
-            const msg = payload?.message || (payload?.errors ? Object.values(payload.errors).flat().join('\n') : 'Terjadi kesalahan.');
-            throw new Error(msg);
-        }
-        return payload;
-    };
-
-    const reload = () => dt.ajax.reload(null, false);
-
-    const statsRoot = document.querySelector('[data-stats-root]');
-    const formatNumber = (n) => new Intl.NumberFormat('id-ID').format(Number(n) || 0);
-    const formatRupiah = (n) => 'Rp' + formatNumber(n);
-    const applyStats = (stats) => {
-        if (!stats || !statsRoot) return;
-        statsRoot.querySelectorAll('[data-stat]').forEach((el) => {
-            const key = el.dataset.stat;
-            if (!(key in stats)) return;
-            const next = key === 'revenue' ? formatRupiah(stats[key]) : formatNumber(stats[key]);
-            if (el.textContent !== next) {
-                el.textContent = next;
-                el.classList.remove('stat-flash');
-                void el.offsetWidth;
-                el.classList.add('stat-flash');
-            }
-        });
-    };
 
     const detailModal = document.getElementById('order-detail-modal');
     const detailModalContent = detailModal?.querySelector('[data-modal-content]');
@@ -218,78 +182,63 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    const toast = createToast();
+
+    const statsRoot = document.querySelector('[data-stats-root]');
+    const formatNumber = (n) => new Intl.NumberFormat('id-ID').format(Number(n) || 0);
+    const formatRupiah = (n) => 'Rp' + formatNumber(n);
+    const applyStats = (stats) => {
+        if (!stats || !statsRoot) return;
+        statsRoot.querySelectorAll('[data-stat]').forEach((el) => {
+            const key = el.dataset.stat;
+            if (!(key in stats)) return;
+            const next = key === 'revenue' ? formatRupiah(stats[key]) : formatNumber(stats[key]);
+            if (el.textContent !== next) {
+                el.textContent = next;
+                el.classList.remove('stat-flash');
+                void el.offsetWidth;
+                el.classList.add('stat-flash');
+            }
+        });
+    };
+
     const handleStatus = async (btn) => {
         const orderId = btn.dataset.order;
         const status = btn.dataset.status;
         const confirmMap = {
-            verified: { title: 'Verifikasi pesanan?', text: 'Pesanan akan ditandai sudah diverifikasi dan terhitung ke stok.', icon: 'question', confirmText: 'Ya, verifikasi' },
-            completed: { title: 'Tandai selesai?', text: 'Pesanan ditandai selesai (sudah diterima/diambil pelanggan).', icon: 'question', confirmText: 'Ya, selesai' },
-            cancelled: { title: 'Batalkan pesanan?', text: 'Pesanan akan dibatalkan dan tidak terhitung ke stok.', icon: 'warning', confirmText: 'Ya, batalkan' },
-            pending: { title: 'Buka kembali pesanan?', text: 'Pesanan akan dikembalikan ke status menunggu.', icon: 'question', confirmText: 'Ya, buka' },
+            verified: {
+                title: 'Verifikasi pembayaran?',
+                text: 'Pesanan akan ditandai sudah diverifikasi dan terhitung ke stok.',
+                icon: 'question',
+                confirmText: 'Ya, verifikasi',
+            },
         };
         const cfg = confirmMap[status];
         if (!cfg) return;
 
         const result = await Swal.fire({
-            title: cfg.title, text: cfg.text, icon: cfg.icon,
-            showCancelButton: true, confirmButtonText: cfg.confirmText,
-            cancelButtonText: 'Batal', confirmButtonColor: '#d84315',
+            title: cfg.title,
+            text: cfg.text,
+            icon: cfg.icon,
+            showCancelButton: true,
+            confirmButtonText: cfg.confirmText,
+            cancelButtonText: 'Batal',
+            confirmButtonColor: '#d84315',
         });
         if (!result.isConfirmed) return;
 
         try {
             const fd = new FormData();
             fd.append('status', status);
-            const payload = await postForm(buildUrl(endpoints.status, orderId), fd);
+            const res = await fetch(buildUrl(endpoints.status, orderId), { method: 'POST', headers, body: fd });
+            let payload = null;
+            try { payload = await res.json(); } catch (_) {}
+            if (!res.ok || !payload?.ok) {
+                throw new Error(payload?.message || 'Terjadi kesalahan.');
+            }
             applyStats(payload.stats);
-            notify('success', 'Status diperbarui', 'Selamat, status pesanan berhasil diperbarui.');
-            reload();
-        } catch (e) {
-            Swal.fire({ icon: 'error', title: 'Gagal', text: e.message });
-        }
-    };
-
-    const handleShipping = async (btn) => {
-        const orderId = btn.dataset.order;
-        const current = btn.dataset.tracking || '';
-        const { value, isConfirmed } = await Swal.fire({
-            title: 'Nomor Resi Pengiriman',
-            input: 'text', inputValue: current,
-            inputPlaceholder: 'Contoh: JX1234567890',
-            inputAttributes: { autocapitalize: 'characters' },
-            showCancelButton: true, confirmButtonText: 'Simpan',
-            cancelButtonText: 'Batal', confirmButtonColor: '#d84315',
-            inputValidator: (v) => !v?.trim() ? 'Nomor resi wajib diisi' : undefined,
-        });
-        if (!isConfirmed) return;
-        try {
-            const fd = new FormData();
-            fd.append('tracking', value.trim());
-            await postForm(buildUrl(endpoints.shipping, orderId), fd);
-            notify('success', 'Resi tersimpan', 'Nomor resi pengiriman berhasil disimpan.');
-            reload();
-        } catch (e) {
-            Swal.fire({ icon: 'error', title: 'Gagal', text: e.message });
-        }
-    };
-
-    const handleDpProof = async (btn) => {
-        const orderId = btn.dataset.order;
-        const { value: file, isConfirmed } = await Swal.fire({
-            title: 'Upload Bukti Pelunasan DP',
-            input: 'file',
-            inputAttributes: { accept: 'image/*,application/pdf' },
-            showCancelButton: true, confirmButtonText: 'Upload',
-            cancelButtonText: 'Batal', confirmButtonColor: '#d84315',
-            inputValidator: (v) => !v ? 'Pilih berkas terlebih dahulu' : undefined,
-        });
-        if (!isConfirmed) return;
-        try {
-            const fd = new FormData();
-            fd.append('proof', file);
-            await postForm(buildUrl(endpoints.dpProof, orderId), fd);
-            notify('success', 'Bukti pelunasan diunggah', 'Bukti pelunasan DP berhasil diunggah.');
-            reload();
+            toast?.fire({ icon: 'success', title: 'Status diperbarui', text: 'Pembayaran berhasil diverifikasi.' });
+            dt.ajax.reload(null, false);
         } catch (e) {
             Swal.fire({ icon: 'error', title: 'Gagal', text: e.message });
         }
@@ -309,13 +258,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const menu = dropdown.querySelector('.dropdown-menu');
         if (!trigger || !menu) return;
         const rect = trigger.getBoundingClientRect();
-        const menuWidth = 224; // w-56
+        const menuWidth = 224;
         const gap = 6;
         let left = rect.right - menuWidth;
         if (left < 8) left = 8;
         if (left + menuWidth > window.innerWidth - 8) left = window.innerWidth - menuWidth - 8;
-        const top = rect.bottom + gap;
-        menu.style.top = `${top}px`;
+        menu.style.top = `${rect.bottom + gap}px`;
         menu.style.left = `${left}px`;
     };
 
@@ -337,18 +285,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const btn = e.target.closest('button[data-action]');
         if (!btn) return;
         closeDropdowns();
-        const map = { detail: handleDetail, status: handleStatus, shipping: handleShipping, 'dp-proof': handleDpProof };
+        const map = { detail: handleDetail, status: handleStatus };
         map[btn.dataset.action]?.(btn);
     });
 
     document.addEventListener('click', (e) => {
         if (!e.target.closest('.orders-dropdown')) closeDropdowns();
     });
-
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') closeDropdowns();
     });
-
     window.addEventListener('scroll', closeDropdowns, true);
     window.addEventListener('resize', closeDropdowns);
     dt.on('draw.dt', () => closeDropdowns());

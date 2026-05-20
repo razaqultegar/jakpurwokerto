@@ -3,14 +3,29 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AdminController extends Controller
 {
     public function dashboard()
     {
-        $stats = [
+        return view('pages.admin.dashboard', [
+            'title' => 'Beranda',
+            'stats' => $this->orderStats(),
+        ]);
+    }
+
+    private function orderStats(): array
+    {
+        return [
             'total' => Order::count(),
             'pending' => Order::where('status', 'pending')->count(),
             'verified' => Order::where('status', 'verified')->count(),
@@ -18,11 +33,6 @@ class AdminController extends Controller
             'cancelled' => Order::where('status', 'cancelled')->count(),
             'revenue' => Order::whereIn('status', ['verified', 'completed'])->sum('amount_due'),
         ];
-
-        return view('pages.admin.dashboard', [
-            'title' => 'Beranda',
-            'stats' => $stats,
-        ]);
     }
 
     public function ordersData(Request $request)
@@ -44,7 +54,7 @@ class AdminController extends Controller
         $orderDir = $request->input('order.0.dir', 'desc') === 'asc' ? 'asc' : 'desc';
         $orderCol = $columns[$orderColIdx] ?? 'created_at';
 
-        $base = Order::query();
+        $base = $this->applyOrderFilters(Order::query(), $request);
         $total = (clone $base)->count();
 
         if ($search !== '') {
@@ -96,6 +106,160 @@ class AdminController extends Controller
         ]);
     }
 
+    private function applyOrderFilters($query, Request $request)
+    {
+        $paymentType = $request->input('filter_payment_type');
+        if (in_array($paymentType, ['dp', 'full'], true)) {
+            $query->where('payment_type', $paymentType);
+        }
+
+        $statusFilter = $request->input('filter_status');
+        if (in_array($statusFilter, ['pending', 'verified', 'completed', 'cancelled'], true)) {
+            $query->where('status', $statusFilter);
+        }
+
+        $dateFrom = $request->input('filter_date_from');
+        $dateTo = $request->input('filter_date_to');
+        if ($dateFrom) {
+            try {
+                $query->where('created_at', '>=', Carbon::parse($dateFrom)->startOfDay());
+            } catch (\Throwable $e) {
+            }
+        }
+        if ($dateTo) {
+            try {
+                $query->where('created_at', '<=', Carbon::parse($dateTo)->endOfDay());
+            } catch (\Throwable $e) {
+            }
+        }
+
+        return $query;
+    }
+
+    public function exportOrders(Request $request): StreamedResponse
+    {
+        $orders = $this->applyOrderFilters(Order::query(), $request)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $statusLabels = [
+            'pending' => 'Menunggu Pembayaran',
+            'verified' => 'Pembayaran Diterima',
+            'completed' => 'Selesai',
+            'cancelled' => 'Batal',
+        ];
+        $paymentTypeLabels = ['dp' => 'DP (50%)', 'full' => 'Bayar Lunas'];
+        $shippingLabels = ['kirim' => 'Dikirim', 'pickup' => 'Ambil di Tempat'];
+
+        $spreadsheet = new Spreadsheet;
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Pesanan');
+
+        $headers = [
+            'ID Pesanan',
+            'Tanggal',
+            'Nama Pelanggan',
+            'Email',
+            'Telepon',
+            'Pengiriman',
+            'Lokasi/Alamat',
+            'No. Resi',
+            'Metode Pembayaran',
+            'Tipe Pembayaran',
+            'Subtotal',
+            'Dibayar',
+            'Sisa',
+            'Status',
+            'Item',
+        ];
+
+        foreach ($headers as $i => $label) {
+            $sheet->setCellValueByColumnAndRow($i + 1, 1, $label);
+        }
+
+        $lastCol = $sheet->getHighestColumn();
+        $headerRange = 'A1:'.$lastCol.'1';
+        $sheet->getStyle($headerRange)->applyFromArray([
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '1F2937']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'D1D5DB']]],
+        ]);
+        $sheet->getRowDimension(1)->setRowHeight(22);
+
+        $row = 2;
+        foreach ($orders as $order) {
+            $itemsText = collect($order->item ?? [])->map(function ($line) {
+                $qty = (int) ($line['qty'] ?? 0);
+                $price = (int) ($line['price'] ?? 0) + (int) ($line['fee'] ?? 0);
+                $variant = trim(implode(' · ', array_filter([$line['category'] ?? '', $line['sleeve'] ?? '', $line['size'] ?? ''])));
+                $name = $line['name'] ?? '-';
+
+                return $qty.'× '.$name.($variant !== '' ? ' ('.$variant.')' : '').' @ Rp'.number_format($price, 0, ',', '.');
+            })->implode("\n");
+
+            $paymentMethod = match ($order->payment_method_type) {
+                'bank' => 'Transfer Bank · '.($order->payment_data['label'] ?? '-'),
+                'qris' => 'QRIS',
+                default => ucfirst((string) $order->payment_method_type),
+            };
+
+            $address = $order->shipping_method === 'kirim'
+                ? (string) $order->customer_address
+                : ucfirst((string) $order->pickup_location);
+
+            $subtotal = (int) $order->subtotal;
+            $paid = (int) $order->amount_due;
+            $remaining = max(0, $subtotal - $paid);
+
+            $values = [
+                $order->order_id,
+                optional($order->created_at)->format('Y-m-d H:i'),
+                $order->customer_name,
+                $order->customer_email,
+                $order->customer_phone,
+                $shippingLabels[$order->shipping_method] ?? $order->shipping_method,
+                $address,
+                $order->shipping_tracking,
+                $paymentMethod,
+                $paymentTypeLabels[$order->payment_type] ?? $order->payment_type,
+                $subtotal,
+                $paid,
+                $remaining,
+                $statusLabels[$order->status] ?? $order->status,
+                $itemsText,
+            ];
+
+            foreach ($values as $i => $value) {
+                $sheet->setCellValueByColumnAndRow($i + 1, $row, $value);
+            }
+            $row++;
+        }
+
+        $lastRow = $row - 1;
+        if ($lastRow >= 2) {
+            $sheet->getStyle('A2:'.$lastCol.$lastRow)->applyFromArray([
+                'alignment' => ['vertical' => Alignment::VERTICAL_TOP, 'wrapText' => true],
+                'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'E5E7EB']]],
+            ]);
+            $sheet->getStyle('K2:M'.$lastRow)->getNumberFormat()->setFormatCode('#,##0');
+        }
+
+        foreach (range(1, count($headers)) as $colIdx) {
+            $sheet->getColumnDimensionByColumn($colIdx)->setAutoSize(true);
+        }
+        $sheet->freezePane('A2');
+
+        $filename = 'pesanan-'.now()->format('Ymd-His').'.xlsx';
+
+        return response()->streamDownload(function () use ($spreadsheet) {
+            (new Xlsx($spreadsheet))->save('php://output');
+        }, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Cache-Control' => 'max-age=0, no-cache, no-store, must-revalidate',
+        ]);
+    }
+
     public function updateStatus(Request $request, Order $order)
     {
         $validated = $request->validate([
@@ -142,6 +306,7 @@ class AdminController extends Controller
         return response()->json([
             'ok' => true,
             'message' => 'Status pesanan diperbarui.',
+            'stats' => $this->orderStats(),
         ]);
     }
 
@@ -206,7 +371,7 @@ class AdminController extends Controller
         $timeLabel = $createdAt ? $createdAt->format('H:i').' WIB' : '';
 
         return [
-            'order_id' => '<span class="font-mono text-[13px] font-semibold text-foreground">'.e($order->order_id).'</span>',
+            'order_id' => '<button type="button" data-action="detail" data-order="'.e($order->order_id).'" class="order-id-link font-mono text-[13px] font-semibold text-primary hover:underline focus:outline-none focus-visible:underline">'.e($order->order_id).'</button>',
             'customer' => '<div class="text-[13px] font-semibold text-foreground">'.e($order->customer_name).'</div>',
             'payment' => '<div class="inline-flex items-center gap-1.5 rounded-lg bg-skull px-2.5 py-1 text-[12px] font-semibold text-foreground ring-1 ring-mercury">'
                 .'<i class="'.$payment['icon'].' text-'.$payment['color'].'"></i>'
@@ -225,8 +390,8 @@ class AdminController extends Controller
     private function statusMeta(string $status): array
     {
         return [
-            'pending' => ['label' => 'Menunggu', 'class' => 'bg-amber-100 text-amber-700', 'icon' => 'ri-time-line'],
-            'verified' => ['label' => 'Diverifikasi', 'class' => 'bg-emerald-100 text-emerald-700', 'icon' => 'ri-shield-check-line'],
+            'pending' => ['label' => 'Menunggu Pembayaran', 'class' => 'bg-amber-100 text-amber-700', 'icon' => 'ri-time-line'],
+            'verified' => ['label' => 'Pembayaran Diterima', 'class' => 'bg-emerald-100 text-emerald-700', 'icon' => 'ri-shield-check-line'],
             'completed' => ['label' => 'Selesai', 'class' => 'bg-sky-100 text-sky-700', 'icon' => 'ri-flag-line'],
             'cancelled' => ['label' => 'Batal', 'class' => 'bg-red-100 text-red-700', 'icon' => 'ri-close-circle-line'],
         ][$status] ?? ['label' => ucfirst($status), 'class' => 'bg-gray-100 text-gray-700', 'icon' => 'ri-question-line'];
@@ -269,7 +434,7 @@ class AdminController extends Controller
 
         $rawPhone = preg_replace('/\D+/', '', (string) $order->customer_phone);
         $waPhone = $rawPhone !== '' ? (str_starts_with($rawPhone, '0') ? '62'.substr($rawPhone, 1) : (str_starts_with($rawPhone, '62') ? $rawPhone : '62'.$rawPhone)) : '';
-        $phoneDisplay = $rawPhone !== '' ? '+62 '.ltrim(preg_replace('/^62/', '', $rawPhone), '0') : '-';
+        $phoneDisplay = $rawPhone !== '' ? '+62'.ltrim(preg_replace('/^62/', '', $rawPhone), '0') : '-';
 
         // Items
         $itemsHtml = '';
@@ -298,7 +463,12 @@ class AdminController extends Controller
         // Proof chips
         $proofs = [];
         if ($order->payment_proof) {
-            $proofs[] = '<a href="'.e(asset('storage/'.$order->payment_proof)).'" target="_blank" class="detail-chip detail-chip--primary"><i class="ri-image-line"></i> Bukti Pembayaran <i class="ri-external-link-line text-[10px]"></i></a>';
+            $uploadedAt = $order->payment_proof_uploaded_at;
+            $uploadedLabel = $uploadedAt
+                ? $uploadedAt->locale('id')->translatedFormat('d M Y · H:i').' WIB'
+                : null;
+            $proofs[] = '<a href="'.e(asset('storage/'.$order->payment_proof)).'" target="_blank" class="detail-chip detail-chip--primary"><i class="ri-image-line"></i> Bukti Pembayaran <i class="ri-external-link-line text-[10px]"></i></a>'
+                .($uploadedLabel ? '<span class="inline-flex items-center gap-1 text-[11px] text-onyx"><i class="ri-time-line text-[12px]"></i> '.e($uploadedLabel).'</span>' : '');
         }
         if ($order->payment_type === 'dp' && $order->dp_settlement_proof) {
             $proofs[] = '<a href="'.e(asset('storage/'.$order->dp_settlement_proof)).'" target="_blank" class="detail-chip detail-chip--success"><i class="ri-checkbox-circle-line"></i> Bukti Pelunasan DP <i class="ri-external-link-line text-[10px]"></i></a>';
@@ -326,18 +496,11 @@ class AdminController extends Controller
 
         if ($order->shipping_method === 'kirim') {
             $shipAddrHtml = $field('Alamat Pengiriman', nl2br(e($order->customer_address ?? '-')), 'ri-map-pin-2-line');
-            $trackingHtml = $field('Nomor Resi',
-                $order->shipping_tracking
-                    ? '<span class="font-mono text-foreground">'.e($order->shipping_tracking).'</span>'
-                    : '<span class="italic text-onyx">belum diinput</span>',
-                'ri-barcode-line'
-            );
             $shipNoteHtml = $field('Kurir', 'JNT Express (ongkos kirim ditanggung pembeli)', 'ri-truck-line');
         } else {
             $cityKey = $order->pickup_location ?? '';
             $cityName = $pickupLocations[$cityKey] ?? ucfirst($cityKey ?: '-');
             $shipAddrHtml = $field('Kota Pengambilan', e($cityName), 'ri-map-pin-2-line');
-            $trackingHtml = '';
             $shipNoteHtml = $field('Catatan', 'Titik temu & jadwal pengambilan akan dikonfirmasi admin melalui WhatsApp.', 'ri-information-2-line');
         }
 
@@ -373,7 +536,7 @@ class AdminController extends Controller
             .$field('Email', '<span class="break-all text-foreground">'.e($order->customer_email).'</span>', 'ri-mail-line')
             .$field('Telepon',
                 '<div class="flex flex-wrap items-center gap-2">'
-                .'<span class="font-mono text-foreground">'.e($phoneDisplay).'</span>'
+                .'<span>'.e($phoneDisplay).'</span>'
                 .($waPhone !== ''
                     ? '<a href="https://wa.me/'.e($waPhone).'" target="_blank" rel="noopener" class="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 hover:bg-emerald-100 transition"><i class="ri-whatsapp-line text-[12px]"></i> Follow up</a>'
                     : '')
@@ -386,9 +549,18 @@ class AdminController extends Controller
             .'<div class="detail-card__title"><i class="'.$shipIcon.'"></i> Pengiriman</div>'
             .'<div class="space-y-2.5">'
             .$shipAddrHtml
-            .$trackingHtml
             .$shipNoteHtml
             .'</div>'
+            .'</div>'
+            .'</div>'
+
+            // Items
+            .'<div class="detail-card mt-3">'
+            .'<div class="detail-card__title"><i class="ri-shopping-bag-3-line"></i> Item Pesanan</div>'
+            .'<div class="flex flex-col gap-2">'.$itemsHtml.'</div>'
+            .'<div class="mt-3 flex items-center justify-between border-t border-mercury pt-2.5">'
+            .'<span class="text-[11px] font-semibold uppercase tracking-wider text-onyx">Subtotal</span>'
+            .'<span class="text-base font-black text-foreground">'.$rupiah($order->subtotal).'</span>'
             .'</div>'
             .'</div>'
 
@@ -423,17 +595,7 @@ class AdminController extends Controller
                     .'</span>'
                     .'</div>'
                 : '')
-            .'<div class="mt-3 flex flex-wrap gap-2">'.$proofHtml.'</div>'
-            .'</div>'
-
-            // Items
-            .'<div class="detail-card mt-3">'
-            .'<div class="detail-card__title"><i class="ri-shopping-bag-3-line"></i> Item Pesanan</div>'
-            .'<div class="flex flex-col gap-2">'.$itemsHtml.'</div>'
-            .'<div class="mt-3 flex items-center justify-between border-t border-mercury pt-2.5">'
-            .'<span class="text-[11px] font-semibold uppercase tracking-wider text-onyx">Subtotal</span>'
-            .'<span class="text-base font-black text-foreground">'.$rupiah($order->subtotal).'</span>'
-            .'</div>'
+            .'<div class="mt-3 flex flex-wrap items-center gap-2">'.$proofHtml.'</div>'
             .'</div>'
 
             .'</div>';
@@ -442,43 +604,15 @@ class AdminController extends Controller
     private function renderActions(Order $order): string
     {
         $orderId = e($order->order_id);
-        $isKirim = $order->shipping_method === 'kirim';
-        $isDp = $order->payment_type === 'dp';
 
-        $items = [];
-        $item = fn (array $opts) => '<button type="button" role="menuitem"'
-            .' data-action="'.e($opts['action']).'"'
-            .' data-order="'.$orderId.'"'
-            .(isset($opts['status']) ? ' data-status="'.e($opts['status']).'"' : '')
-            .(isset($opts['tracking']) ? ' data-tracking="'.e($opts['tracking']).'"' : '')
-            .' class="dropdown-item'.(isset($opts['tone']) ? ' dropdown-item--'.e($opts['tone']) : '').'">'
-            .'<i class="'.e($opts['icon']).'"></i><span>'.e($opts['label']).'</span>'
+        $items = '<button type="button" role="menuitem" data-action="detail" data-order="'.$orderId.'" class="dropdown-item">'
+            .'<i class="ri-eye-line"></i><span>Lihat Detail</span>'
             .'</button>';
 
-        $items[] = $item(['action' => 'detail', 'icon' => 'ri-eye-line', 'label' => 'Lihat Detail']);
-
         if ($order->status === 'pending') {
-            $items[] = $item(['action' => 'status', 'status' => 'verified', 'icon' => 'ri-shield-check-line', 'label' => 'Verifikasi', 'tone' => 'success']);
-        }
-
-        if ($order->status === 'verified') {
-            if ($isKirim) {
-                $label = $order->shipping_tracking ? 'Edit Resi' : 'Input Resi';
-                $items[] = $item(['action' => 'shipping', 'tracking' => $order->shipping_tracking ?? '', 'icon' => 'ri-truck-line', 'label' => $label, 'tone' => 'info']);
-            }
-            if ($isDp) {
-                $label = $order->dp_settlement_proof ? 'Ganti Bukti Pelunasan' : 'Upload Bukti Pelunasan';
-                $items[] = $item(['action' => 'dp-proof', 'icon' => 'ri-upload-cloud-line', 'label' => $label, 'tone' => 'warning']);
-            }
-            $items[] = $item(['action' => 'status', 'status' => 'completed', 'icon' => 'ri-flag-line', 'label' => 'Tandai Selesai', 'tone' => 'success']);
-        }
-
-        if (in_array($order->status, ['pending', 'verified'], true)) {
-            $items[] = $item(['action' => 'status', 'status' => 'cancelled', 'icon' => 'ri-close-circle-line', 'label' => 'Batalkan Pesanan', 'tone' => 'danger']);
-        }
-
-        if ($order->status === 'cancelled') {
-            $items[] = $item(['action' => 'status', 'status' => 'pending', 'icon' => 'ri-refresh-line', 'label' => 'Buka Kembali']);
+            $items .= '<button type="button" role="menuitem" data-action="status" data-status="verified" data-order="'.$orderId.'" class="dropdown-item dropdown-item--success">'
+                .'<i class="ri-shield-check-line"></i><span>Verifikasi Pembayaran</span>'
+                .'</button>';
         }
 
         return '<div class="orders-dropdown" data-dropdown>'
@@ -486,7 +620,7 @@ class AdminController extends Controller
             .'<i class="ri-more-2-fill"></i>'
             .'</button>'
             .'<div class="dropdown-menu" role="menu">'
-            .implode('', $items)
+            .$items
             .'</div>'
             .'</div>';
     }
