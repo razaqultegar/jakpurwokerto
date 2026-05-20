@@ -62,20 +62,45 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const reload = () => dt.ajax.reload(null, false);
 
+    const detailModal = document.getElementById('order-detail-modal');
+    const detailModalContent = detailModal?.querySelector('[data-modal-content]');
+    let lastTrigger = null;
+
+    const openDetailModal = (html) => {
+        if (!detailModal || !detailModalContent) return;
+        detailModalContent.innerHTML = html;
+        detailModal.hidden = false;
+        detailModal.removeAttribute('aria-hidden');
+        document.body.style.overflow = 'hidden';
+        const closeBtn = detailModal.querySelector('.order-modal__close');
+        closeBtn?.focus({ preventScroll: true });
+    };
+
+    const closeDetailModal = () => {
+        if (!detailModal || detailModal.hidden) return;
+        detailModal.hidden = true;
+        detailModal.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+        if (detailModalContent) detailModalContent.innerHTML = '';
+        lastTrigger?.focus({ preventScroll: true });
+        lastTrigger = null;
+    };
+
+    detailModal?.querySelectorAll('[data-modal-close]').forEach((el) => {
+        el.addEventListener('click', closeDetailModal);
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && detailModal && !detailModal.hidden) closeDetailModal();
+    });
+
     const handleDetail = async (btn) => {
         const orderId = btn.dataset.order;
+        lastTrigger = btn;
         try {
             const res = await fetch(buildUrl(endpoints.detail, orderId), { headers });
             const payload = await res.json();
             if (!payload?.ok) throw new Error(payload?.message || 'Gagal memuat detail.');
-            window.Swal.fire({
-                title: payload.title,
-                html: payload.html,
-                width: 720,
-                showConfirmButton: false,
-                showCloseButton: true,
-                customClass: { popup: 'orders-detail-popup' },
-            });
+            openDetailModal(payload.html);
         } catch (e) {
             window.Swal.fire({ icon: 'error', title: 'Gagal', text: e.message });
         }

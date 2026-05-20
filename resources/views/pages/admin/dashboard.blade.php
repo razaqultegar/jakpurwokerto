@@ -66,6 +66,17 @@
             </div>
         </div>
     </div>
+
+    <div id="order-detail-modal" class="order-modal" hidden aria-hidden="true">
+        <div class="order-modal__backdrop" data-modal-close></div>
+        <div class="order-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="order-detail-modal-title">
+            <button type="button" class="order-modal__close" data-modal-close aria-label="Tutup">
+                <i class="ri-close-line"></i>
+            </button>
+            <h2 id="order-detail-modal-title" class="sr-only">Detail Pesanan</h2>
+            <div class="order-modal__body" data-modal-content></div>
+        </div>
+    </div>
 @endsection
 
 @push('scripts')
