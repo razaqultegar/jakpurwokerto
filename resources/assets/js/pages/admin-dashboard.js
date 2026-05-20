@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
     const endpoints = {
         data: root?.dataset.dataUrl,
+        export: root?.dataset.exportUrl,
         detail: root?.dataset.detailUrl,
         status: root?.dataset.statusUrl,
         shipping: root?.dataset.shippingUrl,
@@ -131,6 +132,18 @@ document.addEventListener('DOMContentLoaded', () => {
         datePicker?.clear();
         toggleDateClear(false);
         dt.ajax.reload();
+    });
+
+    const exportBtn = filterRoot?.querySelector('[data-export-orders]');
+    exportBtn?.addEventListener('click', () => {
+        if (!endpoints.export) return;
+        const params = new URLSearchParams();
+        if (filters.payment_type) params.set('filter_payment_type', filters.payment_type);
+        if (filters.status) params.set('filter_status', filters.status);
+        if (filters.date_from) params.set('filter_date_from', filters.date_from);
+        if (filters.date_to) params.set('filter_date_to', filters.date_to);
+        const qs = params.toString();
+        window.location.href = endpoints.export + (qs ? '?' + qs : '');
     });
 
     dt.on('processing.dt', (e, settings, processing) => {

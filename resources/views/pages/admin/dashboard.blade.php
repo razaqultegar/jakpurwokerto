@@ -35,16 +35,15 @@
             <p class="mt-1.5 text-xl font-black" data-stat="revenue">Rp{{ number_format($stats['revenue'], 0, ',', '.') }}</p>
         </div>
     </div>
-
     <div class="mt-6">
         <div class="mb-3">
             <h3 class="text-base font-bold text-foreground">Daftar Pesanan Merchandise</h3>
             <p class="text-xs text-onyx">Kelola seluruh pesanan dari pelanggan.</p>
         </div>
-
         <div class="overflow-hidden rounded-xl border border-mercury bg-white shadow-sm"
             data-orders-root
             data-data-url="{{ route('admin.orders.data') }}"
+            data-export-url="{{ route('admin.orders.export') }}"
             data-detail-url="{{ url('admin/orders/__ORDER__') }}"
             data-status-url="{{ url('admin/orders/__ORDER__/status') }}"
             data-shipping-url="{{ url('admin/orders/__ORDER__/shipping') }}"
@@ -77,10 +76,16 @@
                         </button>
                     </div>
                 </div>
-                <div class="flex items-end">
+                <div class="flex items-end gap-2">
                     <button type="button" data-filter-reset
-                        class="inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-lg border border-mercury bg-white px-4 text-[13px] font-semibold text-foreground transition hover:bg-skull">
-                        <i class="ri-refresh-line"></i> Reset Filter
+                        class="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-lg border border-mercury bg-white px-4 text-[13px] font-semibold text-foreground transition hover:bg-skull">
+                        <i class="ri-refresh-line"></i>
+                        Reset Filter
+                    </button>
+                    <button type="button" data-export-orders
+                        class="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-4 text-[13px] font-semibold text-emerald-700 transition hover:bg-emerald-100">
+                        <i class="ri-file-excel-2-line"></i>
+                        Ekspor
                     </button>
                 </div>
             </div>
@@ -102,7 +107,6 @@
             </div>
         </div>
     </div>
-
     <div id="order-detail-modal" class="order-modal" hidden aria-hidden="true" role="dialog" aria-modal="true">
         <div class="order-modal__backdrop" data-modal-close></div>
         <div class="order-modal__panel">

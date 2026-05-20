@@ -5,6 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\Order;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AdminController extends Controller
 {
@@ -47,33 +53,8 @@ class AdminController extends Controller
         $orderDir = $request->input('order.0.dir', 'desc') === 'asc' ? 'asc' : 'desc';
         $orderCol = $columns[$orderColIdx] ?? 'created_at';
 
-        $base = Order::query();
-        $total = (clone $base)->count();
-
-        $paymentType = $request->input('filter_payment_type');
-        if (in_array($paymentType, ['dp', 'full'], true)) {
-            $base->where('payment_type', $paymentType);
-        }
-
-        $statusFilter = $request->input('filter_status');
-        if (in_array($statusFilter, ['pending', 'verified', 'completed', 'cancelled'], true)) {
-            $base->where('status', $statusFilter);
-        }
-
-        $dateFrom = $request->input('filter_date_from');
-        $dateTo = $request->input('filter_date_to');
-        if ($dateFrom) {
-            try {
-                $base->where('created_at', '>=', \Carbon\Carbon::parse($dateFrom)->startOfDay());
-            } catch (\Throwable $e) {
-            }
-        }
-        if ($dateTo) {
-            try {
-                $base->where('created_at', '<=', \Carbon\Carbon::parse($dateTo)->endOfDay());
-            } catch (\Throwable $e) {
-            }
-        }
+        $total = Order::query()->count();
+        $base = $this->applyOrderFilters(Order::query(), $request);
 
         if ($search !== '') {
             $statusAliases = [
@@ -121,6 +102,160 @@ class AdminController extends Controller
             'recordsTotal' => $total,
             'recordsFiltered' => $filtered,
             'data' => $rows->map(fn ($o) => $this->serializeOrder($o))->all(),
+        ]);
+    }
+
+    private function applyOrderFilters($query, Request $request)
+    {
+        $paymentType = $request->input('filter_payment_type');
+        if (in_array($paymentType, ['dp', 'full'], true)) {
+            $query->where('payment_type', $paymentType);
+        }
+
+        $statusFilter = $request->input('filter_status');
+        if (in_array($statusFilter, ['pending', 'verified', 'completed', 'cancelled'], true)) {
+            $query->where('status', $statusFilter);
+        }
+
+        $dateFrom = $request->input('filter_date_from');
+        $dateTo = $request->input('filter_date_to');
+        if ($dateFrom) {
+            try {
+                $query->where('created_at', '>=', \Carbon\Carbon::parse($dateFrom)->startOfDay());
+            } catch (\Throwable $e) {
+            }
+        }
+        if ($dateTo) {
+            try {
+                $query->where('created_at', '<=', \Carbon\Carbon::parse($dateTo)->endOfDay());
+            } catch (\Throwable $e) {
+            }
+        }
+
+        return $query;
+    }
+
+    public function exportOrders(Request $request): StreamedResponse
+    {
+        $orders = $this->applyOrderFilters(Order::query(), $request)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $statusLabels = [
+            'pending' => 'Menunggu',
+            'verified' => 'Diverifikasi',
+            'completed' => 'Selesai',
+            'cancelled' => 'Batal',
+        ];
+        $paymentTypeLabels = ['dp' => 'DP (50%)', 'full' => 'Bayar Lunas'];
+        $shippingLabels = ['kirim' => 'Dikirim', 'pickup' => 'Ambil di Tempat'];
+
+        $spreadsheet = new Spreadsheet;
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Pesanan');
+
+        $headers = [
+            'ID Pesanan',
+            'Tanggal',
+            'Nama Pelanggan',
+            'Email',
+            'Telepon',
+            'Pengiriman',
+            'Lokasi/Alamat',
+            'No. Resi',
+            'Metode Pembayaran',
+            'Tipe Pembayaran',
+            'Subtotal',
+            'Dibayar',
+            'Sisa',
+            'Status',
+            'Item',
+        ];
+
+        foreach ($headers as $i => $label) {
+            $sheet->setCellValueByColumnAndRow($i + 1, 1, $label);
+        }
+
+        $lastCol = $sheet->getHighestColumn();
+        $headerRange = 'A1:'.$lastCol.'1';
+        $sheet->getStyle($headerRange)->applyFromArray([
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '1F2937']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'D1D5DB']]],
+        ]);
+        $sheet->getRowDimension(1)->setRowHeight(22);
+
+        $row = 2;
+        foreach ($orders as $order) {
+            $itemsText = collect($order->item ?? [])->map(function ($line) {
+                $qty = (int) ($line['qty'] ?? 0);
+                $price = (int) ($line['price'] ?? 0) + (int) ($line['fee'] ?? 0);
+                $variant = trim(implode(' · ', array_filter([$line['category'] ?? '', $line['sleeve'] ?? '', $line['size'] ?? ''])));
+                $name = $line['name'] ?? '-';
+
+                return $qty.'× '.$name.($variant !== '' ? ' ('.$variant.')' : '').' @ Rp'.number_format($price, 0, ',', '.');
+            })->implode("\n");
+
+            $paymentMethod = match ($order->payment_method_type) {
+                'bank' => 'Transfer Bank · '.($order->payment_data['label'] ?? '-'),
+                'qris' => 'QRIS',
+                default => ucfirst((string) $order->payment_method_type),
+            };
+
+            $address = $order->shipping_method === 'kirim'
+                ? (string) $order->customer_address
+                : ucfirst((string) $order->pickup_location);
+
+            $subtotal = (int) $order->subtotal;
+            $paid = (int) $order->amount_due;
+            $remaining = max(0, $subtotal - $paid);
+
+            $values = [
+                $order->order_id,
+                optional($order->created_at)->format('Y-m-d H:i'),
+                $order->customer_name,
+                $order->customer_email,
+                $order->customer_phone,
+                $shippingLabels[$order->shipping_method] ?? $order->shipping_method,
+                $address,
+                $order->shipping_tracking,
+                $paymentMethod,
+                $paymentTypeLabels[$order->payment_type] ?? $order->payment_type,
+                $subtotal,
+                $paid,
+                $remaining,
+                $statusLabels[$order->status] ?? $order->status,
+                $itemsText,
+            ];
+
+            foreach ($values as $i => $value) {
+                $sheet->setCellValueByColumnAndRow($i + 1, $row, $value);
+            }
+            $row++;
+        }
+
+        $lastRow = $row - 1;
+        if ($lastRow >= 2) {
+            $sheet->getStyle('A2:'.$lastCol.$lastRow)->applyFromArray([
+                'alignment' => ['vertical' => Alignment::VERTICAL_TOP, 'wrapText' => true],
+                'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'E5E7EB']]],
+            ]);
+            $sheet->getStyle('K2:M'.$lastRow)->getNumberFormat()->setFormatCode('#,##0');
+        }
+
+        foreach (range(1, count($headers)) as $colIdx) {
+            $sheet->getColumnDimensionByColumn($colIdx)->setAutoSize(true);
+        }
+        $sheet->freezePane('A2');
+
+        $filename = 'pesanan-'.now()->format('Ymd-His').'.xlsx';
+
+        return response()->streamDownload(function () use ($spreadsheet) {
+            (new Xlsx($spreadsheet))->save('php://output');
+        }, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Cache-Control' => 'max-age=0, no-cache, no-store, must-revalidate',
         ]);
     }
 
