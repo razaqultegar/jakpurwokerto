@@ -39,15 +39,27 @@ document.addEventListener('DOMContentLoaded', () => {
         if (wrap) wrap.classList.toggle('is-loading', processing);
     });
 
+    const Swal = window.Swal?.mixin({
+        buttonsStyling: true,
+        customClass: {
+            popup: 'jpw-swal',
+            container: 'jpw-swal-backdrop',
+        },
+    });
+
     const toast = window.Swal?.mixin({
         toast: true,
         position: 'top-end',
-        timer: 2500,
+        timer: 3500,
         showConfirmButton: false,
         timerProgressBar: true,
+        customClass: {
+            popup: 'jpw-toast',
+            container: 'jpw-toast-container',
+        },
     });
 
-    const notify = (icon, title) => toast?.fire({ icon, title });
+    const notify = (icon, title, text) => toast?.fire({ icon, title, text });
 
     const postForm = async (url, formData) => {
         const res = await fetch(url, { method: 'POST', headers, body: formData });
@@ -61,6 +73,55 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const reload = () => dt.ajax.reload(null, false);
+
+    const statsRoot = document.querySelector('[data-stats-root]');
+    const formatNumber = (n) => new Intl.NumberFormat('id-ID').format(Number(n) || 0);
+    const formatRupiah = (n) => 'Rp' + formatNumber(n);
+    const applyStats = (stats) => {
+        if (!stats || !statsRoot) return;
+        statsRoot.querySelectorAll('[data-stat]').forEach((el) => {
+            const key = el.dataset.stat;
+            if (!(key in stats)) return;
+            const next = key === 'revenue' ? formatRupiah(stats[key]) : formatNumber(stats[key]);
+            if (el.textContent !== next) {
+                el.textContent = next;
+                el.classList.remove('stat-flash');
+                void el.offsetWidth;
+                el.classList.add('stat-flash');
+            }
+        });
+    };
+
+    const detailModal = document.getElementById('order-detail-modal');
+    const detailModalContent = detailModal?.querySelector('[data-modal-content]');
+    let lastTrigger = null;
+
+    const openDetailModal = (html) => {
+        if (!detailModal || !detailModalContent) return;
+        detailModalContent.innerHTML = html;
+        detailModal.hidden = false;
+        detailModal.removeAttribute('aria-hidden');
+        document.body.style.overflow = 'hidden';
+        const closeBtn = detailModal.querySelector('.order-modal__close');
+        closeBtn?.focus({ preventScroll: true });
+    };
+
+    const closeDetailModal = () => {
+        if (!detailModal || detailModal.hidden) return;
+        detailModal.hidden = true;
+        detailModal.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+        if (detailModalContent) detailModalContent.innerHTML = '';
+        lastTrigger?.focus({ preventScroll: true });
+        lastTrigger = null;
+    };
+
+    detailModal?.querySelectorAll('[data-modal-close]').forEach((el) => {
+        el.addEventListener('click', closeDetailModal);
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && detailModal && !detailModal.hidden) closeDetailModal();
+    });
 
     const handleDetail = async (btn) => {
         const orderId = btn.dataset.order;
@@ -77,7 +138,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 customClass: { popup: 'orders-detail-popup' },
             });
         } catch (e) {
-            window.Swal.fire({ icon: 'error', title: 'Gagal', text: e.message });
+            Swal.fire({ icon: 'error', title: 'Gagal', text: e.message });
         }
     };
 
@@ -93,7 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const cfg = confirmMap[status];
         if (!cfg) return;
 
-        const result = await window.Swal.fire({
+        const result = await Swal.fire({
             title: cfg.title, text: cfg.text, icon: cfg.icon,
             showCancelButton: true, confirmButtonText: cfg.confirmText,
             cancelButtonText: 'Batal', confirmButtonColor: '#d84315',
@@ -103,18 +164,19 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const fd = new FormData();
             fd.append('status', status);
-            await postForm(buildUrl(endpoints.status, orderId), fd);
-            notify('success', 'Status diperbarui');
+            const payload = await postForm(buildUrl(endpoints.status, orderId), fd);
+            applyStats(payload.stats);
+            notify('success', 'Status diperbarui', 'Selamat, status pesanan berhasil diperbarui.');
             reload();
         } catch (e) {
-            window.Swal.fire({ icon: 'error', title: 'Gagal', text: e.message });
+            Swal.fire({ icon: 'error', title: 'Gagal', text: e.message });
         }
     };
 
     const handleShipping = async (btn) => {
         const orderId = btn.dataset.order;
         const current = btn.dataset.tracking || '';
-        const { value, isConfirmed } = await window.Swal.fire({
+        const { value, isConfirmed } = await Swal.fire({
             title: 'Nomor Resi Pengiriman',
             input: 'text', inputValue: current,
             inputPlaceholder: 'Contoh: JX1234567890',
@@ -128,16 +190,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const fd = new FormData();
             fd.append('tracking', value.trim());
             await postForm(buildUrl(endpoints.shipping, orderId), fd);
-            notify('success', 'Resi tersimpan');
+            notify('success', 'Resi tersimpan', 'Nomor resi pengiriman berhasil disimpan.');
             reload();
         } catch (e) {
-            window.Swal.fire({ icon: 'error', title: 'Gagal', text: e.message });
+            Swal.fire({ icon: 'error', title: 'Gagal', text: e.message });
         }
     };
 
     const handleDpProof = async (btn) => {
         const orderId = btn.dataset.order;
-        const { value: file, isConfirmed } = await window.Swal.fire({
+        const { value: file, isConfirmed } = await Swal.fire({
             title: 'Upload Bukti Pelunasan DP',
             input: 'file',
             inputAttributes: { accept: 'image/*,application/pdf' },
@@ -150,10 +212,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const fd = new FormData();
             fd.append('proof', file);
             await postForm(buildUrl(endpoints.dpProof, orderId), fd);
-            notify('success', 'Bukti pelunasan diunggah');
+            notify('success', 'Bukti pelunasan diunggah', 'Bukti pelunasan DP berhasil diunggah.');
             reload();
         } catch (e) {
-            window.Swal.fire({ icon: 'error', title: 'Gagal', text: e.message });
+            Swal.fire({ icon: 'error', title: 'Gagal', text: e.message });
         }
     };
 

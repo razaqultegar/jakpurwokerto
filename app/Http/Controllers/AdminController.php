@@ -10,19 +10,22 @@ class AdminController extends Controller
 {
     public function dashboard()
     {
-        $stats = [
+        return view('pages.admin.dashboard', [
+            'title' => 'Beranda',
+            'stats' => $this->computeStats(),
+        ]);
+    }
+
+    private function computeStats(): array
+    {
+        return [
             'total' => Order::count(),
             'pending' => Order::where('status', 'pending')->count(),
             'verified' => Order::where('status', 'verified')->count(),
             'completed' => Order::where('status', 'completed')->count(),
             'cancelled' => Order::where('status', 'cancelled')->count(),
-            'revenue' => Order::whereIn('status', ['verified', 'completed'])->sum('amount_due'),
+            'revenue' => (int) Order::whereIn('status', ['verified', 'completed'])->sum('amount_due'),
         ];
-
-        return view('pages.admin.dashboard', [
-            'title' => 'Beranda',
-            'stats' => $stats,
-        ]);
     }
 
     public function ordersData(Request $request)
@@ -142,6 +145,7 @@ class AdminController extends Controller
         return response()->json([
             'ok' => true,
             'message' => 'Status pesanan diperbarui.',
+            'stats' => $this->computeStats(),
         ]);
     }
 
@@ -265,7 +269,11 @@ class AdminController extends Controller
         $initials = $initials ?: 'JP';
 
         $shipIcon = $order->shipping_method === 'pickup' ? 'ri-store-2-line' : 'ri-truck-line';
-        $shipLabel = $order->shipping_method === 'pickup' ? 'Ambil di Toko' : 'Dikirim';
+        $shipLabel = $order->shipping_method === 'pickup' ? 'Ambil di Tempat' : 'Dikirim';
+
+        $rawPhone = preg_replace('/\D+/', '', (string) $order->customer_phone);
+        $waPhone = $rawPhone !== '' ? (str_starts_with($rawPhone, '0') ? '62'.substr($rawPhone, 1) : (str_starts_with($rawPhone, '62') ? $rawPhone : '62'.$rawPhone)) : '';
+        $phoneDisplay = $rawPhone !== '' ? '+62'.ltrim(preg_replace('/^62/', '', $rawPhone), '0') : '-';
 
         // Items
         $itemsHtml = '';
@@ -366,8 +374,15 @@ class AdminController extends Controller
             .'<div class="detail-card">'
             .'<div class="detail-card__title"><i class="ri-user-3-line"></i> Pelanggan</div>'
             .'<div class="space-y-2.5">'
-            .$field('Email', '<a href="mailto:'.e($order->customer_email).'" class="text-primary hover:underline">'.e($order->customer_email).'</a>', 'ri-mail-line')
-            .$field('Telepon', '<span class="font-mono text-foreground">'.e($order->customer_phone).'</span>', 'ri-phone-line')
+            .$field('Email', '<span class="break-all text-foreground">'.e($order->customer_email).'</span>', 'ri-mail-line')
+            .$field('Telepon',
+                '<div class="flex flex-wrap items-center gap-2">'
+                .'<span>'.e($phoneDisplay).'</span>'
+                .($waPhone !== ''
+                    ? '<a href="https://wa.me/'.e($waPhone).'" target="_blank" rel="noopener" class="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 hover:bg-emerald-100 transition"><i class="ri-whatsapp-line text-[12px]"></i> Follow up</a>'
+                    : '')
+                .'</div>',
+                'ri-phone-line')
             .'</div>'
             .'</div>'
 
@@ -459,7 +474,6 @@ class AdminController extends Controller
                 $label = $order->dp_settlement_proof ? 'Ganti Bukti Pelunasan' : 'Upload Bukti Pelunasan';
                 $items[] = $item(['action' => 'dp-proof', 'icon' => 'ri-upload-cloud-line', 'label' => $label, 'tone' => 'warning']);
             }
-            $items[] = $item(['action' => 'status', 'status' => 'completed', 'icon' => 'ri-flag-line', 'label' => 'Tandai Selesai', 'tone' => 'success']);
         }
 
         if (in_array($order->status, ['pending', 'verified'], true)) {

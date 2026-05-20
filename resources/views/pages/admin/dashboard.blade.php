@@ -12,26 +12,22 @@
         <p class="text-sm text-gray-600">Ringkasan aktivitas {{ config('app.name') }}.</p>
     </div>
 
-    <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+    <div class="grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-4" data-stats-root>
         <div class="rounded-xl border border-mercury bg-white p-4">
             <p class="text-[10px] font-semibold uppercase tracking-wider text-onyx">Total Pesanan</p>
-            <p class="mt-1.5 text-xl font-black text-foreground">{{ number_format($stats['total']) }}</p>
+            <p class="mt-1.5 text-xl font-black text-foreground" data-stat="total">{{ number_format($stats['total']) }}</p>
         </div>
         <div class="rounded-xl border border-mercury bg-white p-4">
             <p class="text-[10px] font-semibold uppercase tracking-wider text-onyx">Menunggu</p>
-            <p class="mt-1.5 text-xl font-black text-amber-600">{{ number_format($stats['pending']) }}</p>
+            <p class="mt-1.5 text-xl font-black text-amber-600" data-stat="pending">{{ number_format($stats['pending']) }}</p>
         </div>
         <div class="rounded-xl border border-mercury bg-white p-4">
             <p class="text-[10px] font-semibold uppercase tracking-wider text-onyx">Diverifikasi</p>
-            <p class="mt-1.5 text-xl font-black text-emerald-600">{{ number_format($stats['verified']) }}</p>
+            <p class="mt-1.5 text-xl font-black text-emerald-600" data-stat="verified">{{ number_format($stats['verified']) }}</p>
         </div>
-        <div class="rounded-xl border border-mercury bg-white p-4">
-            <p class="text-[10px] font-semibold uppercase tracking-wider text-onyx">Selesai</p>
-            <p class="mt-1.5 text-xl font-black text-sky-600">{{ number_format($stats['completed']) }}</p>
-        </div>
-        <div class="col-span-2 rounded-xl bg-linear-to-br from-primary via-primary-light to-primary-lighter p-4 text-white sm:col-span-3 lg:col-span-1">
+        <div class="col-span-2 rounded-xl bg-linear-to-br from-primary via-primary-light to-primary-lighter p-4 text-white lg:col-span-1">
             <p class="text-[10px] font-semibold uppercase tracking-wider text-white/80">Total Pendapatan</p>
-            <p class="mt-1.5 text-xl font-black">Rp{{ number_format($stats['revenue'], 0, ',', '.') }}</p>
+            <p class="mt-1.5 text-xl font-black" data-stat="revenue">Rp{{ number_format($stats['revenue'], 0, ',', '.') }}</p>
         </div>
     </div>
 
