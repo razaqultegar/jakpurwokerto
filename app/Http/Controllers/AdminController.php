@@ -6,6 +6,7 @@ use App\Models\Order;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
@@ -163,9 +164,9 @@ class AdminController extends Controller
             'Telepon',
             'Pengiriman',
             'Lokasi/Alamat',
-            'No. Resi',
             'Metode Pembayaran',
             'Tipe Pembayaran',
+            'Tanggal Pembayaran',
             'Subtotal',
             'Dibayar',
             'Sisa',
@@ -174,7 +175,7 @@ class AdminController extends Controller
         ];
 
         foreach ($headers as $i => $label) {
-            $sheet->setCellValueByColumnAndRow($i + 1, 1, $label);
+            $sheet->setCellValue([$i + 1, 1], $label);
         }
 
         $lastCol = $sheet->getHighestColumn();
@@ -220,9 +221,9 @@ class AdminController extends Controller
                 $order->customer_phone,
                 $shippingLabels[$order->shipping_method] ?? $order->shipping_method,
                 $address,
-                $order->shipping_tracking,
                 $paymentMethod,
                 $paymentTypeLabels[$order->payment_type] ?? $order->payment_type,
+                optional($order->payment_proof_uploaded_at)->format('Y-m-d H:i'),
                 $subtotal,
                 $paid,
                 $remaining,
@@ -231,7 +232,7 @@ class AdminController extends Controller
             ];
 
             foreach ($values as $i => $value) {
-                $sheet->setCellValueByColumnAndRow($i + 1, $row, $value);
+                $sheet->setCellValue([$i + 1, $row], $value);
             }
             $row++;
         }
@@ -246,7 +247,7 @@ class AdminController extends Controller
         }
 
         foreach (range(1, count($headers)) as $colIdx) {
-            $sheet->getColumnDimensionByColumn($colIdx)->setAutoSize(true);
+            $sheet->getColumnDimension(Coordinate::stringFromColumnIndex($colIdx))->setAutoSize(true);
         }
         $sheet->freezePane('A2');
 

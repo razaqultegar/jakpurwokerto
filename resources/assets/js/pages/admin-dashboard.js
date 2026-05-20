@@ -61,12 +61,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     initSelect2([paymentSelect, statusSelect], { dropdownParent: filterRoot });
 
+    const $ = window.jQuery;
     [paymentSelect, statusSelect].forEach((el) => {
         if (!el) return;
-        el.addEventListener('change', () => {
+        const onChange = () => {
             filters[el.dataset.filter] = el.value || '';
             dt.ajax.reload();
-        });
+        };
+        if ($) $(el).on('change', onChange);
+        else el.addEventListener('change', onChange);
     });
 
     let datePicker = null;
