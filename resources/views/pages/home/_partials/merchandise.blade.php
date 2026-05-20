@@ -19,7 +19,7 @@
             <span class="mt-1 w-fit rounded bg-yellow-300 px-1.5 py-0.5 text-[9px] font-bold text-primary">HEMAT 22%</span>
         </div>
     </div>
-    <div class="relative mt-3" data-countdown data-start="2026-05-20T00:00:00+07:00" data-end="2026-06-20T23:59:59+07:00">
+    <div class="relative mt-3" data-countdown data-start="2026-05-20T19:28:00+07:00" data-end="2026-06-20T23:59:59+07:00">
         <div class="mb-1.5 flex items-center justify-between text-[10px] font-medium text-white/85">
             <span data-countdown-label>Berakhir dalam</span>
             <span class="rounded bg-white/20 px-1.5 py-0.5 text-[9px] uppercase tracking-wide" data-countdown-status>Berlangsung</span>

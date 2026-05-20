@@ -207,11 +207,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const handleDetail = async (btn) => {
         const orderId = btn.dataset.order;
+        lastTrigger = btn;
         try {
             const res = await fetch(buildUrl(endpoints.detail, orderId), { headers });
             const payload = await res.json();
             if (!payload?.ok) throw new Error(payload?.message || 'Gagal memuat detail.');
-            lastTrigger = btn;
             openDetailModal(payload.html);
         } catch (e) {
             Swal.fire({ icon: 'error', title: 'Gagal', text: e.message });
