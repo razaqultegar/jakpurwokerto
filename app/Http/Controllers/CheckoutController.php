@@ -223,6 +223,10 @@ class CheckoutController extends Controller
                 ->with('status', 'Pesanan tidak ditemukan.');
         }
 
+        if (in_array($order->status, ['verified', 'cancelled'], true)) {
+            return $this->redirectClosedOrder($order);
+        }
+
         if ($order->payment_proof) {
             return redirect()->route('checkout.success', ['orderId' => strtolower($order->order_id)]);
         }
@@ -231,6 +235,20 @@ class CheckoutController extends Controller
             'title' => 'Pembayaran',
             'order' => $this->buildOrderView($order),
         ]);
+    }
+
+    private function redirectClosedOrder(Order $order)
+    {
+        $slug = collect($order->item ?? [])->pluck('slug')->filter()->first();
+        $message = $order->status === 'cancelled'
+            ? 'Pesanan ini telah dibatalkan. Silakan buat pesanan baru.'
+            : 'Pembayaran pesanan ini sudah diterima. Halaman pembayaran tidak dapat diakses lagi.';
+
+        $target = $slug
+            ? redirect()->route('merchandise.show', ['slug' => $slug])
+            : redirect()->route('home');
+
+        return $target->with('status', $message);
     }
 
     public function success(string $orderId)
@@ -257,6 +275,10 @@ class CheckoutController extends Controller
         if (! $order) {
             return back()->with('proof_status', 'error')
                 ->with('proof_message', 'Pesanan tidak ditemukan.');
+        }
+
+        if (in_array($order->status, ['verified', 'cancelled'], true)) {
+            return $this->redirectClosedOrder($order);
         }
 
         $validated = $request->validate([
