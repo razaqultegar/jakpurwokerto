@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
         export: root?.dataset.exportUrl,
         detail: root?.dataset.detailUrl,
         status: root?.dataset.statusUrl,
+        syncPayment: root?.dataset.syncPaymentUrl,
         delete: root?.dataset.deleteUrl,
     };
 
@@ -177,12 +178,160 @@ document.addEventListener('DOMContentLoaded', () => {
         const btn = e.target.closest('button[data-action]');
         if (!btn) return;
         e.preventDefault();
-        const map = { detail: handleDetail, delete: handleDelete };
+        const map = { detail: handleDetail, delete: handleDelete, 'sync-payment': handleSyncPayment };
         map[btn.dataset.action]?.(btn);
     });
 
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && detailModal && !detailModal.hidden) closeDetailModal();
+    });
+
+    // ===== Sync Payment Modal =====
+    const syncModal = document.getElementById('sync-payment-modal');
+    const syncForm = syncModal?.querySelector('[data-sync-form]');
+    const syncInput = syncModal?.querySelector('[data-sync-input]');
+    const syncError = syncModal?.querySelector('[data-sync-error]');
+    const syncSubmit = syncModal?.querySelector('[data-sync-submit]');
+    const syncOrderIdEl = syncModal?.querySelector('[data-sync-order-id]');
+    const syncSubtotalEl = syncModal?.querySelector('[data-sync-subtotal]');
+    const syncCurrentEl = syncModal?.querySelector('[data-sync-current]');
+    const syncRemainingEl = syncModal?.querySelector('[data-sync-remaining]');
+    const syncMaxEl = syncModal?.querySelector('[data-sync-max]');
+    const syncProgressEl = syncModal?.querySelector('[data-sync-progress]');
+    const syncPercentEl = syncModal?.querySelector('[data-sync-percent]');
+    const syncPercentLabelEl = syncModal?.querySelector('[data-sync-percent-label]');
+    const syncState = { orderId: null, subtotal: 0, current: 0 };
+    let syncLastTrigger = null;
+
+    const parseAmount = (str) => {
+        const n = parseInt(String(str ?? '').replace(/\D+/g, ''), 10);
+        return Number.isFinite(n) ? n : 0;
+    };
+    const formatThousand = (n) => formatNumber(n);
+
+    const updateSyncRemaining = () => {
+        const value = parseAmount(syncInput?.value);
+        const remaining = Math.max(0, syncState.subtotal - value);
+        if (syncRemainingEl) syncRemainingEl.textContent = formatRupiah(remaining);
+
+        const pct = syncState.subtotal > 0
+            ? Math.min(100, Math.max(0, Math.round((value / syncState.subtotal) * 100)))
+            : 0;
+        if (syncProgressEl) syncProgressEl.style.width = pct + '%';
+        if (syncPercentEl) syncPercentEl.textContent = pct;
+        if (syncPercentLabelEl) {
+            let label = 'Belum dibayar';
+            if (pct >= 100) label = 'Lunas';
+            else if (pct >= 75) label = 'Hampir lunas';
+            else if (pct > 50) label = 'Di atas DP';
+            else if (pct === 50) label = 'Tepat DP';
+            else if (pct > 0) label = 'Di bawah DP';
+            syncPercentLabelEl.textContent = label;
+            syncPercentLabelEl.classList.toggle('text-emerald-600', pct >= 100);
+            syncPercentLabelEl.classList.toggle('text-amber-700', pct > 50 && pct < 100);
+        }
+
+        let err = '';
+        if (!value) err = 'Masukkan nominal pembayaran.';
+        else if (value > syncState.subtotal) err = 'Nominal melebihi subtotal.';
+
+        if (syncError) {
+            syncError.textContent = err;
+            syncError.classList.toggle('hidden', !err);
+        }
+        if (syncSubmit) syncSubmit.disabled = !!err || value === syncState.current;
+    };
+
+    const openSyncModal = (orderId, subtotal, current, trigger) => {
+        if (!syncModal) return;
+        syncState.orderId = orderId;
+        syncState.subtotal = subtotal;
+        syncState.current = current;
+        syncLastTrigger = trigger || null;
+        if (syncOrderIdEl) syncOrderIdEl.textContent = orderId;
+        if (syncSubtotalEl) syncSubtotalEl.textContent = formatRupiah(subtotal);
+        if (syncCurrentEl) syncCurrentEl.textContent = formatRupiah(current);
+        if (syncMaxEl) syncMaxEl.textContent = formatRupiah(subtotal);
+        if (syncInput) syncInput.value = formatThousand(current);
+        updateSyncRemaining();
+        syncModal.hidden = false;
+        syncModal.removeAttribute('aria-hidden');
+        document.body.style.overflow = 'hidden';
+        setTimeout(() => syncInput?.focus({ preventScroll: true }), 30);
+    };
+
+    const closeSyncModal = () => {
+        if (!syncModal || syncModal.hidden) return;
+        syncModal.hidden = true;
+        syncModal.setAttribute('aria-hidden', 'true');
+        if (!detailModal || detailModal.hidden) document.body.style.overflow = '';
+        syncLastTrigger?.focus({ preventScroll: true });
+        syncLastTrigger = null;
+    };
+
+    syncModal?.querySelectorAll('[data-sync-close]').forEach((el) => {
+        el.addEventListener('click', closeSyncModal);
+    });
+
+    syncInput?.addEventListener('input', () => {
+        const value = parseAmount(syncInput.value);
+        syncInput.value = value ? formatThousand(value) : '';
+        updateSyncRemaining();
+    });
+
+    syncModal?.querySelectorAll('[data-sync-preset]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            const pct = parseInt(btn.dataset.syncPreset, 10) || 0;
+            const value = Math.round((syncState.subtotal * pct) / 100);
+            if (syncInput) syncInput.value = formatThousand(value);
+            updateSyncRemaining();
+        });
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && syncModal && !syncModal.hidden) closeSyncModal();
+    });
+
+    const handleSyncPayment = (btn) => {
+        const orderId = btn.dataset.order;
+        const subtotal = parseInt(btn.dataset.subtotal, 10) || 0;
+        const current = parseInt(btn.dataset.amountDue, 10) || 0;
+        openSyncModal(orderId, subtotal, current, btn);
+    };
+
+    syncForm?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!syncState.orderId || !endpoints.syncPayment) return;
+        const value = parseAmount(syncInput?.value);
+        if (!value || value > syncState.subtotal) { updateSyncRemaining(); return; }
+
+        if (syncSubmit) syncSubmit.disabled = true;
+        try {
+            const fd = new FormData();
+            fd.append('amount_due', String(value));
+            const res = await fetch(buildUrl(endpoints.syncPayment, syncState.orderId), { method: 'POST', headers, body: fd });
+            let payload = null;
+            try { payload = await res.json(); } catch (_) {}
+            if (!res.ok || !payload?.ok) throw new Error(payload?.message || 'Gagal memperbarui pembayaran.');
+            applyStats(payload.stats);
+            toast?.fire({ icon: 'success', title: 'Pembayaran disinkronkan', text: `Pesanan ${syncState.orderId} diperbarui.` });
+            dt.ajax.reload(null, false);
+            const openOrder = detailModalContent?.querySelector('.detail-modal')?.dataset?.order;
+            if (openOrder === syncState.orderId) {
+                try {
+                    const r = await fetch(buildUrl(endpoints.detail, openOrder), { headers });
+                    const p = await r.json();
+                    if (p?.ok && detailModalContent) detailModalContent.innerHTML = p.html;
+                } catch (_) {}
+            }
+            closeSyncModal();
+        } catch (err) {
+            if (syncError) {
+                syncError.textContent = err.message;
+                syncError.classList.remove('hidden');
+            }
+            if (syncSubmit) syncSubmit.disabled = false;
+        }
     });
 
     const handleDetail = async (btn) => {
@@ -223,10 +372,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const status = btn.dataset.status;
         const confirmMap = {
             verified: {
-                title: 'Verifikasi pembayaran?',
-                text: 'Pesanan akan ditandai sudah diverifikasi dan terhitung ke stok.',
+                title: 'Terima pembayaran?',
+                text: 'Pembayaran pesanan akan ditandai sudah diterima dan terhitung ke stok dan pendapatan.',
                 icon: 'question',
-                confirmText: 'Ya, verifikasi',
+                confirmText: 'Ya, diterima',
             },
         };
         const cfg = confirmMap[status];
@@ -253,7 +402,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error(payload?.message || 'Terjadi kesalahan.');
             }
             applyStats(payload.stats);
-            toast?.fire({ icon: 'success', title: 'Status diperbarui', text: 'Pembayaran berhasil diverifikasi.' });
+            toast?.fire({ icon: 'success', title: 'Status diperbarui', text: 'Pembayaran berhasil diterima.' });
             dt.ajax.reload(null, false);
         } catch (e) {
             Swal.fire({ icon: 'error', title: 'Gagal', text: e.message });
@@ -263,12 +412,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const handleDelete = async (btn) => {
         const orderId = btn.dataset.order;
         const result = await Swal.fire({
-            title: 'Hapus pesanan?',
-            html: `Pesanan <b>${orderId}</b> akan dihapus permanen beserta bukti pembayarannya. Aksi ini tidak bisa dibatalkan.`,
+            title: 'Batalkan pesanan?',
+            html: `Pesanan <b>${orderId}</b> akan ditandai sebagai dibatalkan. Data pesanan tetap tersimpan.`,
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonText: 'Ya, hapus',
-            cancelButtonText: 'Batal',
+            confirmButtonText: 'Ya, batalkan',
+            cancelButtonText: 'Tutup',
             confirmButtonColor: '#dc2626',
         });
         if (!result.isConfirmed) return;
@@ -281,9 +430,9 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             let payload = null;
             try { payload = await res.json(); } catch (_) {}
-            if (!res.ok || !payload?.ok) throw new Error(payload?.message || 'Gagal menghapus.');
+            if (!res.ok || !payload?.ok) throw new Error(payload?.message || 'Gagal membatalkan.');
             applyStats(payload.stats);
-            toast?.fire({ icon: 'success', title: 'Dihapus', text: `Pesanan ${orderId} dihapus.` });
+            toast?.fire({ icon: 'success', title: 'Dibatalkan', text: `Pesanan ${orderId} dibatalkan.` });
             dt.ajax.reload(null, false);
             // If deleted order is the currently open one, close modal; else refresh detail to update duplicate list
             const openOrder = detailModalContent?.querySelector('.detail-modal')?.dataset?.order;
@@ -342,7 +491,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const btn = e.target.closest('button[data-action]');
         if (!btn) return;
         closeDropdowns();
-        const map = { detail: handleDetail, status: handleStatus, delete: handleDelete };
+        const map = { detail: handleDetail, status: handleStatus, delete: handleDelete, 'sync-payment': handleSyncPayment };
         map[btn.dataset.action]?.(btn);
     });
 
