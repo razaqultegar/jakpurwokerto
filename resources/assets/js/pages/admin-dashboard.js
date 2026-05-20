@@ -129,14 +129,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const res = await fetch(buildUrl(endpoints.detail, orderId), { headers });
             const payload = await res.json();
             if (!payload?.ok) throw new Error(payload?.message || 'Gagal memuat detail.');
-            window.Swal.fire({
-                title: payload.title,
-                html: payload.html,
-                width: 720,
-                showConfirmButton: false,
-                showCloseButton: true,
-                customClass: { popup: 'orders-detail-popup' },
-            });
+            lastTrigger = btn;
+            openDetailModal(payload.html);
         } catch (e) {
             Swal.fire({ icon: 'error', title: 'Gagal', text: e.message });
         }

@@ -459,6 +459,64 @@ div.dt-container .dt-processing > div:last-child {
     padding: 1rem;
 }
 
+.order-modal[hidden] {
+    display: none;
+}
+
+.order-modal__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(2px);
+}
+
+.order-modal__panel {
+    position: relative;
+    width: 100%;
+    max-width: 720px;
+    max-height: calc(100vh - 2rem);
+    overflow: hidden;
+    background: #fff;
+    border-radius: 1rem;
+    box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.35);
+    animation: orderModalIn 180ms ease-out;
+}
+
+.order-modal__body {
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
+}
+
+.order-modal__close {
+    position: absolute;
+    top: 0.875rem;
+    right: 0.875rem;
+    z-index: 10;
+    width: 34px;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 20px;
+    line-height: 1;
+    background: rgba(0, 0, 0, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 9999px;
+    backdrop-filter: blur(8px);
+    cursor: pointer;
+    transition: background 150ms;
+}
+
+.order-modal__close:hover {
+    background: rgba(0, 0, 0, 0.35);
+}
+
+@keyframes orderModalIn {
+    from { opacity: 0; transform: translateY(8px) scale(0.98); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
 .orders-detail-popup .swal2-title {
     display: none !important;
 }

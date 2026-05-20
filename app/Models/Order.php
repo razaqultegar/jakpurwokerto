@@ -15,6 +15,7 @@ class Order extends Model
         'pickup_location',
         'customer_address',
         'payment_proof',
+        'payment_proof_uploaded_at',
         'shipping_tracking',
         'dp_settlement_proof',
         'item',
@@ -36,6 +37,7 @@ class Order extends Model
         'amount_due' => 'integer',
         'verified_at' => 'datetime',
         'completed_at' => 'datetime',
+        'payment_proof_uploaded_at' => 'datetime',
     ];
 
     public function getRouteKeyName()

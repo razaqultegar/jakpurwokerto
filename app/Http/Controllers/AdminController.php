@@ -256,10 +256,13 @@ class AdminController extends Controller
         $payment = $this->paymentLabel($order);
         $rupiah = fn ($n) => 'Rp'.number_format((int) $n, 0, ',', '.');
 
-        $createdAt = $order->created_at;
-        $dateText = $createdAt
-            ? $createdAt->locale('id')->translatedFormat('d F Y').' · '.$createdAt->format('H:i').' WIB'
+        $formatDate = fn ($dt) => $dt
+            ? $dt->locale('id')->translatedFormat('d F Y').' · '.$dt->format('H:i').' WIB'
             : '-';
+        $createdAt = $order->created_at;
+        $paidAt = $order->payment_proof_uploaded_at;
+        $dateText = $formatDate($createdAt);
+        $paidText = $formatDate($paidAt);
 
         $initials = collect(preg_split('/\s+/', trim($order->customer_name)))
             ->filter()
@@ -353,7 +356,7 @@ class AdminController extends Controller
             .'<div class="detail-hero__bg"></div>'
             .'<div class="relative flex flex-col gap-4">'
             .'<div>'
-            .'<span class="detail-chip detail-chip--glass"><i class="ri-hashtag"></i> '.e($order->order_id).'</span>'
+            .'<span class="detail-chip detail-chip--glass">'.e($order->order_id).'</span>'
             .'</div>'
             .'<div class="flex items-center gap-3">'
             .'<div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white text-lg font-black text-primary shadow-md">'.e($initials).'</div>'
@@ -396,6 +399,16 @@ class AdminController extends Controller
             .'</div>'
             .'</div>'
 
+            // Items
+            .'<div class="detail-card mt-3">'
+            .'<div class="detail-card__title"><i class="ri-shopping-bag-3-line"></i> Item Pesanan</div>'
+            .'<div class="flex flex-col gap-2">'.$itemsHtml.'</div>'
+            .'<div class="mt-3 flex items-center justify-between border-t border-mercury pt-2.5">'
+            .'<span class="text-[11px] font-semibold uppercase tracking-wider text-onyx">Subtotal</span>'
+            .'<span class="text-base font-black text-foreground">'.$rupiah($order->subtotal).'</span>'
+            .'</div>'
+            .'</div>'
+
             // Payment summary
             .'<div class="detail-card mt-3">'
             .'<div class="detail-card__title"><i class="ri-wallet-3-line"></i> Pembayaran</div>'
@@ -427,16 +440,11 @@ class AdminController extends Controller
                     .'</span>'
                     .'</div>'
                 : '')
-            .'<div class="mt-3 flex flex-wrap gap-2">'.$proofHtml.'</div>'
-            .'</div>'
-
-            // Items
-            .'<div class="detail-card mt-3">'
-            .'<div class="detail-card__title"><i class="ri-shopping-bag-3-line"></i> Item Pesanan</div>'
-            .'<div class="flex flex-col gap-2">'.$itemsHtml.'</div>'
-            .'<div class="mt-3 flex items-center justify-between border-t border-mercury pt-2.5">'
-            .'<span class="text-[11px] font-semibold uppercase tracking-wider text-onyx">Subtotal</span>'
-            .'<span class="text-base font-black text-foreground">'.$rupiah($order->subtotal).'</span>'
+            .'<div class="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">'
+            .$proofHtml
+            .($order->payment_proof && $paidAt
+                ? '<span class="inline-flex items-center gap-1 text-[11px] text-onyx"><i class="ri-calendar-check-line text-emerald-600"></i> Diupload '.e($paidText).'</span>'
+                : '')
             .'</div>'
             .'</div>'
 
@@ -447,7 +455,6 @@ class AdminController extends Controller
     {
         $orderId = e($order->order_id);
         $isKirim = $order->shipping_method === 'kirim';
-        $isDp = $order->payment_type === 'dp';
 
         $items = [];
         $item = fn (array $opts) => '<button type="button" role="menuitem"'
@@ -470,14 +477,6 @@ class AdminController extends Controller
                 $label = $order->shipping_tracking ? 'Edit Resi' : 'Input Resi';
                 $items[] = $item(['action' => 'shipping', 'tracking' => $order->shipping_tracking ?? '', 'icon' => 'ri-truck-line', 'label' => $label, 'tone' => 'info']);
             }
-            if ($isDp) {
-                $label = $order->dp_settlement_proof ? 'Ganti Bukti Pelunasan' : 'Upload Bukti Pelunasan';
-                $items[] = $item(['action' => 'dp-proof', 'icon' => 'ri-upload-cloud-line', 'label' => $label, 'tone' => 'warning']);
-            }
-        }
-
-        if (in_array($order->status, ['pending', 'verified'], true)) {
-            $items[] = $item(['action' => 'status', 'status' => 'cancelled', 'icon' => 'ri-close-circle-line', 'label' => 'Batalkan Pesanan', 'tone' => 'danger']);
         }
 
         if ($order->status === 'cancelled') {

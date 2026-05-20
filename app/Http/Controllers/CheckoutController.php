@@ -275,6 +275,7 @@ class CheckoutController extends Controller
 
         $order->update([
             'payment_proof' => $path,
+            'payment_proof_uploaded_at' => now(),
         ]);
 
         try {
