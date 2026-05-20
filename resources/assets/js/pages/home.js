@@ -51,7 +51,6 @@ function initMenuDrawer() {
 
     const open = () => {
         drawer.setAttribute('aria-hidden', 'false');
-        drawer.classList.remove('pointer-events-none');
         backdrop.classList.remove('opacity-0');
         backdrop.classList.add('opacity-100');
         panel.classList.remove('translate-y-full');
@@ -64,7 +63,6 @@ function initMenuDrawer() {
         backdrop.classList.remove('opacity-100');
         panel.classList.add('translate-y-full');
         document.body.style.overflow = '';
-        setTimeout(() => drawer.classList.add('pointer-events-none'), 300);
     };
 
     openBtns.forEach((btn) => btn.addEventListener('click', open));

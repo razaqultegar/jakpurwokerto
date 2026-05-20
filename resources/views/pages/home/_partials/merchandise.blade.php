@@ -19,25 +19,25 @@
             <span class="mt-1 w-fit rounded bg-yellow-300 px-1.5 py-0.5 text-[9px] font-bold text-primary">HEMAT 22%</span>
         </div>
     </div>
-    <div class="relative mt-3" data-countdown data-start="2026-05-20T19:28:00+07:00" data-end="2026-06-20T23:59:59+07:00">
+    <div class="relative mt-3" data-countdown data-start="2026-05-20T00:00:00+07:00" data-end="2026-06-20T23:59:59+07:00">
         <div class="mb-1.5 flex items-center justify-between text-[10px] font-medium text-white/85">
             <span data-countdown-label>Berakhir dalam</span>
             <span class="rounded bg-white/20 px-1.5 py-0.5 text-[9px] uppercase tracking-wide" data-countdown-status>Berlangsung</span>
         </div>
         <div class="grid grid-cols-4 gap-2 text-center text-[11px]">
-            <div class="rounded-lg bg-white/15 py-2 ring-1 ring-white/20">
+            <div class="countdown-cell-sm">
                 <div class="text-base font-bold leading-none" data-countdown-days>00</div>
                 <div class="mt-1 text-[10px] text-white/80">Hari</div>
             </div>
-            <div class="rounded-lg bg-white/15 py-2 ring-1 ring-white/20">
+            <div class="countdown-cell-sm">
                 <div class="text-base font-bold leading-none" data-countdown-hours>00</div>
                 <div class="mt-1 text-[10px] text-white/80">Jam</div>
             </div>
-            <div class="rounded-lg bg-white/15 py-2 ring-1 ring-white/20">
+            <div class="countdown-cell-sm">
                 <div class="text-base font-bold leading-none" data-countdown-minutes>00</div>
                 <div class="mt-1 text-[10px] text-white/80">Menit</div>
             </div>
-            <div class="rounded-lg bg-white/15 py-2 ring-1 ring-white/20">
+            <div class="countdown-cell-sm">
                 <div class="text-base font-bold leading-none" data-countdown-seconds>00</div>
                 <div class="mt-1 text-[10px] text-white/80">Detik</div>
             </div>

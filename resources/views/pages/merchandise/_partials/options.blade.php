@@ -1,54 +1,54 @@
-<section class="px-4 py-5" data-merch-options>
-    <div class="mb-3 flex items-center justify-between">
+<section class="section" data-merch-options>
+    <div class="section-header-between">
         <div class="flex items-center gap-2">
-            <span class="h-5 w-1 rounded-full bg-primary"></span>
-            <h3 class="text-sm font-bold text-foreground">Pilih Kategori</h3>
+            <span class="section-bar"></span>
+            <h3 class="section-title">Pilih Kategori</h3>
         </div>
-        <span class="text-[10px] text-onyx">{{ count($merch['categories']) }} pilihan</span>
+        <span class="section-meta">{{ count($merch['categories']) }} pilihan</span>
     </div>
     <div class="grid grid-cols-2 gap-2.5">
         @foreach ($merch['categories'] as $cat)
-        <button type="button" class="group relative flex items-center gap-3 rounded-2xl border-2 p-3 text-left transition aria-pressed:border-primary aria-pressed:bg-primary-softer aria-pressed:shadow-sm border-mercury bg-white" data-category="{{ $cat['key'] }}" aria-pressed="{{ $cat['active'] ? 'true' : 'false' }}" data-category-name="{{ $cat['name'] }}">
-            <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary-softer text-primary ring-1 ring-primary-soft group-aria-pressed:bg-primary group-aria-pressed:text-white group-aria-pressed:ring-primary">
+        <button type="button" class="choice-card" data-category="{{ $cat['key'] }}" aria-pressed="{{ $cat['active'] ? 'true' : 'false' }}" data-category-name="{{ $cat['name'] }}">
+            <span class="option-icon">
                 <i class="{{ $cat['icon'] }} text-xl"></i>
             </span>
             <span class="flex-1">
-                <span class="block text-xs font-bold text-foreground group-aria-pressed:text-primary">{{ $cat['name'] }}</span>
+                <span class="option-label">{{ $cat['name'] }}</span>
                 <span class="block text-[10px] text-onyx">{{ $cat['desc'] }}</span>
             </span>
-            <span class="hidden h-5 w-5 items-center justify-center rounded-full bg-primary text-white shadow group-aria-pressed:flex">
+            <span class="option-check">
                 <i class="ri-check-line text-xs"></i>
             </span>
         </button>
         @endforeach
     </div>
-    <div class="mb-3 mt-5 flex items-center justify-between">
+    <div class="section-header-between mt-5">
         <div class="flex items-center gap-2">
-            <span class="h-5 w-1 rounded-full bg-primary"></span>
-            <h3 class="text-sm font-bold text-foreground">Pilih Model Lengan</h3>
+            <span class="section-bar"></span>
+            <h3 class="section-title">Pilih Model Lengan</h3>
         </div>
-        <span class="text-[10px] text-onyx">{{ count($merch['sleeves']) }} pilihan</span>
+        <span class="section-meta">{{ count($merch['sleeves']) }} pilihan</span>
     </div>
     <div class="grid grid-cols-2 gap-2.5">
         @foreach ($merch['sleeves'] as $sleeve)
-        <button type="button" class="group relative flex items-center gap-3 rounded-2xl border-2 p-3 text-left transition aria-pressed:border-primary aria-pressed:bg-primary-softer aria-pressed:shadow-sm border-mercury bg-white" data-sleeve="{{ $sleeve['key'] }}" data-sleeve-name="{{ $sleeve['name'] }}" aria-pressed="{{ $sleeve['active'] ? 'true' : 'false' }}" data-sleeve-prices='@json($sleeve['prices'])'>
-            <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary-softer text-primary ring-1 ring-primary-soft group-aria-pressed:bg-primary group-aria-pressed:text-white group-aria-pressed:ring-primary">
+        <button type="button" class="choice-card" data-sleeve="{{ $sleeve['key'] }}" data-sleeve-name="{{ $sleeve['name'] }}" aria-pressed="{{ $sleeve['active'] ? 'true' : 'false' }}" data-sleeve-prices='@json($sleeve['prices'])'>
+            <span class="option-icon">
                 <i class="{{ $sleeve['icon'] }} text-xl"></i>
             </span>
             <span class="flex-1">
-                <span class="block text-xs font-bold text-foreground group-aria-pressed:text-primary">{{ $sleeve['name'] }}</span>
+                <span class="option-label">{{ $sleeve['name'] }}</span>
                 <span class="block text-[10px] text-onyx">{{ $sleeve['desc'] }}</span>
             </span>
-            <span class="hidden h-5 w-5 items-center justify-center rounded-full bg-primary text-white shadow group-aria-pressed:flex">
+            <span class="option-check">
                 <i class="ri-check-line text-xs"></i>
             </span>
         </button>
         @endforeach
     </div>
-    <div class="mb-3 mt-5 flex items-center justify-between">
+    <div class="section-header-between mt-5">
         <div class="flex items-center gap-2">
-            <span class="h-5 w-1 rounded-full bg-primary"></span>
-            <h3 class="text-sm font-bold text-foreground">Pilih Ukuran</h3>
+            <span class="section-bar"></span>
+            <h3 class="section-title">Pilih Ukuran</h3>
         </div>
         <button type="button" class="inline-flex items-center gap-1 text-[10px] font-semibold text-primary" data-size-guide-open>
             <i class="ri-ruler-line"></i>
@@ -57,7 +57,7 @@
     </div>
     <div class="grid grid-cols-5 gap-2">
         @foreach ($merch['sizes'] as $size)
-        <button type="button" class="rounded-xl border-2 border-mercury bg-white py-2.5 text-xs font-bold text-foreground transition aria-pressed:border-primary aria-pressed:bg-primary aria-pressed:text-white aria-pressed:shadow-md" aria-pressed="false" data-size="{{ $size }}" data-size-fee="{{ $size === 'Kustom' ? ($merch['custom_size_fee'] ?? 0) : 0 }}">{{ $size }}</button>
+        <button type="button" class="size-btn" aria-pressed="false" data-size="{{ $size }}" data-size-fee="{{ $size === 'Kustom' ? ($merch['custom_size_fee'] ?? 0) : 0 }}">{{ $size }}</button>
         @endforeach
     </div>
     <div class="mt-2 hidden" data-custom-size-wrap>

@@ -13,12 +13,12 @@
             @include('pages.home._partials.menu')
         </div>
     </section>
-    <hr class="m-0 h-2 w-full border-0 bg-skull p-0">
+    <hr class="section-divider">
     <section class="mb-6 p-4">
         <h3 class="text-base font-bold text-foreground mb-3">Merchandise</h3>
         @include('pages.home._partials.merchandise')
     </section>
-    <hr class="m-0 h-2 w-full border-0 bg-skull p-0">
+    <hr class="section-divider">
     <section class="mb-6 p-4">
         <h3 class="text-base font-bold text-foreground mb-3">Berita</h3>
         @include('pages.home._partials.berita')

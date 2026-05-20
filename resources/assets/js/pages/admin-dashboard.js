@@ -1,0 +1,217 @@
+document.addEventListener('DOMContentLoaded', () => {
+    const tableEl = document.getElementById('orders-table');
+    if (!tableEl || typeof window.DataTable === 'undefined') return;
+
+    const root = tableEl.closest('[data-orders-root]');
+    const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
+    const endpoints = {
+        data: root?.dataset.dataUrl,
+        detail: root?.dataset.detailUrl,
+        status: root?.dataset.statusUrl,
+        shipping: root?.dataset.shippingUrl,
+        dpProof: root?.dataset.dpProofUrl,
+    };
+
+    const headers = { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' };
+    const buildUrl = (template, orderId) => template.replace('__ORDER__', encodeURIComponent(orderId));
+
+    const dt = new window.DataTable(tableEl, {
+        processing: true,
+        serverSide: true,
+        ajax: { url: endpoints.data, type: 'GET' },
+        order: [[5, 'desc']],
+        language: {
+            searchPlaceholder: 'Cari order, nama, email, telepon…',
+        },
+        columns: [
+            { data: 'order_id' },
+            { data: 'customer', orderable: false },
+            { data: 'payment' },
+            { data: 'amount', className: 'text-right' },
+            { data: 'status' },
+            { data: 'created_at' },
+            { data: 'actions', orderable: false, className: 'text-right whitespace-nowrap' },
+        ],
+    });
+
+    dt.on('processing.dt', (e, settings, processing) => {
+        const wrap = tableEl.closest('.dt-table-wrap');
+        if (wrap) wrap.classList.toggle('is-loading', processing);
+    });
+
+    const toast = window.Swal?.mixin({
+        toast: true,
+        position: 'top-end',
+        timer: 2500,
+        showConfirmButton: false,
+        timerProgressBar: true,
+    });
+
+    const notify = (icon, title) => toast?.fire({ icon, title });
+
+    const postForm = async (url, formData) => {
+        const res = await fetch(url, { method: 'POST', headers, body: formData });
+        let payload = null;
+        try { payload = await res.json(); } catch (_) {}
+        if (!res.ok || !payload?.ok) {
+            const msg = payload?.message || (payload?.errors ? Object.values(payload.errors).flat().join('\n') : 'Terjadi kesalahan.');
+            throw new Error(msg);
+        }
+        return payload;
+    };
+
+    const reload = () => dt.ajax.reload(null, false);
+
+    const handleDetail = async (btn) => {
+        const orderId = btn.dataset.order;
+        try {
+            const res = await fetch(buildUrl(endpoints.detail, orderId), { headers });
+            const payload = await res.json();
+            if (!payload?.ok) throw new Error(payload?.message || 'Gagal memuat detail.');
+            window.Swal.fire({
+                title: payload.title,
+                html: payload.html,
+                width: 720,
+                showConfirmButton: false,
+                showCloseButton: true,
+                customClass: { popup: 'orders-detail-popup' },
+            });
+        } catch (e) {
+            window.Swal.fire({ icon: 'error', title: 'Gagal', text: e.message });
+        }
+    };
+
+    const handleStatus = async (btn) => {
+        const orderId = btn.dataset.order;
+        const status = btn.dataset.status;
+        const confirmMap = {
+            verified: { title: 'Verifikasi pesanan?', text: 'Pesanan akan ditandai sudah diverifikasi dan terhitung ke stok.', icon: 'question', confirmText: 'Ya, verifikasi' },
+            completed: { title: 'Tandai selesai?', text: 'Pesanan ditandai selesai (sudah diterima/diambil pelanggan).', icon: 'question', confirmText: 'Ya, selesai' },
+            cancelled: { title: 'Batalkan pesanan?', text: 'Pesanan akan dibatalkan dan tidak terhitung ke stok.', icon: 'warning', confirmText: 'Ya, batalkan' },
+            pending: { title: 'Buka kembali pesanan?', text: 'Pesanan akan dikembalikan ke status menunggu.', icon: 'question', confirmText: 'Ya, buka' },
+        };
+        const cfg = confirmMap[status];
+        if (!cfg) return;
+
+        const result = await window.Swal.fire({
+            title: cfg.title, text: cfg.text, icon: cfg.icon,
+            showCancelButton: true, confirmButtonText: cfg.confirmText,
+            cancelButtonText: 'Batal', confirmButtonColor: '#d84315',
+        });
+        if (!result.isConfirmed) return;
+
+        try {
+            const fd = new FormData();
+            fd.append('status', status);
+            await postForm(buildUrl(endpoints.status, orderId), fd);
+            notify('success', 'Status diperbarui');
+            reload();
+        } catch (e) {
+            window.Swal.fire({ icon: 'error', title: 'Gagal', text: e.message });
+        }
+    };
+
+    const handleShipping = async (btn) => {
+        const orderId = btn.dataset.order;
+        const current = btn.dataset.tracking || '';
+        const { value, isConfirmed } = await window.Swal.fire({
+            title: 'Nomor Resi Pengiriman',
+            input: 'text', inputValue: current,
+            inputPlaceholder: 'Contoh: JX1234567890',
+            inputAttributes: { autocapitalize: 'characters' },
+            showCancelButton: true, confirmButtonText: 'Simpan',
+            cancelButtonText: 'Batal', confirmButtonColor: '#d84315',
+            inputValidator: (v) => !v?.trim() ? 'Nomor resi wajib diisi' : undefined,
+        });
+        if (!isConfirmed) return;
+        try {
+            const fd = new FormData();
+            fd.append('tracking', value.trim());
+            await postForm(buildUrl(endpoints.shipping, orderId), fd);
+            notify('success', 'Resi tersimpan');
+            reload();
+        } catch (e) {
+            window.Swal.fire({ icon: 'error', title: 'Gagal', text: e.message });
+        }
+    };
+
+    const handleDpProof = async (btn) => {
+        const orderId = btn.dataset.order;
+        const { value: file, isConfirmed } = await window.Swal.fire({
+            title: 'Upload Bukti Pelunasan DP',
+            input: 'file',
+            inputAttributes: { accept: 'image/*,application/pdf' },
+            showCancelButton: true, confirmButtonText: 'Upload',
+            cancelButtonText: 'Batal', confirmButtonColor: '#d84315',
+            inputValidator: (v) => !v ? 'Pilih berkas terlebih dahulu' : undefined,
+        });
+        if (!isConfirmed) return;
+        try {
+            const fd = new FormData();
+            fd.append('proof', file);
+            await postForm(buildUrl(endpoints.dpProof, orderId), fd);
+            notify('success', 'Bukti pelunasan diunggah');
+            reload();
+        } catch (e) {
+            window.Swal.fire({ icon: 'error', title: 'Gagal', text: e.message });
+        }
+    };
+
+    const closeDropdowns = (except = null) => {
+        document.querySelectorAll('.orders-dropdown.is-open').forEach((d) => {
+            if (d !== except) {
+                d.classList.remove('is-open');
+                d.querySelector('[data-dropdown-toggle]')?.setAttribute('aria-expanded', 'false');
+            }
+        });
+    };
+
+    const positionDropdown = (dropdown) => {
+        const trigger = dropdown.querySelector('[data-dropdown-toggle]');
+        const menu = dropdown.querySelector('.dropdown-menu');
+        if (!trigger || !menu) return;
+        const rect = trigger.getBoundingClientRect();
+        const menuWidth = 224; // w-56
+        const gap = 6;
+        let left = rect.right - menuWidth;
+        if (left < 8) left = 8;
+        if (left + menuWidth > window.innerWidth - 8) left = window.innerWidth - menuWidth - 8;
+        const top = rect.bottom + gap;
+        menu.style.top = `${top}px`;
+        menu.style.left = `${left}px`;
+    };
+
+    tableEl.addEventListener('click', (e) => {
+        const toggle = e.target.closest('[data-dropdown-toggle]');
+        if (toggle) {
+            e.stopPropagation();
+            const dropdown = toggle.closest('[data-dropdown]');
+            const wasOpen = dropdown.classList.contains('is-open');
+            closeDropdowns();
+            if (!wasOpen) {
+                positionDropdown(dropdown);
+                dropdown.classList.add('is-open');
+                toggle.setAttribute('aria-expanded', 'true');
+            }
+            return;
+        }
+
+        const btn = e.target.closest('button[data-action]');
+        if (!btn) return;
+        closeDropdowns();
+        const map = { detail: handleDetail, status: handleStatus, shipping: handleShipping, 'dp-proof': handleDpProof };
+        map[btn.dataset.action]?.(btn);
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.orders-dropdown')) closeDropdowns();
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeDropdowns();
+    });
+
+    window.addEventListener('scroll', closeDropdowns, true);
+    window.addEventListener('resize', closeDropdowns);
+    dt.on('draw.dt', () => closeDropdowns());
+});

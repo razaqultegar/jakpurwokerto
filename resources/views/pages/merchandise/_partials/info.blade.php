@@ -68,19 +68,19 @@
             <span class="rounded-full {{ $isSoldOut || $isAfterEnd ? 'bg-white/20 text-white' : 'bg-yellow-300 text-primary' }} px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider" data-countdown-status>{{ $countdownStatus }}</span>
         </div>
         <div class="relative grid grid-cols-4 gap-2 text-center">
-            <div class="rounded-xl bg-white/10 py-2.5 ring-1 ring-white/15 backdrop-blur-sm">
+            <div class="countdown-cell">
                 <div class="text-xl font-black leading-none text-white" data-countdown-days>00</div>
                 <div class="mt-1 text-[9px] uppercase tracking-wider text-white/60">Hari</div>
             </div>
-            <div class="rounded-xl bg-white/10 py-2.5 ring-1 ring-white/15 backdrop-blur-sm">
+            <div class="countdown-cell">
                 <div class="text-xl font-black leading-none text-white" data-countdown-hours>00</div>
                 <div class="mt-1 text-[9px] uppercase tracking-wider text-white/60">Jam</div>
             </div>
-            <div class="rounded-xl bg-white/10 py-2.5 ring-1 ring-white/15 backdrop-blur-sm">
+            <div class="countdown-cell">
                 <div class="text-xl font-black leading-none text-white" data-countdown-minutes>00</div>
                 <div class="mt-1 text-[9px] uppercase tracking-wider text-white/60">Menit</div>
             </div>
-            <div class="rounded-xl bg-white/10 py-2.5 ring-1 ring-white/15 backdrop-blur-sm">
+            <div class="countdown-cell">
                 <div class="text-xl font-black leading-none text-white" data-countdown-seconds>00</div>
                 <div class="mt-1 text-[9px] uppercase tracking-wider text-white/60">Detik</div>
             </div>

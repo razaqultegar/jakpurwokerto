@@ -8,15 +8,15 @@
 @endphp
 
 @section('content')
-    <header class="sticky top-0 z-30 flex items-center gap-3 border-b border-mercury bg-white/95 px-4 py-3 backdrop-blur-md">
-        <a href="{{ route('home') }}" class="flex h-10 w-10 items-center justify-center rounded-full bg-skull text-foreground ring-1 ring-mercury">
+    <header class="app-header">
+        <a href="{{ route('home') }}" class="icon-btn">
             <i class="ri-home-5-line text-lg"></i>
         </a>
         <div class="flex-1">
-            <h1 class="text-sm font-black text-foreground">Terima Kasih</h1>
-            <p class="text-[10px] text-onyx">Pesanan kamu sudah kami terima</p>
+            <h1 class="app-header__title">Terima Kasih</h1>
+            <p class="app-header__subtitle">Pesanan kamu sudah kami terima</p>
         </div>
-        <span class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-bold text-emerald-600 ring-1 ring-emerald-200">
+        <span class="badge badge-emerald">
             <i class="ri-checkbox-circle-fill"></i>
             Selesai
         </span>
@@ -39,17 +39,17 @@
             </p>
         </div>
     </section>
-    <hr class="m-0 h-2 w-full border-0 bg-skull p-0">
-    <section class="px-4 py-5">
-        <div class="mb-3 flex items-center gap-2">
-            <span class="h-5 w-1 rounded-full bg-primary"></span>
-            <h2 class="text-sm font-bold text-foreground">ID Pesanan</h2>
+    <hr class="section-divider">
+    <section class="section">
+        <div class="section-header">
+            <span class="section-bar"></span>
+            <h2 class="section-title">ID Pesanan</h2>
         </div>
-        <div class="rounded-2xl bg-skull p-4 ring-1 ring-mercury">
+        <div class="card-skull-lg">
             <p class="text-[10px] font-semibold uppercase tracking-wider text-onyx">Nomor Pesanan</p>
             <div class="mt-1 flex items-center justify-between gap-2">
                 <span class="text-lg font-black tracking-wider text-foreground">{{ $order['id'] }}</span>
-                <span class="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-1 text-[10px] font-bold text-emerald-600 ring-1 ring-emerald-200">
+                <span class="badge bg-emerald-100 text-emerald-600 ring-1 ring-emerald-200">
                     <i class="ri-checkbox-circle-fill"></i>
                     Diproses
                 </span>
@@ -57,11 +57,11 @@
             <p class="mt-2 text-[10px] leading-snug text-onyx">Simpan ID Pesanan ini sebagai referensi. Kami akan menghubungi kamu via email untuk update pesanan.</p>
         </div>
     </section>
-    <hr class="m-0 h-2 w-full border-0 bg-skull p-0">
-    <section class="px-4 py-5">
-        <div class="mb-3 flex items-center gap-2">
-            <span class="h-5 w-1 rounded-full bg-primary"></span>
-            <h2 class="text-sm font-bold text-foreground">Ringkasan Pesanan</h2>
+    <hr class="section-divider">
+    <section class="section">
+        <div class="section-header">
+            <span class="section-bar"></span>
+            <h2 class="section-title">Ringkasan Pesanan</h2>
         </div>
         <div class="space-y-2">
             @foreach ($items as $it)
@@ -119,10 +119,9 @@
             </div>
         </dl>
     </section>
-    <div class="pointer-events-none fixed inset-x-0 bottom-0 z-40 mx-auto max-w-screen-sm px-3 pb-3">
-        <div class="pointer-events-auto mx-auto max-w-480 rounded-2xl bg-white/95 p-2 shadow-[0_10px_30px_-5px_rgba(0,0,0,0.25)] ring-1 ring-mercury backdrop-blur-md">
-            <a href="{{ route('home') }}" class="relative flex h-12 w-full items-center justify-center gap-2 overflow-hidden rounded-xl bg-linear-to-r from-primary via-primary-light to-primary-lighter px-5 text-sm font-bold text-white shadow-lg">
-                <span class="pointer-events-none absolute -left-6 top-0 h-full w-12 -skew-x-12 bg-white/20"></span>
+    <div class="cta-floating">
+        <div class="pointer-events-auto mx-auto max-w-480 cta-card">
+            <a href="{{ route('home') }}" class="btn-primary-gradient w-full">
                 <i class="ri-home-5-line text-lg"></i>
                 Kembali ke Beranda
             </a>

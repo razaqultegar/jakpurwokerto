@@ -1,0 +1,38 @@
+@layer components {
+    .btn-primary-gradient {
+        @apply relative flex h-12 items-center justify-center gap-2 overflow-hidden rounded-xl bg-linear-to-r from-primary via-primary-light to-primary-lighter px-5 text-sm font-bold text-white shadow-lg;
+    }
+
+    .btn-primary-gradient::before {
+        content: "";
+        @apply pointer-events-none absolute -left-6 top-0 h-full w-12 -skew-x-12 bg-white/20;
+    }
+
+    .btn-primary {
+        @apply flex h-11 items-center justify-center gap-2 rounded-xl bg-primary px-5 text-xs font-bold text-white shadow-sm transition active:scale-95;
+    }
+
+    .btn-outline-primary {
+        @apply relative flex h-12 items-center justify-center gap-2 rounded-xl border-2 border-primary bg-white text-sm font-bold text-primary;
+    }
+
+    .icon-btn {
+        @apply flex h-10 w-10 items-center justify-center rounded-full bg-skull text-foreground ring-1 ring-mercury;
+    }
+
+    .icon-btn-sm {
+        @apply flex h-9 w-9 items-center justify-center rounded-full bg-skull text-foreground ring-1 ring-mercury;
+    }
+
+    .icon-btn-xs {
+        @apply flex h-8 w-8 items-center justify-center rounded-full bg-skull text-foreground ring-1 ring-mercury;
+    }
+
+    .icon-btn-glass {
+        @apply flex h-10 w-10 items-center justify-center rounded-full bg-white/25 text-white shadow ring-1 ring-white/30 backdrop-blur-md;
+    }
+
+    .icon-btn-nav {
+        @apply absolute top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white text-foreground shadow-lg ring-1 ring-mercury transition disabled:pointer-events-none disabled:opacity-0;
+    }
+}

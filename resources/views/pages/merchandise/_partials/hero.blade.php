@@ -12,25 +12,25 @@
         <div class="pointer-events-none absolute inset-x-0 top-0 h-32 bg-linear-to-b from-black/55 via-black/15 to-transparent"></div>
         <div class="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-linear-to-t from-black/60 via-black/20 to-transparent"></div>
         <div class="absolute inset-x-0 top-0 z-10 flex items-center justify-between px-4 pt-4">
-            <a href="{{ route('home') }}" class="flex h-10 w-10 items-center justify-center rounded-full bg-white/25 text-white shadow ring-1 ring-white/30 backdrop-blur-md">
+            <a href="{{ route('home') }}" class="icon-btn-glass">
                 <i class="ri-arrow-left-line text-lg"></i>
             </a>
             <div class="flex items-center gap-2">
-                <button type="button" class="flex h-10 w-10 items-center justify-center rounded-full bg-white/25 text-white shadow ring-1 ring-white/30 backdrop-blur-md" data-share-open>
+                <button type="button" class="icon-btn-glass" data-share-open>
                     <i class="ri-share-forward-line text-lg"></i>
                 </button>
-                <button type="button" class="relative flex h-10 w-10 items-center justify-center rounded-full bg-white/25 text-white shadow ring-1 ring-white/30 backdrop-blur-md" data-cart-open>
+                <button type="button" class="icon-btn-glass relative" data-cart-open>
                     <i class="ri-shopping-cart-2-line text-lg"></i>
                     <span class="absolute -right-1 -top-1 hidden h-4 min-w-4 items-center justify-center rounded-full bg-yellow-300 px-1 text-[9px] font-black leading-none text-primary ring-2 ring-white" data-cart-count>0</span>
                 </button>
             </div>
         </div>
         <div class="absolute left-4 top-4 z-10 mt-14 flex flex-col gap-1.5">
-            <span class="inline-flex w-fit items-center gap-1 rounded-full bg-yellow-300 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-primary shadow-lg">
+            <span class="badge bg-yellow-300 text-primary uppercase tracking-wider shadow-lg">
                 <i class="ri-flashlight-fill"></i>
                 {{ $merch['badge'] }}
             </span>
-            <span class="inline-flex w-fit items-center gap-1 rounded-full bg-black/50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-white ring-1 ring-white/20 backdrop-blur-sm">
+            <span class="badge bg-black/50 text-white uppercase tracking-wider ring-1 ring-white/20 backdrop-blur-sm font-semibold">
                 <i class="ri-vip-crown-fill text-yellow-300"></i>
                 {{ $merch['edition'] }}
             </span>

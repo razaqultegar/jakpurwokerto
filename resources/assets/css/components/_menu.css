@@ -1,0 +1,13 @@
+@layer components {
+    .menu-tile {
+        @apply flex flex-col items-center gap-1.5 text-center;
+    }
+
+    .menu-tile__icon {
+        @apply flex h-14 w-14 items-center justify-center rounded-2xl;
+    }
+
+    .menu-tile__label {
+        @apply text-[11px] font-medium leading-tight text-foreground;
+    }
+}

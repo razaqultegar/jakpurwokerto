@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Order;
 use Carbon\Carbon;
 
 class MerchandiseController extends Controller
@@ -20,7 +21,7 @@ class MerchandiseController extends Controller
             'discount_percent' => 22,
             'sold' => 0,
             'stock_limit' => 300,
-            'po_start' => '2026-05-20T19:28:00+07:00',
+            'po_start' => '2026-05-20T00:00:00+07:00',
             'po_end' => '2026-06-20T23:59:59+07:00',
             'estimated_ship' => '15 Juli 2026',
             'gallery' => [
@@ -48,7 +49,8 @@ class MerchandiseController extends Controller
         ];
 
         $stockLimit = $merchandise['stock_limit'] ?? 0;
-        $sold = $merchandise['sold'] ?? 0;
+        $sold = $this->countSold($merchandise['slug']);
+        $merchandise['sold'] = $sold;
         $remaining = max(0, $stockLimit - $sold);
         $progress = $stockLimit > 0 ? min(100, (int) round(($sold / $stockLimit) * 100)) : 0;
 
@@ -75,5 +77,23 @@ class MerchandiseController extends Controller
             'title' => $merchandise['name'],
             'merch' => $merchandise,
         ]);
+    }
+
+    private function countSold(string $slug): int
+    {
+        $sold = 0;
+        Order::whereIn('status', ['verified', 'completed'])
+            ->select(['item'])
+            ->chunk(200, function ($orders) use (&$sold, $slug) {
+                foreach ($orders as $order) {
+                    foreach ($order->item ?? [] as $line) {
+                        if (($line['slug'] ?? null) === $slug) {
+                            $sold += (int) ($line['qty'] ?? 0);
+                        }
+                    }
+                }
+            });
+
+        return $sold;
     }
 }

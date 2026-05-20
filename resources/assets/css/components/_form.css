@@ -1,0 +1,25 @@
+@layer components {
+    .field-label {
+        @apply mb-1 block text-[11px] font-semibold text-foreground;
+    }
+
+    .field-control {
+        @apply w-full rounded-xl border-2 border-mercury bg-white py-2.5 px-3 text-xs font-medium text-foreground placeholder:text-onyx/60 focus:border-primary focus:outline-none;
+    }
+
+    .field-control--with-icon {
+        @apply pl-9 pr-3;
+    }
+
+    .field-icon {
+        @apply pointer-events-none absolute inset-y-0 left-3 flex items-center text-onyx;
+    }
+
+    .field-icon-right {
+        @apply pointer-events-none absolute inset-y-0 right-3 flex items-center text-onyx;
+    }
+
+    .field-error {
+        @apply mt-1 hidden text-[10px] text-red-600;
+    }
+}

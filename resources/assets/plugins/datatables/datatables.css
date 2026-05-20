@@ -1,0 +1,559 @@
+@import "datatables.net-dt/css/dataTables.dataTables.css";
+@reference "../../css/app.css";
+
+/* ===========================================================
+   DataTables 2.x — branded theme (Tailwind-based)
+   =========================================================== */
+
+/* Override built-in CSS variables for stripe + hover */
+:root {
+    --dt-row-stripe: 248, 248, 248;
+    --dt-row-stripe-alpha: 0.5;
+    --dt-row-hover: 255, 244, 230;
+    --dt-row-hover-alpha: 0.7;
+    --dt-column-ordering-alpha: 0;
+}
+
+/* ===== Container ===== */
+div.dt-container {
+    @apply text-sm text-foreground;
+    position: relative;
+}
+
+/* ===== Toolbar (top) ===== */
+.dt-toolbar {
+    @apply flex flex-wrap items-center justify-between gap-3 border-b border-mercury bg-white px-5 py-3.5;
+}
+
+.dt-toolbar-start {
+    @apply flex items-center gap-2;
+}
+
+.dt-toolbar-end {
+    @apply ml-auto flex items-center gap-2;
+}
+
+/* ===== Length select ===== */
+div.dt-container .dt-length {
+    @apply flex items-center gap-2 text-xs font-medium text-onyx;
+}
+
+div.dt-container .dt-length::before {
+    content: 'Tampilkan';
+    @apply text-xs font-medium text-onyx;
+}
+
+div.dt-container .dt-length::after {
+    content: 'data';
+    @apply text-xs font-medium text-onyx;
+}
+
+div.dt-container .dt-length label {
+    @apply m-0 contents;
+}
+
+div.dt-container .dt-length select.dt-input,
+div.dt-container .dt-length select {
+    @apply h-9 cursor-pointer rounded-lg border border-mercury bg-white pl-3 pr-8 text-xs font-semibold text-foreground transition focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%23d84315'%3E%3Cpath fill-rule='evenodd' d='M5.23 7.21a.75.75 0 011.06.02L10 11.06l3.71-3.83a.75.75 0 011.08 1.04l-4.25 4.39a.75.75 0 01-1.08 0L5.21 8.27a.75.75 0 01.02-1.06z' clip-rule='evenodd'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.6rem center;
+    background-size: 1rem;
+    appearance: none;
+}
+
+/* ===== Search ===== */
+div.dt-container .dt-search {
+    @apply relative text-xs text-onyx;
+}
+
+div.dt-container .dt-search label {
+    @apply m-0 hidden;
+}
+
+div.dt-container .dt-search::before {
+    content: '\f0d1';
+    font-family: remixicon;
+    @apply pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-base text-onyx/60 z-10;
+}
+
+div.dt-container .dt-search input.dt-input,
+div.dt-container .dt-search input[type="search"] {
+    @apply h-9 w-80 max-w-full rounded-lg border border-mercury bg-skull/40 py-2 pl-9 pr-3 text-xs font-medium text-foreground transition placeholder:text-onyx/60 focus:border-primary focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/15;
+    margin: 0;
+}
+
+/* ===== Table wrap =====
+   Use overflow-x: clip + overflow-y: visible to allow row dropdowns to
+   escape vertically while still containing wide tables horizontally. */
+.dt-table-wrap {
+    position: relative;
+    overflow-x: auto;
+    overflow-y: visible;
+}
+
+/* ===== Table ===== */
+table.dataTable {
+    @apply w-full text-sm text-foreground;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 0 !important;
+    width: 100% !important;
+}
+
+table.dataTable thead > tr > th {
+    @apply border-b border-mercury bg-skull/40 px-5 py-3.5 text-left align-middle text-[12.5px] font-semibold text-onyx;
+    text-transform: none;
+    letter-spacing: 0;
+    position: relative;
+}
+
+table.dataTable thead > tr > th.dt-orderable-asc,
+table.dataTable thead > tr > th.dt-orderable-desc {
+    @apply cursor-pointer select-none transition hover:bg-skull hover:text-foreground;
+}
+
+/* Use inline-flex header layout so chevron sits next to the title text
+   (no absolute positioning needed → no overflow clipping). */
+table.dataTable thead > tr > th .dt-column-header {
+    @apply inline-flex items-center gap-1.5;
+}
+
+/* Sort indicator — single Remix Icon glyph swapped by sort state.
+   We reset DT's default ::before/::after triangles and render the
+   icon directly inside .dt-column-order via its own ::after. */
+table.dataTable thead > tr > th .dt-column-order {
+    @apply pointer-events-none inline-flex h-4 w-4 items-center justify-center text-onyx/40;
+    position: static !important;
+    inset: auto !important;
+    transform: none !important;
+    font-family: 'remixicon' !important;
+    font-style: normal !important;
+    font-weight: normal !important;
+    font-size: 13px !important;
+    line-height: 1 !important;
+    transition: color 150ms;
+}
+
+table.dataTable thead > tr > th .dt-column-order::before {
+    content: none !important;
+    display: none !important;
+}
+
+table.dataTable thead > tr > th .dt-column-order::after {
+    display: inline !important;
+    position: static !important;
+    inset: auto !important;
+    transform: none !important;
+    border: 0 !important;
+    opacity: 1 !important;
+    color: inherit !important;
+    font-family: 'remixicon' !important;
+    font-style: normal !important;
+    font-weight: normal !important;
+    line-height: 1 !important;
+    font-size: inherit !important;
+}
+
+/* Idle sortable: up-down chevron */
+table.dataTable thead > tr > th.dt-orderable-asc .dt-column-order::after,
+table.dataTable thead > tr > th.dt-orderable-desc .dt-column-order::after {
+    content: '\f327' !important;
+}
+
+/* Active asc */
+table.dataTable thead > tr > th.dt-ordering-asc .dt-column-order::after {
+    content: '\ea76' !important;
+    color: rgb(216, 67, 21) !important;
+}
+
+/* Active desc */
+table.dataTable thead > tr > th.dt-ordering-desc .dt-column-order::after {
+    content: '\ea4c' !important;
+    color: rgb(216, 67, 21) !important;
+}
+
+table.dataTable thead > tr > th.dt-ordering-asc .dt-column-order,
+table.dataTable thead > tr > th.dt-ordering-desc .dt-column-order {
+    color: rgb(216, 67, 21);
+}
+
+table.dataTable thead > tr > th.dt-orderable-asc:hover .dt-column-order,
+table.dataTable thead > tr > th.dt-orderable-desc:hover .dt-column-order {
+    color: rgb(74, 74, 74);
+}
+
+/* Non-sortable columns hide the order container completely */
+table.dataTable thead > tr > th.dt-orderable-none .dt-column-order {
+    display: none !important;
+}
+
+/* Body cells */
+table.dataTable tbody > tr > td {
+    @apply border-b border-mercury/50 px-5 py-4 align-middle text-[13px];
+}
+
+table.dataTable tbody > tr:last-child > td {
+    @apply border-b-0;
+}
+
+table.dataTable tbody > tr {
+    @apply transition-colors;
+}
+
+/* Disable DataTables column-ordering tint completely (the gray box-shadow
+   on the active-sort column). Row stripe & hover stay intact via CSS vars. */
+table.dataTable.display > tbody tr > .sorting_1,
+table.dataTable.display > tbody tr > .sorting_2,
+table.dataTable.display > tbody tr > .sorting_3,
+table.dataTable.display > tbody > tr:nth-child(odd) > .sorting_1,
+table.dataTable.display > tbody > tr:nth-child(odd) > .sorting_2,
+table.dataTable.display > tbody > tr:nth-child(odd) > .sorting_3,
+table.dataTable.display > tbody > tr:nth-child(even) > .sorting_1,
+table.dataTable.display > tbody > tr:nth-child(even) > .sorting_2,
+table.dataTable.display > tbody > tr:nth-child(even) > .sorting_3,
+table.dataTable.order-column > tbody tr > .sorting_1,
+table.dataTable.order-column > tbody tr > .sorting_2,
+table.dataTable.order-column > tbody tr > .sorting_3 {
+    box-shadow: none !important;
+}
+
+table.dataTable thead > tr > th.dt-ordering-asc,
+table.dataTable thead > tr > th.dt-ordering-desc {
+    box-shadow: none !important;
+}
+
+/* ===== Empty state ===== */
+.dt-empty-state {
+    @apply flex flex-col items-center justify-center gap-2 py-10 text-center;
+}
+
+.dt-empty-icon {
+    @apply mb-2 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary-softer text-3xl text-primary ring-1 ring-primary-soft;
+}
+
+.dt-empty-state h5 {
+    @apply m-0 text-sm font-bold text-foreground;
+}
+
+.dt-empty-state p {
+    @apply m-0 max-w-sm text-xs leading-relaxed text-onyx;
+}
+
+div.dt-container .dt-empty {
+    @apply px-5;
+}
+
+table.dataTable td.dt-empty {
+    @apply text-center;
+}
+
+/* ===== Footer ===== */
+.dt-footer {
+    @apply flex flex-wrap items-center justify-between gap-3 border-t border-mercury bg-white px-5 py-3;
+}
+
+.dt-footer-start {
+    @apply flex items-center;
+}
+
+.dt-footer-end {
+    @apply ml-auto flex items-center gap-1;
+}
+
+div.dt-container .dt-info {
+    @apply m-0 p-0 text-xs font-medium text-onyx;
+}
+
+/* ===== Pagination ===== */
+div.dt-container .dt-paging {
+    @apply m-0 flex items-center gap-1 p-0;
+}
+
+div.dt-container .dt-paging nav {
+    @apply flex items-center gap-1;
+}
+
+div.dt-container .dt-paging .dt-paging-button {
+    @apply inline-flex h-9 min-w-9 cursor-pointer items-center justify-center rounded-lg border border-transparent bg-transparent px-3 text-xs font-semibold text-onyx transition;
+    margin: 0 !important;
+    box-shadow: none !important;
+    background-color: transparent;
+}
+
+div.dt-container .dt-paging .dt-paging-button:hover:not(.disabled):not(.current) {
+    @apply border-mercury bg-skull text-foreground;
+    background-color: rgb(248, 248, 248) !important;
+    color: rgb(74, 74, 74) !important;
+}
+
+div.dt-container .dt-paging .dt-paging-button.current,
+div.dt-container .dt-paging .dt-paging-button.current:hover {
+    @apply border-primary text-white;
+    background-color: rgb(216, 67, 21) !important;
+    color: rgb(255, 255, 255) !important;
+    border-color: rgb(216, 67, 21) !important;
+}
+
+div.dt-container .dt-paging .dt-paging-button.disabled,
+div.dt-container .dt-paging .dt-paging-button.disabled:hover {
+    @apply cursor-not-allowed border-transparent text-onyx/30;
+    background-color: transparent !important;
+    color: rgba(102, 102, 102, 0.3) !important;
+}
+
+div.dt-container .dt-paging .ellipsis {
+    @apply px-1 text-onyx/40;
+}
+
+/* ===== Processing overlay =====
+   Soft white veil over the table area; the .dt-processing element itself
+   becomes the centered pill (no extra pseudo-elements). */
+.dt-table-wrap {
+    position: relative;
+}
+
+.dt-table-wrap.is-loading {
+    min-height: 180px;
+}
+
+.dt-table-wrap.is-loading::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(2px);
+    z-index: 15;
+    pointer-events: none;
+}
+
+div.dt-container .dt-processing {
+    @apply z-30 inline-flex items-center justify-center gap-2.5 rounded-full border border-mercury bg-white text-xs font-semibold text-foreground shadow-lg;
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%);
+    width: auto !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0.5rem 1rem 0.5rem 0.75rem !important;
+    border-radius: 9999px !important;
+    line-height: 1 !important;
+    white-space: nowrap;
+}
+
+div.dt-container .dt-processing > span {
+    display: inline-flex;
+    align-items: center;
+    line-height: 1;
+}
+
+/* DataTables 2.x always appends an extra <div><div/>×4</div> after the
+   custom processing HTML for its default dot animation. Hide it. */
+div.dt-container .dt-processing > div:last-child {
+    display: none !important;
+}
+
+.dt-spinner {
+    @apply inline-block shrink-0 animate-spin rounded-full border-2 border-mercury;
+    width: 16px;
+    height: 16px;
+    border-top-color: rgb(216, 67, 21);
+    vertical-align: middle;
+}
+
+/* ===== Action dropdown ===== */
+.orders-dropdown {
+    @apply relative inline-block text-left;
+}
+
+.orders-dropdown .dropdown-trigger {
+    @apply inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border border-mercury bg-white text-base text-onyx transition hover:border-primary hover:bg-primary-softer hover:text-primary;
+}
+
+.orders-dropdown.is-open .dropdown-trigger {
+    @apply border-primary bg-primary-softer text-primary;
+}
+
+.orders-dropdown .dropdown-menu {
+    @apply invisible fixed z-50 flex w-56 origin-top-right -translate-y-1 scale-95 flex-col gap-0.5 rounded-xl border border-mercury bg-white p-1.5 opacity-0 shadow-xl ring-1 ring-black/5 transition;
+}
+
+.orders-dropdown.is-open .dropdown-menu {
+    @apply visible translate-y-0 scale-100 opacity-100;
+}
+
+.orders-dropdown .dropdown-item {
+    @apply inline-flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-[11.5px] font-medium text-foreground transition hover:bg-skull hover:text-foreground;
+}
+
+.orders-dropdown .dropdown-item > i {
+    @apply text-base text-onyx/70;
+}
+
+.orders-dropdown .dropdown-item:hover > i {
+    @apply text-foreground;
+}
+
+.orders-dropdown .dropdown-item--success {
+    @apply text-emerald-700 hover:bg-emerald-50;
+}
+.orders-dropdown .dropdown-item--success > i,
+.orders-dropdown .dropdown-item--success:hover > i {
+    @apply text-emerald-600;
+}
+
+.orders-dropdown .dropdown-item--info {
+    @apply text-blue-700 hover:bg-blue-50;
+}
+.orders-dropdown .dropdown-item--info > i,
+.orders-dropdown .dropdown-item--info:hover > i {
+    @apply text-blue-600;
+}
+
+.orders-dropdown .dropdown-item--warning {
+    @apply text-amber-700 hover:bg-amber-50;
+}
+.orders-dropdown .dropdown-item--warning > i,
+.orders-dropdown .dropdown-item--warning:hover > i {
+    @apply text-amber-600;
+}
+
+.orders-dropdown .dropdown-item--danger {
+    @apply text-red-700 hover:bg-red-50;
+}
+.orders-dropdown .dropdown-item--danger > i,
+.orders-dropdown .dropdown-item--danger:hover > i {
+    @apply text-red-600;
+}
+
+/* ===== Detail modal ===== */
+.orders-detail-popup {
+    border-radius: 1.25rem !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+}
+
+.orders-detail-popup .swal2-title {
+    display: none !important;
+}
+
+.orders-detail-popup .swal2-html-container {
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    text-align: left !important;
+}
+
+.orders-detail-popup .swal2-close {
+    @apply z-50 text-white;
+    color: #fff !important;
+    top: 0.875rem !important;
+    right: 0.875rem !important;
+    background: rgba(0, 0, 0, 0.18) !important;
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.25) !important;
+    border-radius: 9999px !important;
+    width: 34px !important;
+    height: 34px !important;
+    line-height: 1 !important;
+    font-size: 20px !important;
+    transition: background 150ms !important;
+}
+
+.orders-detail-popup .swal2-close:hover {
+    background: rgba(0, 0, 0, 0.35) !important;
+    color: #fff !important;
+    transform: none !important;
+}
+
+/* Detail components */
+.detail-modal {
+    @apply flex flex-col;
+}
+
+.detail-modal > *:not(.detail-hero) {
+    margin-left: 1.25rem;
+    margin-right: 1.25rem;
+}
+
+.detail-modal > *:last-child {
+    margin-bottom: 1.25rem;
+}
+
+.detail-hero {
+    @apply relative overflow-hidden px-5 pb-5 pt-6 text-white;
+    background: linear-gradient(135deg, #d84315 0%, #f57c00 60%, #ff7043 100%);
+}
+
+.detail-hero__bg::before,
+.detail-hero__bg::after {
+    content: '';
+    position: absolute;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.06);
+    pointer-events: none;
+}
+
+.detail-hero__bg::before {
+    width: 220px;
+    height: 220px;
+    top: -110px;
+    right: -60px;
+}
+
+.detail-hero__bg::after {
+    width: 160px;
+    height: 160px;
+    bottom: -90px;
+    left: -40px;
+}
+
+.detail-chip {
+    @apply inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-bold transition;
+}
+
+.detail-chip--glass {
+    @apply border-white/30 bg-white/15 text-white backdrop-blur-md;
+}
+
+.detail-chip--status {
+    @apply border-transparent;
+}
+
+.detail-chip--primary {
+    @apply border-primary/30 bg-primary-softer text-primary hover:bg-primary-soft;
+}
+
+.detail-chip--success {
+    @apply border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100;
+}
+
+.detail-chip--muted {
+    @apply border-mercury bg-skull text-onyx;
+}
+
+.detail-action {
+    @apply inline-flex flex-col items-center justify-center gap-1 rounded-xl border border-mercury bg-white px-3 py-3 text-[11px] font-semibold text-foreground transition hover:border-primary hover:bg-primary-softer hover:text-primary;
+}
+
+.detail-action > i {
+    @apply text-lg;
+}
+
+.detail-action--success {
+    @apply hover:border-emerald-400 hover:bg-emerald-50 hover:text-emerald-700;
+}
+
+.detail-card {
+    @apply rounded-2xl border border-mercury bg-white p-4;
+}
+
+.detail-card__title {
+    @apply mb-3 inline-flex items-center gap-1.5 text-[12px] font-semibold text-foreground;
+}
+
+.detail-card__title > i {
+    @apply text-base text-onyx;
+}

@@ -2,8 +2,8 @@
     $shareUrl = url()->current();
     $shareText = ($merch['name'] ?? 'Merchandise') . ' - ' . ($merch['tagline'] ?? '');
 @endphp
-<div class="pointer-events-none fixed inset-0 z-50" aria-hidden="true" data-share>
-    <div class="absolute inset-0 bg-black/60 opacity-0 transition-opacity duration-300" data-share-backdrop></div>
+<div class="overlay" aria-hidden="true" data-share>
+    <div class="overlay-backdrop--dark" data-share-backdrop></div>
     <div class="absolute inset-x-0 bottom-0 mx-auto flex w-full max-w-screen-sm translate-y-full flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl transition-transform duration-300 ease-out" aria-modal="true" data-share-panel>
         <div class="flex justify-center pt-2.5">
             <span class="h-1.5 w-10 rounded-full bg-mercury"></span>
@@ -14,11 +14,11 @@
                     <i class="ri-share-forward-line text-lg"></i>
                 </span>
                 <div>
-                    <h2 class="text-sm font-bold text-foreground">Bagikan</h2>
+                    <h2 class="section-title">Bagikan</h2>
                     <p class="text-[10px] text-onyx">Ajak teman lihat merchandise ini</p>
                 </div>
             </div>
-            <button type="button" class="flex h-9 w-9 items-center justify-center rounded-full bg-skull text-foreground ring-1 ring-mercury" data-share-close>
+            <button type="button" class="icon-btn-sm" data-share-close>
                 <i class="ri-close-line text-lg"></i>
             </button>
         </header>

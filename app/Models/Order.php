@@ -15,6 +15,8 @@ class Order extends Model
         'pickup_location',
         'customer_address',
         'payment_proof',
+        'shipping_tracking',
+        'dp_settlement_proof',
         'item',
         'subtotal',
         'amount_due',
@@ -23,6 +25,8 @@ class Order extends Model
         'payment_method_key',
         'payment_data',
         'status',
+        'verified_at',
+        'completed_at',
     ];
 
     protected $casts = [
@@ -30,6 +34,8 @@ class Order extends Model
         'payment_data' => 'array',
         'subtotal' => 'integer',
         'amount_due' => 'integer',
+        'verified_at' => 'datetime',
+        'completed_at' => 'datetime',
     ];
 
     public function getRouteKeyName()

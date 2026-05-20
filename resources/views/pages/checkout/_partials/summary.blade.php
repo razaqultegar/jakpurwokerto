@@ -1,7 +1,7 @@
-<section class="px-4 py-5">
-    <div class="mb-3 flex items-center gap-2">
-        <span class="h-5 w-1 rounded-full bg-primary"></span>
-        <h2 class="text-sm font-bold text-foreground">Ringkasan Pesanan</h2>
+<section class="section">
+    <div class="section-header">
+        <span class="section-bar"></span>
+        <h2 class="section-title">Ringkasan Pesanan</h2>
     </div>
 
     <div class="space-y-2" data-cart-items>
@@ -15,7 +15,7 @@
             </span>
             <p class="text-xs font-bold text-foreground">Keranjang kosong</p>
             <p class="text-[10px] text-onyx">Yuk pilih merchandise dulu sebelum lanjut.</p>
-            <a href="{{ route('home') }}" class="mt-1 inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1.5 text-[11px] font-bold text-white">
+            <a href="{{ route('home') }}" class="badge mt-1 bg-primary text-white px-3 py-1.5 text-[11px]">
                 <i class="ri-arrow-left-line"></i>
                 Cari Merchandise
             </a>
