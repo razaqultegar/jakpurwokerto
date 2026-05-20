@@ -275,7 +275,6 @@ class CheckoutController extends Controller
 
         $order->update([
             'payment_proof' => $path,
-            'status' => $order->status === 'pending' ? 'paid' : $order->status,
         ]);
 
         try {

@@ -30,7 +30,7 @@
         <footer class="border-t border-mercury bg-white px-4 py-3">
             <div class="mb-3 flex items-center justify-between">
                 <span class="text-[11px] text-onyx">Total</span>
-                <span class="text-base font-black text-foreground" data-cart-total>Rp 0</span>
+                <span class="text-base font-black text-foreground" data-cart-total>Rp0</span>
             </div>
             <button type="button" class="btn-primary-gradient w-full disabled:cursor-not-allowed disabled:opacity-60" data-cart-checkout disabled>
                 <i class="ri-secure-payment-line text-base"></i>

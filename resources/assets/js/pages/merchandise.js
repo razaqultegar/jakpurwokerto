@@ -407,7 +407,7 @@ function initAlert() {
 }
 
 function formatRupiah(n) {
-    return 'Rp ' + n.toLocaleString('id-ID');
+    return 'Rp' + n.toLocaleString('id-ID');
 }
 
 const CART_STORAGE_KEY = 'jpw.cart.v1';
