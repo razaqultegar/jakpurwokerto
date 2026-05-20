@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Order;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -465,7 +466,7 @@ class AdminController extends Controller
         'the-7ourney' => 300,
     ];
 
-    private function findDuplicatePendingOrders(Order $order): \Illuminate\Support\Collection
+    private function findDuplicatePendingOrders(Order $order): Collection
     {
         $email = trim((string) $order->customer_email);
         $phone = preg_replace('/\D+/', '', (string) $order->customer_phone);
