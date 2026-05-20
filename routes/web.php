@@ -21,6 +21,7 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::post('/orders/{order}/status', [AdminController::class, 'updateStatus'])->name('orders.status');
     Route::post('/orders/{order}/shipping', [AdminController::class, 'updateShipping'])->name('orders.shipping');
     Route::post('/orders/{order}/dp-proof', [AdminController::class, 'uploadDpProof'])->name('orders.dp-proof');
+    Route::delete('/orders/{order}', [AdminController::class, 'destroyOrder'])->name('orders.destroy');
 });
 
 Route::get('/{slug}', [MerchandiseController::class, 'show'])->name('merchandise.show');

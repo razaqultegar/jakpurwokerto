@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
         export: root?.dataset.exportUrl,
         detail: root?.dataset.detailUrl,
         status: root?.dataset.statusUrl,
+        delete: root?.dataset.deleteUrl,
     };
 
     const headers = { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' };
@@ -37,18 +38,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 d.filter_date_to = filters.date_to;
             },
         },
-        order: [[5, 'desc']],
+        scrollX: true,
+        autoWidth: false,
+        order: [[1, 'desc']],
         language: {
             searchPlaceholder: 'Cari order, nama, email, telepon…',
         },
         columns: [
-            { data: 'order_id' },
-            { data: 'customer' },
-            { data: 'payment' },
-            { data: 'amount', className: 'text-right' },
-            { data: 'status' },
-            { data: 'created_at' },
-            { data: 'actions', orderable: false, className: 'text-right whitespace-nowrap' },
+            { data: 'order_id', className: 'whitespace-nowrap' },
+            { data: 'created_at', className: 'whitespace-nowrap' },
+            { data: 'customer', className: 'whitespace-nowrap' },
+            { data: 'item_count', orderable: false, className: 'whitespace-nowrap text-center' },
+            { data: 'amount', className: 'whitespace-nowrap text-right' },
+            { data: 'payment', className: 'whitespace-nowrap' },
+            { data: 'status', className: 'whitespace-nowrap' },
+            { data: 'actions', orderable: false, className: 'whitespace-nowrap text-right' },
         ],
     });
 
@@ -168,6 +172,15 @@ document.addEventListener('DOMContentLoaded', () => {
     detailModal?.querySelectorAll('[data-modal-close]').forEach((el) => {
         el.addEventListener('click', closeDetailModal);
     });
+
+    detailModalContent?.addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-action]');
+        if (!btn) return;
+        e.preventDefault();
+        const map = { detail: handleDetail, delete: handleDelete };
+        map[btn.dataset.action]?.(btn);
+    });
+
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && detailModal && !detailModal.hidden) closeDetailModal();
     });
@@ -247,6 +260,47 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    const handleDelete = async (btn) => {
+        const orderId = btn.dataset.order;
+        const result = await Swal.fire({
+            title: 'Hapus pesanan?',
+            html: `Pesanan <b>${orderId}</b> akan dihapus permanen beserta bukti pembayarannya. Aksi ini tidak bisa dibatalkan.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, hapus',
+            cancelButtonText: 'Batal',
+            confirmButtonColor: '#dc2626',
+        });
+        if (!result.isConfirmed) return;
+
+        try {
+            const res = await fetch(buildUrl(endpoints.delete, orderId), {
+                method: 'POST',
+                headers,
+                body: (() => { const fd = new FormData(); fd.append('_method', 'DELETE'); return fd; })(),
+            });
+            let payload = null;
+            try { payload = await res.json(); } catch (_) {}
+            if (!res.ok || !payload?.ok) throw new Error(payload?.message || 'Gagal menghapus.');
+            applyStats(payload.stats);
+            toast?.fire({ icon: 'success', title: 'Dihapus', text: `Pesanan ${orderId} dihapus.` });
+            dt.ajax.reload(null, false);
+            // If deleted order is the currently open one, close modal; else refresh detail to update duplicate list
+            const openOrder = detailModalContent?.querySelector('.detail-modal')?.dataset?.order;
+            if (openOrder === orderId) {
+                closeDetailModal();
+            } else if (openOrder) {
+                try {
+                    const r = await fetch(buildUrl(endpoints.detail, openOrder), { headers });
+                    const p = await r.json();
+                    if (p?.ok && detailModalContent) detailModalContent.innerHTML = p.html;
+                } catch (_) {}
+            }
+        } catch (e) {
+            Swal.fire({ icon: 'error', title: 'Gagal', text: e.message });
+        }
+    };
+
     const closeDropdowns = (except = null) => {
         document.querySelectorAll('.orders-dropdown.is-open').forEach((d) => {
             if (d !== except) {
@@ -288,7 +342,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const btn = e.target.closest('button[data-action]');
         if (!btn) return;
         closeDropdowns();
-        const map = { detail: handleDetail, status: handleStatus };
+        const map = { detail: handleDetail, status: handleStatus, delete: handleDelete };
         map[btn.dataset.action]?.(btn);
     });
 
