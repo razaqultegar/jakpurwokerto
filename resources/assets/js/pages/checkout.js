@@ -63,7 +63,7 @@ function renderCart(items) {
     const totalEl = document.querySelector('[data-total]');
     const countEl = document.querySelector('[data-cart-count]');
 
-    const subtotal = items.reduce((s, it) => s + (parseInt(it.price, 10) || 0) * (parseInt(it.qty, 10) || 0), 0);
+    const subtotal = items.reduce((s, it) => s + ((parseInt(it.price, 10) || 0) + (parseInt(it.fee, 10) || 0)) * (parseInt(it.qty, 10) || 0), 0);
     const totalQty = items.reduce((s, it) => s + (parseInt(it.qty, 10) || 0), 0);
 
     if (countEl) countEl.textContent = totalQty;
@@ -99,7 +99,7 @@ function renderCart(items) {
                     <div class="mt-0.5 text-[10px] text-onyx">${escapeHtml(it.category)} · ${escapeHtml(it.sleeve)} · Ukuran ${escapeHtml(it.size)}${feeText}</div>
                     <div class="mt-1 inline-flex items-center gap-2">
                         <span class="rounded-md bg-white px-1.5 py-0.5 text-[10px] font-semibold text-foreground ring-1 ring-mercury">x${it.qty}</span>
-                        <span class="text-[11px] font-bold text-primary">${formatRupiah(it.price)}</span>
+                        <span class="text-[11px] font-bold text-primary">${formatRupiah((parseInt(it.price, 10) || 0) + (parseInt(it.fee, 10) || 0))}</span>
                     </div>
                 </div>
                 <button type="button" class="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-white text-red-500 ring-1 ring-mercury transition active:scale-95" data-cart-remove="${i}" aria-label="Hapus item">

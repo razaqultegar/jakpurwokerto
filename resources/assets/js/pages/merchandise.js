@@ -433,7 +433,7 @@ function initCart(alert) {
 
     const render = () => {
         const totalQty = items.reduce((s, it) => s + it.qty, 0);
-        const totalPrice = items.reduce((s, it) => s + it.qty * it.price, 0);
+        const totalPrice = items.reduce((s, it) => s + it.qty * (it.price + (it.fee || 0)), 0);
 
         if (countEl) {
             countEl.textContent = totalQty;
@@ -465,7 +465,7 @@ function initCart(alert) {
                 <div class="flex-1">
                     <div class="text-xs font-bold text-foreground">${it.name}</div>
                     <div class="mt-0.5 text-[10px] text-onyx">${it.category} · ${it.sleeve} · ${it.size}${it.fee > 0 ? ` <span class="text-primary">(+${formatRupiah(it.fee)} kustom)</span>` : ''}</div>
-                    <div class="mt-1 text-[11px] font-semibold text-primary">${formatRupiah(it.price)} × ${it.qty}</div>
+                    <div class="mt-1 text-[11px] font-semibold text-primary">${formatRupiah(it.price + (it.fee || 0))} × ${it.qty}</div>
                 </div>
                 <button type="button" class="flex h-8 w-8 items-center justify-center rounded-full bg-white text-foreground ring-1 ring-mercury" data-cart-remove="${i}">
                     <i class="ri-delete-bin-line text-sm"></i>
@@ -502,7 +502,6 @@ function initCart(alert) {
         const sleeve = getSelectedSleeve();
         const qty = getQuantity();
         const fee = getSelectedSizeFee();
-        const itemPrice = getBasePrice() + fee;
         const sleeveName = sleeve?.name || '-';
         const existing = items.find((it) => it.size === size && it.category === (cat?.name || '-') && it.sleeve === sleeveName && it.slug === productSlug);
         if (existing) {
@@ -516,7 +515,7 @@ function initCart(alert) {
                 category: cat?.name || '-',
                 sleeve: sleeveName,
                 qty,
-                price: itemPrice,
+                price: getBasePrice(),
                 fee,
             });
         }
