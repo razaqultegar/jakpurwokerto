@@ -111,7 +111,7 @@ class CheckoutController extends Controller
             'fee' => (int) ($it['fee'] ?? 0),
         ], $validated['items']);
 
-        $subtotal = array_sum(array_map(fn ($it) => $it['price'] * $it['qty'], $items));
+        $subtotal = array_sum(array_map(fn ($it) => ($it['price'] + $it['fee']) * $it['qty'], $items));
         $amount = $validated['payment_type'] === 'dp' ? (int) round($subtotal * 0.5) : $subtotal;
 
         $data = $this->checkoutData();
