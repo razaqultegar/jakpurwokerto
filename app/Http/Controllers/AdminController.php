@@ -368,10 +368,6 @@ class AdminController extends Controller
 
     public function syncPayment(Request $request, Order $order)
     {
-        if ($order->payment_type !== 'dp') {
-            return response()->json(['ok' => false, 'message' => 'Sinkronisasi hanya untuk pesanan DP.'], 422);
-        }
-
         if ($order->status === 'cancelled') {
             return response()->json(['ok' => false, 'message' => 'Pesanan sudah dibatalkan.'], 422);
         }
@@ -769,7 +765,7 @@ class AdminController extends Controller
                 .'</button>';
         }
 
-        if ($order->payment_type === 'dp' && $order->status !== 'cancelled' && $order->status !== 'completed') {
+        if ($order->status !== 'cancelled' && $order->status !== 'completed') {
             $items .= '<button type="button" role="menuitem" data-action="sync-payment" data-order="'.$orderId.'" data-subtotal="'.(int) $order->subtotal.'" data-amount-due="'.(int) $order->amount_due.'" class="dropdown-item dropdown-item--info">'
                 .'<i class="ri-refresh-line"></i><span>Sinkronisasi Pembayaran</span>'
                 .'</button>';

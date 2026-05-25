@@ -180,7 +180,7 @@
                     <div class="relative flex flex-col gap-2 pr-12">
                         <span class="detail-chip detail-chip--glass w-fit font-mono"><i class="ri-refresh-line"></i> <span data-sync-order-id>—</span></span>
                         <h2 id="sync-payment-modal-title" class="text-base font-black leading-tight text-white">Sinkronisasi Pembayaran</h2>
-                        <p class="text-[12px] leading-relaxed text-white/85">Perbarui total pembayaran DP bila nominal yang ditransfer melebihi 50% dari subtotal.</p>
+                        <p class="text-[12px] leading-relaxed text-white/85">Sesuaikan total pembayaran sesuai nominal yang sudah diterima dari pembeli.</p>
                     </div>
                 </div>
 
