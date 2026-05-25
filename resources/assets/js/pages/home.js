@@ -1,13 +1,13 @@
 import { initCountdown } from '../utils/countdown.js';
 
-function initMenuDrawer() {
-    const drawer = document.querySelector('[data-menu-drawer]');
+function initKomunitasDrawer() {
+    const drawer = document.querySelector('[data-komunitas-drawer]');
     if (!drawer) return;
 
-    const panel = drawer.querySelector('[data-menu-drawer-panel]');
-    const backdrop = drawer.querySelector('[data-menu-drawer-backdrop]');
-    const openBtns = document.querySelectorAll('[data-menu-more-open]');
-    const closeBtn = drawer.querySelector('[data-menu-drawer-close]');
+    const panel = drawer.querySelector('[data-komunitas-drawer-panel]');
+    const backdrop = drawer.querySelector('[data-komunitas-drawer-backdrop]');
+    const openBtns = document.querySelectorAll('[data-komunitas-open]');
+    const closeBtn = drawer.querySelector('[data-komunitas-drawer-close]');
 
     const open = () => {
         drawer.setAttribute('aria-hidden', 'false');
@@ -34,4 +34,4 @@ function initMenuDrawer() {
 }
 
 document.querySelectorAll('[data-countdown]').forEach(initCountdown);
-initMenuDrawer();
+initKomunitasDrawer();
