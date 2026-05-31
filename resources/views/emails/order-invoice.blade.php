@@ -19,6 +19,8 @@
         'settlement-received' => ['eyebrow' => 'BUKTI PELUNASAN DITERIMA', 'intro' => 'Kami sudah menerima bukti pelunasanmu. Tim kami akan segera memverifikasi pembayaran ini.'],
         'settlement-verified' => ['eyebrow' => 'PEMBAYARAN LUNAS', 'intro' => 'Pelunasan kamu sudah kami verifikasi. Pesananmu kini berstatus LUNAS dan akan segera kami proses. Terima kasih!'],
         'reminder' => ['eyebrow' => 'PENGINGAT PELUNASAN', 'intro' => $reminderIntro],
+        'shipped' => ['eyebrow' => 'PESANAN DIKIRIM', 'intro' => 'Kabar baik! Pesananmu sudah kami serahkan ke kurir dan sedang dalam perjalanan. Berikut nomor resi untuk melacak pengiriman:'],
+        'pickup-ready' => ['eyebrow' => 'PESANAN SIAP DIAMBIL', 'intro' => 'Pesananmu sudah siap diambil. Silakan datang ke titik pengambilan berikut dan hubungi pengurus kami terlebih dahulu:'],
     ];
     $head = $headings[$mode] ?? $headings['invoice'];
 @endphp
@@ -123,6 +125,56 @@
                                         <td style="padding:16px;background:#ecfdf5;border:1px solid #a7f3d0;border-radius:8px;">
                                             <div style="font-size:14px;font-weight:bold;color:#047857;">✓ Pembayaran Lunas</div>
                                             <div style="font-size:12px;color:#047857;line-height:1.6;margin-top:4px;">Total <strong>{{ $rupiah($order['subtotal']) }}</strong> telah kami terima penuh. Pesananmu akan segera diproses{{ ($shipping['key'] ?? null) === 'kirim' ? ' dan dikirim' : '' }}.</div>
+                                        </td>
+                                    </tr>
+                                </table>
+                                @elseif ($mode === 'shipped')
+                                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:20px;">
+                                    <tr>
+                                        <td style="padding:16px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;">
+                                            <div style="font-size:13px;font-weight:bold;color:#1d4ed8;">Nomor Resi Pengiriman</div>
+                                            <div style="font-size:20px;font-weight:bold;color:#1e3a8a;letter-spacing:1px;margin-top:6px;font-family:'Courier New',monospace;">{{ $shipping['tracking'] ?? '-' }}</div>
+                                            <div style="font-size:12px;color:#1e40af;line-height:1.6;margin-top:8px;">Kurir: <strong>JNT Express</strong>. Gunakan nomor resi di atas untuk melacak status pengiriman pesananmu.</div>
+                                            @if (! empty($shipping['address']))
+                                            <div style="font-size:12px;color:#1e40af;line-height:1.6;margin-top:8px;">Dikirim ke:<br><span style="white-space:pre-line;">{{ $shipping['address'] }}</span></div>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                </table>
+                                @elseif ($mode === 'pickup-ready')
+                                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:20px;">
+                                    <tr>
+                                        <td style="padding:16px;background:#ecfdf5;border:1px solid #a7f3d0;border-radius:8px;">
+                                            <div style="font-size:14px;font-weight:bold;color:#047857;">Pesanan Siap Diambil</div>
+                                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size:13px;color:#065f46;margin-top:10px;">
+                                                @if (! empty($shipping['pickup_location_label']))
+                                                <tr>
+                                                    <td style="padding:3px 0;color:#047857;width:130px;vertical-align:top;">Lokasi</td>
+                                                    <td style="padding:3px 0;font-weight:bold;">{{ $shipping['pickup_location_label'] }}</td>
+                                                </tr>
+                                                @endif
+                                                @if (! empty($shipping['pickup_address']))
+                                                <tr>
+                                                    <td style="padding:3px 0;color:#047857;vertical-align:top;">Alamat</td>
+                                                    <td style="padding:3px 0;white-space:pre-line;">{{ $shipping['pickup_address'] }}</td>
+                                                </tr>
+                                                @endif
+                                                @if (! empty($shipping['pickup_contact_name']))
+                                                <tr>
+                                                    <td style="padding:3px 0;color:#047857;vertical-align:top;">Pengurus</td>
+                                                    <td style="padding:3px 0;">{{ $shipping['pickup_contact_name'] }}</td>
+                                                </tr>
+                                                @endif
+                                                @if (! empty($shipping['pickup_contact_phone']))
+                                                <tr>
+                                                    <td style="padding:3px 0;color:#047857;vertical-align:top;">Kontak</td>
+                                                    <td style="padding:3px 0;font-weight:bold;">
+                                                        <a href="https://wa.me/{{ $shipping['pickup_contact_phone'] }}" style="color:#047857;text-decoration:underline;">+{{ $shipping['pickup_contact_phone'] }}</a>
+                                                    </td>
+                                                </tr>
+                                                @endif
+                                            </table>
+                                            <div style="font-size:12px;color:#047857;line-height:1.6;margin-top:10px;">Mohon hubungi pengurus terlebih dahulu sebelum datang untuk memastikan pesananmu siap diserahkan.</div>
                                         </td>
                                     </tr>
                                 </table>

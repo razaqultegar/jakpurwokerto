@@ -36,11 +36,12 @@ class CheckoutController extends Controller
 
     private function pickupLocations()
     {
-        return [
-            'purwokerto' => ['key' => 'purwokerto', 'name' => 'Purwokerto'],
-            'ajibarang' => ['key' => 'ajibarang', 'name' => 'Ajibarang'],
-            'jakarta' => ['key' => 'jakarta', 'name' => 'Jakarta'],
-        ];
+        $locations = [];
+        foreach (config('pickup.locations', []) as $key => $loc) {
+            $locations[$key] = ['key' => $key, 'name' => $loc['name']];
+        }
+
+        return $locations;
     }
 
     private function checkoutData()

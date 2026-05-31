@@ -13,18 +13,16 @@ class OrderPresenter
         'kirim' => 'Kirim (Kurir)',
     ];
 
-    private const PICKUP_LABELS = [
-        'purwokerto' => 'Purwokerto',
-        'ajibarang' => 'Ajibarang',
-        'jakarta' => 'Jakarta',
-    ];
-
     /**
      * Susun array pesanan yang dikonsumsi template email (emails.order-invoice).
      * Dibangun mandiri dari model Order agar bisa dipakai di luar CheckoutController.
      */
     public static function mailData(Order $order): array
     {
+        $pickup = $order->pickup_location
+            ? config('pickup.locations.'.$order->pickup_location)
+            : null;
+
         return [
             'id' => $order->order_id,
             'customer' => [
@@ -37,10 +35,13 @@ class OrderPresenter
                 'key' => $order->shipping_method,
                 'name' => self::SHIPPING_LABELS[$order->shipping_method] ?? $order->shipping_method,
                 'address' => $order->customer_address,
+                'tracking' => $order->shipping_tracking,
                 'pickup_location' => $order->pickup_location,
-                'pickup_location_label' => $order->pickup_location
-                    ? (self::PICKUP_LABELS[$order->pickup_location] ?? ucfirst($order->pickup_location))
-                    : null,
+                'pickup_location_label' => $pickup['name']
+                    ?? ($order->pickup_location ? ucfirst($order->pickup_location) : null),
+                'pickup_address' => $pickup['address'] ?? null,
+                'pickup_contact_name' => $pickup['contact_name'] ?? null,
+                'pickup_contact_phone' => $pickup['contact_phone'] ?? null,
             ],
             'items' => $order->item ?? [],
             'subtotal' => (int) $order->subtotal,

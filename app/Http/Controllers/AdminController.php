@@ -315,6 +315,7 @@ class AdminController extends Controller
     {
         $validated = $request->validate([
             'status' => ['required', 'in:pending,verified,paid,shipped,completed,cancelled'],
+            'tracking' => ['nullable', 'string', 'max:100'],
         ]);
 
         $next = $validated['status'];
@@ -343,11 +344,17 @@ class AdminController extends Controller
         }
 
         // Pesanan kirim wajib punya nomor resi sebelum ditandai dikirim.
-        if ($next === 'shipped' && $order->shipping_method === 'kirim' && empty($order->shipping_tracking)) {
-            return response()->json([
-                'ok' => false,
-                'message' => 'Input nomor resi terlebih dahulu sebelum menandai dikirim.',
-            ], 422);
+        // Resi bisa dikirim bersama aksi ini (alur gabungan "Tandai Dikirim").
+        if ($next === 'shipped' && $order->shipping_method === 'kirim') {
+            if (! empty($validated['tracking'])) {
+                $order->shipping_tracking = trim($validated['tracking']);
+            }
+            if (empty($order->shipping_tracking)) {
+                return response()->json([
+                    'ok' => false,
+                    'message' => 'Input nomor resi terlebih dahulu sebelum menandai dikirim.',
+                ], 422);
+            }
         }
 
         $prev = $order->status;
@@ -376,6 +383,9 @@ class AdminController extends Controller
         } elseif ($next === 'paid' && $prev !== 'paid') {
             // Lunas: full payment → invoice; DP (manual/terverifikasi) → konfirmasi lunas.
             $this->sendOrderMail($order, $order->payment_type === 'full' ? 'invoice' : 'settlement-verified');
+        } elseif ($next === 'shipped' && $prev !== 'shipped') {
+            // Dikirim (kurir) → kirim resi; pickup → info lokasi & kontak pengurus.
+            $this->sendOrderMail($order, $order->shipping_method === 'pickup' ? 'pickup-ready' : 'shipped');
         }
 
         return response()->json([
@@ -928,17 +938,24 @@ class AdminController extends Controller
                 .'</button>';
         }
 
-        if ($order->shipping_method === 'kirim' && in_array($order->status, ['paid', 'shipped'], true)) {
-            $items .= '<button type="button" role="menuitem" data-action="shipping" data-order="'.$orderId.'" data-tracking="'.e($order->shipping_tracking ?? '').'" class="dropdown-item dropdown-item--resi">'
-                .'<i class="ri-barcode-line"></i><span>'.($order->shipping_tracking ? 'Ubah Nomor Resi' : 'Input Nomor Resi').'</span>'
+        // Koreksi nomor resi setelah pesanan kirim ditandai dikirim.
+        if ($order->shipping_method === 'kirim' && $order->status === 'shipped') {
+            $items .= '<button type="button" role="menuitem" data-action="shipping" data-mode="edit" data-order="'.$orderId.'" data-tracking="'.e($order->shipping_tracking ?? '').'" class="dropdown-item dropdown-item--resi">'
+                .'<i class="ri-barcode-line"></i><span>Ubah Nomor Resi</span>'
                 .'</button>';
         }
 
         if ($order->status === 'paid') {
-            $shipLabel = $order->shipping_method === 'pickup' ? 'Tandai Siap Diambil' : 'Tandai Dikirim';
-            $items .= '<button type="button" role="menuitem" data-action="status" data-status="shipped" data-order="'.$orderId.'" class="dropdown-item dropdown-item--ship">'
-                .'<i class="ri-truck-line"></i><span>'.$shipLabel.'</span>'
-                .'</button>';
+            if ($order->shipping_method === 'pickup') {
+                $items .= '<button type="button" role="menuitem" data-action="status" data-status="shipped" data-order="'.$orderId.'" class="dropdown-item dropdown-item--ship">'
+                    .'<i class="ri-truck-line"></i><span>Tandai Siap Diambil</span>'
+                    .'</button>';
+            } else {
+                // Kirim: buka modal resi → simpan resi + tandai dikirim sekaligus.
+                $items .= '<button type="button" role="menuitem" data-action="shipping" data-mode="ship" data-order="'.$orderId.'" data-tracking="'.e($order->shipping_tracking ?? '').'" class="dropdown-item dropdown-item--ship">'
+                    .'<i class="ri-truck-line"></i><span>Tandai Dikirim</span>'
+                    .'</button>';
+            }
         }
 
         if ($order->status === 'shipped') {

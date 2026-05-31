@@ -343,14 +343,35 @@ document.addEventListener('DOMContentLoaded', () => {
     const shippingInput = shippingModal?.querySelector('[data-shipping-input]');
     const shippingError = shippingModal?.querySelector('[data-shipping-error]');
     const shippingSubmit = shippingModal?.querySelector('[data-shipping-submit]');
+    const shippingTitle = shippingModal?.querySelector('[data-shipping-title]');
+    const shippingSubtitle = shippingModal?.querySelector('[data-shipping-subtitle]');
     const shippingOrderIdEl = shippingModal?.querySelector('[data-shipping-order-id]');
-    const shippingState = { orderId: null };
+    const shippingState = { orderId: null, mode: 'edit' };
     let shippingLastTrigger = null;
 
-    const openShippingModal = (orderId, tracking, trigger) => {
+    // Tampilan modal menyesuaikan mode: "ship" = simpan resi + tandai dikirim sekaligus.
+    const shippingCopy = {
+        edit: {
+            title: 'Nomor Resi Pengiriman',
+            subtitle: 'Masukkan nomor resi JNT Express. Resi wajib diisi sebelum pesanan kirim bisa ditandai selesai.',
+            submit: '<i class="ri-save-3-line"></i> Simpan Resi',
+        },
+        ship: {
+            title: 'Tandai Dikirim',
+            subtitle: 'Masukkan nomor resi JNT Express. Pesanan akan langsung ditandai dikirim dan email berisi resi dikirim ke pembeli.',
+            submit: '<i class="ri-truck-line"></i> Kirim Pesanan',
+        },
+    };
+
+    const openShippingModal = (orderId, tracking, trigger, mode = 'edit') => {
         if (!shippingModal) return;
         shippingState.orderId = orderId;
+        shippingState.mode = shippingCopy[mode] ? mode : 'edit';
         shippingLastTrigger = trigger || null;
+        const copy = shippingCopy[shippingState.mode];
+        if (shippingTitle) shippingTitle.textContent = copy.title;
+        if (shippingSubtitle) shippingSubtitle.textContent = copy.subtitle;
+        if (shippingSubmit) shippingSubmit.innerHTML = copy.submit;
         if (shippingOrderIdEl) shippingOrderIdEl.textContent = orderId;
         if (shippingInput) shippingInput.value = tracking || '';
         if (shippingError) shippingError.classList.add('hidden');
@@ -375,28 +396,41 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     const handleShipping = (btn) => {
-        if (!endpoints.shipping) return;
-        openShippingModal(btn.dataset.order, btn.dataset.tracking || '', btn);
+        const mode = btn.dataset.mode || 'edit';
+        // Mode "ship" butuh endpoint status; mode "edit" butuh endpoint shipping.
+        if (mode === 'ship' ? !endpoints.status : !endpoints.shipping) return;
+        openShippingModal(btn.dataset.order, btn.dataset.tracking || '', btn, mode);
     };
 
     shippingForm?.addEventListener('submit', async (e) => {
         e.preventDefault();
-        if (!shippingState.orderId || !endpoints.shipping) return;
+        if (!shippingState.orderId) return;
         const value = (shippingInput?.value || '').trim();
         if (!value) {
             if (shippingError) { shippingError.textContent = 'Nomor resi wajib diisi.'; shippingError.classList.remove('hidden'); }
             return;
         }
 
+        const isShip = shippingState.mode === 'ship';
+        const endpoint = isShip ? endpoints.status : endpoints.shipping;
+        if (!endpoint) return;
+
         if (shippingSubmit) shippingSubmit.disabled = true;
         try {
             const fd = new FormData();
             fd.append('tracking', value);
-            const res = await fetch(buildUrl(endpoints.shipping, shippingState.orderId), { method: 'POST', headers, body: fd });
+            if (isShip) fd.append('status', 'shipped');
+            const res = await fetch(buildUrl(endpoint, shippingState.orderId), { method: 'POST', headers, body: fd });
             let payload = null;
             try { payload = await res.json(); } catch (_) {}
-            if (!res.ok || !payload?.ok) throw new Error(payload?.message || 'Gagal menyimpan resi.');
-            toast?.fire({ icon: 'success', title: 'Resi tersimpan', text: `Pesanan ${shippingState.orderId} diperbarui.` });
+            if (!res.ok || !payload?.ok) throw new Error(payload?.message || (isShip ? 'Gagal menandai dikirim.' : 'Gagal menyimpan resi.'));
+            if (isShip) {
+                applyStats(payload.stats);
+                applyStock(payload.stockHtml);
+                toast?.fire({ icon: 'success', title: 'Pesanan dikirim', text: `Resi disimpan & ${shippingState.orderId} ditandai dikirim.` });
+            } else {
+                toast?.fire({ icon: 'success', title: 'Resi tersimpan', text: `Pesanan ${shippingState.orderId} diperbarui.` });
+            }
             dt.ajax.reload(null, false);
             await refreshOpenDetail(shippingState.orderId);
             closeShippingModal();
@@ -475,11 +509,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 toast: 'Pesanan ditandai lunas.',
             },
             shipped: {
-                title: 'Tandai pesanan dikirim?',
-                text: 'Pesanan akan ditandai dikirim / siap diambil. Untuk pesanan kirim, pastikan nomor resi sudah diisi.',
+                title: 'Tandai siap diambil?',
+                text: 'Pesanan akan ditandai siap diambil dan email berisi lokasi & kontak pengurus dikirim ke pembeli.',
                 icon: 'question',
-                confirmText: 'Ya, lanjut',
-                toast: 'Pesanan ditandai dikirim.',
+                confirmText: 'Ya, siap diambil',
+                toast: 'Pesanan ditandai siap diambil.',
             },
             completed: {
                 title: 'Tandai pesanan selesai?',

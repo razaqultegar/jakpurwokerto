@@ -237,8 +237,8 @@
                     <div class="detail-hero__bg"></div>
                     <div class="relative flex flex-col gap-2 pr-12">
                         <span class="detail-chip detail-chip--glass w-fit font-mono"><i class="ri-truck-line"></i> <span data-shipping-order-id>—</span></span>
-                        <h2 id="shipping-modal-title" class="text-base font-black leading-tight text-white">Nomor Resi Pengiriman</h2>
-                        <p class="text-[12px] leading-relaxed text-white/85">Masukkan nomor resi JNT Express. Resi wajib diisi sebelum pesanan kirim bisa ditandai selesai.</p>
+                        <h2 id="shipping-modal-title" data-shipping-title class="text-base font-black leading-tight text-white">Nomor Resi Pengiriman</h2>
+                        <p data-shipping-subtitle class="text-[12px] leading-relaxed text-white/85">Masukkan nomor resi JNT Express. Resi wajib diisi sebelum pesanan kirim bisa ditandai selesai.</p>
                     </div>
                 </div>
 

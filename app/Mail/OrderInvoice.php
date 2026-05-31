@@ -13,7 +13,7 @@ class OrderInvoice extends Mailable
     use Queueable, SerializesModels;
 
     /**
-     * @param  string  $mode  invoice | dp-verified | settlement-received | settlement-verified | reminder
+     * @param  string  $mode  invoice | dp-verified | settlement-received | settlement-verified | reminder | shipped | pickup-ready
      */
     public function __construct(public array $order, public string $mode = 'invoice') {}
 
@@ -24,6 +24,8 @@ class OrderInvoice extends Mailable
             'settlement-received' => 'Bukti Pelunasan Diterima — Pesanan '.$this->order['id'],
             'settlement-verified' => 'Pembayaran Lunas — Pesanan '.$this->order['id'],
             'reminder' => 'Pengingat Pelunasan — Pesanan '.$this->order['id'],
+            'shipped' => 'Pesanan Dikirim — Pesanan '.$this->order['id'],
+            'pickup-ready' => 'Pesanan Siap Diambil — Pesanan '.$this->order['id'],
             default => 'Invoice Pesanan '.$this->order['id'],
         };
 
