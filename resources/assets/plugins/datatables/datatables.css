@@ -444,48 +444,42 @@ div.dt-container .dt-processing > div:last-child {
 }
 
 .orders-dropdown .dropdown-item {
-    @apply inline-flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-[11.5px] font-medium text-foreground transition hover:bg-skull hover:text-foreground;
+    @apply inline-flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-[11.5px] font-semibold text-foreground transition hover:bg-skull hover:text-foreground;
 }
 
+/* Ikon dalam "chip" bulat berwarna agar aksi lebih menonjol & enak dipindai. */
 .orders-dropdown .dropdown-item > i {
-    @apply text-base text-onyx/70;
+    @apply flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-skull text-[14px] text-onyx transition;
 }
 
-.orders-dropdown .dropdown-item:hover > i {
-    @apply text-foreground;
+.orders-dropdown .dropdown-item:hover {
+    @apply translate-x-0.5;
 }
 
-.orders-dropdown .dropdown-item--success {
-    @apply text-emerald-700 hover:bg-emerald-50;
-}
-.orders-dropdown .dropdown-item--success > i,
-.orders-dropdown .dropdown-item--success:hover > i {
-    @apply text-emerald-600;
-}
+/* Color variant generator: tinted text + colored icon chip + tinted hover. */
+.orders-dropdown .dropdown-item--success { @apply text-emerald-700 hover:bg-emerald-50; }
+.orders-dropdown .dropdown-item--success > i { @apply bg-emerald-100 text-emerald-600; }
 
-.orders-dropdown .dropdown-item--info {
-    @apply text-blue-700 hover:bg-blue-50;
-}
-.orders-dropdown .dropdown-item--info > i,
-.orders-dropdown .dropdown-item--info:hover > i {
-    @apply text-blue-600;
-}
+.orders-dropdown .dropdown-item--settle { @apply text-teal-700 hover:bg-teal-50; }
+.orders-dropdown .dropdown-item--settle > i { @apply bg-teal-100 text-teal-600; }
 
-.orders-dropdown .dropdown-item--warning {
-    @apply text-amber-700 hover:bg-amber-50;
-}
-.orders-dropdown .dropdown-item--warning > i,
-.orders-dropdown .dropdown-item--warning:hover > i {
-    @apply text-amber-600;
-}
+.orders-dropdown .dropdown-item--resi { @apply text-indigo-700 hover:bg-indigo-50; }
+.orders-dropdown .dropdown-item--resi > i { @apply bg-indigo-100 text-indigo-600; }
 
-.orders-dropdown .dropdown-item--danger {
-    @apply text-red-700 hover:bg-red-50;
-}
-.orders-dropdown .dropdown-item--danger > i,
-.orders-dropdown .dropdown-item--danger:hover > i {
-    @apply text-red-600;
-}
+.orders-dropdown .dropdown-item--ship { @apply text-sky-700 hover:bg-sky-50; }
+.orders-dropdown .dropdown-item--ship > i { @apply bg-sky-100 text-sky-600; }
+
+.orders-dropdown .dropdown-item--complete { @apply text-violet-700 hover:bg-violet-50; }
+.orders-dropdown .dropdown-item--complete > i { @apply bg-violet-100 text-violet-600; }
+
+.orders-dropdown .dropdown-item--info { @apply text-blue-700 hover:bg-blue-50; }
+.orders-dropdown .dropdown-item--info > i { @apply bg-blue-100 text-blue-600; }
+
+.orders-dropdown .dropdown-item--warning { @apply text-amber-700 hover:bg-amber-50; }
+.orders-dropdown .dropdown-item--warning > i { @apply bg-amber-100 text-amber-600; }
+
+.orders-dropdown .dropdown-item--danger { @apply text-red-700 hover:bg-red-50; }
+.orders-dropdown .dropdown-item--danger > i { @apply bg-red-100 text-red-600; }
 
 /* ===== Stat card flash on update ===== */
 .stat-flash {

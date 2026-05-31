@@ -316,6 +316,7 @@ document.addEventListener('DOMContentLoaded', () => {
             try { payload = await res.json(); } catch (_) {}
             if (!res.ok || !payload?.ok) throw new Error(payload?.message || 'Gagal memperbarui pembayaran.');
             applyStats(payload.stats);
+            applyStock(payload.stockHtml);
             toast?.fire({ icon: 'success', title: 'Pembayaran disinkronkan', text: `Pesanan ${syncState.orderId} diperbarui.` });
             dt.ajax.reload(null, false);
             const openOrder = detailModalContent?.querySelector('.detail-modal')?.dataset?.order;
@@ -449,6 +450,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
+    // Render ulang kartu "Stok Terjual" tanpa refresh halaman.
+    const stockRoot = document.querySelector('[data-stock-root]');
+    const applyStock = (html) => {
+        if (typeof html === 'string' && stockRoot) stockRoot.innerHTML = html;
+    };
+
     const handleStatus = async (btn) => {
         const orderId = btn.dataset.order;
         const status = btn.dataset.status;
@@ -459,6 +466,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 icon: 'question',
                 confirmText: 'Ya, diterima',
                 toast: 'Pembayaran berhasil diterima.',
+            },
+            paid: {
+                title: 'Tandai pesanan lunas?',
+                text: 'Sisa pembayaran DP dianggap sudah diterima (konfirmasi manual admin). Pesanan akan ditandai LUNAS.',
+                icon: 'question',
+                confirmText: 'Ya, lunas',
+                toast: 'Pesanan ditandai lunas.',
             },
             shipped: {
                 title: 'Tandai pesanan dikirim?',
@@ -499,6 +513,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error(payload?.message || 'Terjadi kesalahan.');
             }
             applyStats(payload.stats);
+            applyStock(payload.stockHtml);
             toast?.fire({ icon: 'success', title: 'Status diperbarui', text: cfg.toast });
             dt.ajax.reload(null, false);
             await refreshOpenDetail(orderId);
@@ -527,6 +542,7 @@ document.addEventListener('DOMContentLoaded', () => {
             try { payload = await res.json(); } catch (_) {}
             if (!res.ok || !payload?.ok) throw new Error(payload?.message || 'Gagal memverifikasi pelunasan.');
             applyStats(payload.stats);
+            applyStock(payload.stockHtml);
             toast?.fire({ icon: 'success', title: 'Pelunasan terverifikasi', text: `Pesanan ${orderId} sudah lunas.` });
             dt.ajax.reload(null, false);
             const openOrder = detailModalContent?.querySelector('.detail-modal')?.dataset?.order;
@@ -565,6 +581,7 @@ document.addEventListener('DOMContentLoaded', () => {
             try { payload = await res.json(); } catch (_) {}
             if (!res.ok || !payload?.ok) throw new Error(payload?.message || 'Gagal membatalkan.');
             applyStats(payload.stats);
+            applyStock(payload.stockHtml);
             toast?.fire({ icon: 'success', title: 'Dibatalkan', text: `Pesanan ${orderId} dibatalkan.` });
             dt.ajax.reload(null, false);
             // If deleted order is the currently open one, close modal; else refresh detail to update duplicate list

@@ -55,6 +55,11 @@ class AdminController extends Controller
         return $cards;
     }
 
+    private function stockCardsHtml(): string
+    {
+        return view('pages.admin._partials.stock-cards', ['stockCards' => $this->stockCards()])->render();
+    }
+
     private function orderStats(): array
     {
         $confirmed = ['verified', 'paid', 'shipped', 'completed'];
@@ -68,6 +73,7 @@ class AdminController extends Controller
             'completed' => Order::where('status', 'completed')->count(),
             'cancelled' => Order::where('status', 'cancelled')->count(),
             'confirmed' => Order::whereIn('status', $confirmed)->count(),
+            'settled' => Order::whereIn('status', ['paid', 'shipped', 'completed'])->count(),
             'revenue' => Order::whereIn('status', $confirmed)->sum('amount_due'),
         ];
     }
@@ -188,10 +194,10 @@ class AdminController extends Controller
         $statusLabels = [
             'pending' => 'Menunggu Pembayaran',
             'verified' => 'Pembayaran Diterima',
-            'paid' => 'Lunas',
-            'shipped' => 'Dikirim',
-            'completed' => 'Selesai',
-            'cancelled' => 'Dibatalkan',
+            'paid' => 'Pembayaran Lunas',
+            'shipped' => 'Pesanan Dikirim',
+            'completed' => 'Pesanan Selesai',
+            'cancelled' => 'Pesanan Dibatalkan',
         ];
         $paymentTypeLabels = ['dp' => 'DP (50%)', 'full' => 'Bayar Lunas'];
         $shippingLabels = ['kirim' => 'Dikirim', 'pickup' => 'Ambil di Tempat'];
@@ -336,14 +342,6 @@ class AdminController extends Controller
             $next = 'paid';
         }
 
-        // DP hanya bisa 'paid' jika pelunasannya sudah diverifikasi.
-        if ($next === 'paid' && $order->payment_type === 'dp' && empty($order->dp_settlement_verified_at)) {
-            return response()->json([
-                'ok' => false,
-                'message' => 'Verifikasi pelunasan DP terlebih dahulu.',
-            ], 422);
-        }
-
         // Pesanan kirim wajib punya nomor resi sebelum ditandai dikirim.
         if ($next === 'shipped' && $order->shipping_method === 'kirim' && empty($order->shipping_tracking)) {
             return response()->json([
@@ -353,6 +351,14 @@ class AdminController extends Controller
         }
 
         $prev = $order->status;
+
+        // Tandai lunas manual: DP yang dilunasi tanpa bukti dari pembeli (konfirmasi admin).
+        $manualSettlement = false;
+        if ($next === 'paid' && $order->payment_type === 'dp' && empty($order->dp_settlement_verified_at)) {
+            $order->dp_settlement_verified_at = now();
+            $order->dp_settlement_uploaded_at = $order->dp_settlement_uploaded_at ?? now();
+            $manualSettlement = true;
+        }
 
         $order->status = $next;
         if (in_array($next, ['verified', 'paid', 'shipped', 'completed'], true)) {
@@ -367,15 +373,16 @@ class AdminController extends Controller
         if ($next === 'verified' && $prev !== 'verified' && $order->payment_type === 'dp') {
             // DP diterima → ajakan pelunasan.
             $this->sendOrderMail($order, 'dp-verified');
-        } elseif ($next === 'paid' && $prev !== 'paid' && $order->payment_type === 'full') {
-            // Full payment diverifikasi → invoice pembayaran diterima.
-            $this->sendOrderMail($order, 'invoice');
+        } elseif ($next === 'paid' && $prev !== 'paid') {
+            // Lunas: full payment → invoice; DP (manual/terverifikasi) → konfirmasi lunas.
+            $this->sendOrderMail($order, $order->payment_type === 'full' ? 'invoice' : 'settlement-verified');
         }
 
         return response()->json([
             'ok' => true,
-            'message' => 'Status pesanan diperbarui.',
+            'message' => $manualSettlement ? 'Pesanan ditandai lunas.' : 'Status pesanan diperbarui.',
             'stats' => $this->orderStats(),
+            'stockHtml' => $this->stockCardsHtml(),
         ]);
     }
 
@@ -403,6 +410,7 @@ class AdminController extends Controller
             'ok' => true,
             'message' => 'Pesanan dibatalkan.',
             'stats' => $this->orderStats(),
+            'stockHtml' => $this->stockCardsHtml(),
         ]);
     }
 
@@ -466,6 +474,7 @@ class AdminController extends Controller
             'ok' => true,
             'message' => 'Bukti pelunasan tersimpan & terverifikasi.',
             'stats' => $this->orderStats(),
+            'stockHtml' => $this->stockCardsHtml(),
         ]);
     }
 
@@ -497,6 +506,7 @@ class AdminController extends Controller
             'ok' => true,
             'message' => 'Pelunasan DP terverifikasi.',
             'stats' => $this->orderStats(),
+            'stockHtml' => $this->stockCardsHtml(),
         ]);
     }
 
@@ -562,15 +572,15 @@ class AdminController extends Controller
 
     private function statusMeta(string $status, ?string $shippingMethod = null): array
     {
-        $shippedLabel = $shippingMethod === 'pickup' ? 'Siap Diambil' : 'Dikirim';
+        $shippedLabel = $shippingMethod === 'pickup' ? 'Pesanan Siap Diambil' : 'Pesanan Dikirim';
 
         return [
             'pending' => ['label' => 'Menunggu Pembayaran', 'class' => 'bg-amber-100 text-amber-700', 'icon' => 'ri-time-line'],
             'verified' => ['label' => 'Pembayaran Diterima', 'class' => 'bg-emerald-100 text-emerald-700', 'icon' => 'ri-shield-check-line'],
-            'paid' => ['label' => 'Lunas', 'class' => 'bg-teal-100 text-teal-700', 'icon' => 'ri-money-dollar-circle-line'],
+            'paid' => ['label' => 'Pembayaran Lunas', 'class' => 'bg-teal-100 text-teal-700', 'icon' => 'ri-money-dollar-circle-line'],
             'shipped' => ['label' => $shippedLabel, 'class' => 'bg-blue-100 text-blue-700', 'icon' => 'ri-truck-line'],
-            'completed' => ['label' => 'Selesai', 'class' => 'bg-sky-100 text-sky-700', 'icon' => 'ri-flag-line'],
-            'cancelled' => ['label' => 'Dibatalkan', 'class' => 'bg-red-100 text-red-700', 'icon' => 'ri-close-circle-line'],
+            'completed' => ['label' => 'Pesanan Selesai', 'class' => 'bg-sky-100 text-sky-700', 'icon' => 'ri-flag-line'],
+            'cancelled' => ['label' => 'Pesanan Dibatalkan', 'class' => 'bg-red-100 text-red-700', 'icon' => 'ri-close-circle-line'],
         ][$status] ?? ['label' => ucfirst($status), 'class' => 'bg-gray-100 text-gray-700', 'icon' => 'ri-question-line'];
     }
 
@@ -902,34 +912,43 @@ class AdminController extends Controller
                 .'</button>';
         }
 
+        // Verifikasi bukti pelunasan dari pembeli (self-service).
         if ($order->payment_type === 'dp' && $order->dp_settlement_proof && ! $order->dp_settlement_verified_at
-            && $order->status !== 'cancelled') {
-            $items .= '<button type="button" role="menuitem" data-action="settlement-verify" data-order="'.$orderId.'" class="dropdown-item dropdown-item--success">'
-                .'<i class="ri-shield-check-line"></i><span>Verifikasi Pelunasan</span>'
+            && $order->status === 'verified') {
+            $items .= '<button type="button" role="menuitem" data-action="settlement-verify" data-order="'.$orderId.'" class="dropdown-item dropdown-item--settle">'
+                .'<i class="ri-verified-badge-line"></i><span>Verifikasi Pelunasan</span>'
+                .'</button>';
+        }
+
+        // Tandai lunas manual (DP tanpa bukti dari pembeli).
+        if ($order->payment_type === 'dp' && ! $order->dp_settlement_proof && ! $order->dp_settlement_verified_at
+            && $order->status === 'verified') {
+            $items .= '<button type="button" role="menuitem" data-action="status" data-status="paid" data-order="'.$orderId.'" class="dropdown-item dropdown-item--settle">'
+                .'<i class="ri-money-dollar-circle-line"></i><span>Tandai Lunas</span>'
                 .'</button>';
         }
 
         if ($order->shipping_method === 'kirim' && in_array($order->status, ['paid', 'shipped'], true)) {
-            $items .= '<button type="button" role="menuitem" data-action="shipping" data-order="'.$orderId.'" data-tracking="'.e($order->shipping_tracking ?? '').'" class="dropdown-item dropdown-item--info">'
+            $items .= '<button type="button" role="menuitem" data-action="shipping" data-order="'.$orderId.'" data-tracking="'.e($order->shipping_tracking ?? '').'" class="dropdown-item dropdown-item--resi">'
                 .'<i class="ri-barcode-line"></i><span>'.($order->shipping_tracking ? 'Ubah Nomor Resi' : 'Input Nomor Resi').'</span>'
                 .'</button>';
         }
 
         if ($order->status === 'paid') {
             $shipLabel = $order->shipping_method === 'pickup' ? 'Tandai Siap Diambil' : 'Tandai Dikirim';
-            $items .= '<button type="button" role="menuitem" data-action="status" data-status="shipped" data-order="'.$orderId.'" class="dropdown-item dropdown-item--info">'
+            $items .= '<button type="button" role="menuitem" data-action="status" data-status="shipped" data-order="'.$orderId.'" class="dropdown-item dropdown-item--ship">'
                 .'<i class="ri-truck-line"></i><span>'.$shipLabel.'</span>'
                 .'</button>';
         }
 
         if ($order->status === 'shipped') {
-            $items .= '<button type="button" role="menuitem" data-action="status" data-status="completed" data-order="'.$orderId.'" class="dropdown-item dropdown-item--success">'
+            $items .= '<button type="button" role="menuitem" data-action="status" data-status="completed" data-order="'.$orderId.'" class="dropdown-item dropdown-item--complete">'
                 .'<i class="ri-flag-line"></i><span>Tandai Selesai</span>'
                 .'</button>';
         }
 
         if ($order->status !== 'cancelled' && $order->status !== 'completed') {
-            $items .= '<button type="button" role="menuitem" data-action="sync-payment" data-order="'.$orderId.'" data-subtotal="'.(int) $order->subtotal.'" data-amount-due="'.(int) $order->amount_due.'" class="dropdown-item dropdown-item--info">'
+            $items .= '<button type="button" role="menuitem" data-action="sync-payment" data-order="'.$orderId.'" data-subtotal="'.(int) $order->subtotal.'" data-amount-due="'.(int) $order->amount_due.'" class="dropdown-item dropdown-item--warning">'
                 .'<i class="ri-refresh-line"></i><span>Sinkronisasi Pembayaran</span>'
                 .'</button>';
         }
