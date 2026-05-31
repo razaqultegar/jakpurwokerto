@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
         detail: root?.dataset.detailUrl,
         status: root?.dataset.statusUrl,
         syncPayment: root?.dataset.syncPaymentUrl,
+        settlementVerify: root?.dataset.settlementVerifyUrl,
         delete: root?.dataset.deleteUrl,
     };
 
@@ -178,7 +179,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const btn = e.target.closest('button[data-action]');
         if (!btn) return;
         e.preventDefault();
-        const map = { detail: handleDetail, delete: handleDelete, 'sync-payment': handleSyncPayment };
+        const map = { detail: handleDetail, delete: handleDelete, 'sync-payment': handleSyncPayment, 'settlement-verify': handleSettlementVerify };
         map[btn.dataset.action]?.(btn);
     });
 
@@ -409,6 +410,41 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    const handleSettlementVerify = async (btn) => {
+        const orderId = btn.dataset.order;
+        if (!endpoints.settlementVerify) return;
+        const result = await Swal.fire({
+            title: 'Verifikasi pelunasan?',
+            html: `Pelunasan DP pesanan <b>${orderId}</b> akan ditandai lunas. Pastikan bukti pembayaran sudah benar.`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, verifikasi',
+            cancelButtonText: 'Batal',
+            confirmButtonColor: '#059669',
+        });
+        if (!result.isConfirmed) return;
+
+        try {
+            const res = await fetch(buildUrl(endpoints.settlementVerify, orderId), { method: 'POST', headers });
+            let payload = null;
+            try { payload = await res.json(); } catch (_) {}
+            if (!res.ok || !payload?.ok) throw new Error(payload?.message || 'Gagal memverifikasi pelunasan.');
+            applyStats(payload.stats);
+            toast?.fire({ icon: 'success', title: 'Pelunasan terverifikasi', text: `Pesanan ${orderId} sudah lunas.` });
+            dt.ajax.reload(null, false);
+            const openOrder = detailModalContent?.querySelector('.detail-modal')?.dataset?.order;
+            if (openOrder === orderId) {
+                try {
+                    const r = await fetch(buildUrl(endpoints.detail, openOrder), { headers });
+                    const p = await r.json();
+                    if (p?.ok && detailModalContent) detailModalContent.innerHTML = p.html;
+                } catch (_) {}
+            }
+        } catch (e) {
+            Swal.fire({ icon: 'error', title: 'Gagal', text: e.message });
+        }
+    };
+
     const handleDelete = async (btn) => {
         const orderId = btn.dataset.order;
         const result = await Swal.fire({
@@ -491,7 +527,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const btn = e.target.closest('button[data-action]');
         if (!btn) return;
         closeDropdowns();
-        const map = { detail: handleDetail, status: handleStatus, delete: handleDelete, 'sync-payment': handleSyncPayment };
+        const map = { detail: handleDetail, status: handleStatus, delete: handleDelete, 'sync-payment': handleSyncPayment, 'settlement-verify': handleSettlementVerify };
         map[btn.dataset.action]?.(btn);
     });
 

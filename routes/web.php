@@ -12,6 +12,8 @@ Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.s
 Route::get('/pembayaran/{orderId}', [CheckoutController::class, 'payment'])->name('checkout.payment');
 Route::post('/pembayaran/{orderId}/bukti', [CheckoutController::class, 'uploadProof'])->name('checkout.proof');
 Route::get('/terimakasih/{orderId}', [CheckoutController::class, 'success'])->name('checkout.success');
+Route::get('/pelunasan/{orderId}', [CheckoutController::class, 'settlement'])->name('checkout.settlement');
+Route::post('/pelunasan/{orderId}/bukti', [CheckoutController::class, 'uploadSettlement'])->name('checkout.settlement.proof');
 
 Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
@@ -21,6 +23,7 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::post('/orders/{order}/status', [AdminController::class, 'updateStatus'])->name('orders.status');
     Route::post('/orders/{order}/shipping', [AdminController::class, 'updateShipping'])->name('orders.shipping');
     Route::post('/orders/{order}/dp-proof', [AdminController::class, 'uploadDpProof'])->name('orders.dp-proof');
+    Route::post('/orders/{order}/settlement-verify', [AdminController::class, 'verifySettlement'])->name('orders.settlement-verify');
     Route::post('/orders/{order}/sync-payment', [AdminController::class, 'syncPayment'])->name('orders.sync-payment');
     Route::delete('/orders/{order}', [AdminController::class, 'destroyOrder'])->name('orders.destroy');
 });

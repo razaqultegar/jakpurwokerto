@@ -172,6 +172,118 @@ class CheckoutController extends Controller
         return redirect()->route('checkout.payment', ['orderId' => strtolower($order->order_id)]);
     }
 
+    /**
+     * Tentukan tahap pelunasan DP sebuah pesanan.
+     *
+     * not_dp    : bukan pesanan DP, tidak ada pelunasan.
+     * cancelled : pesanan dibatalkan.
+     * done      : sudah lunas (pelunasan terverifikasi / pesanan selesai / tidak ada sisa).
+     * review    : bukti pelunasan sudah diunggah, menunggu verifikasi admin.
+     * locked    : DP belum diverifikasi admin, pelunasan belum bisa dibayar.
+     * open      : siap dilunasi (DP terverifikasi, masih ada sisa).
+     */
+    private function settlementState(Order $order): string
+    {
+        if ($order->payment_type !== 'dp') {
+            return 'not_dp';
+        }
+        if ($order->status === 'cancelled') {
+            return 'cancelled';
+        }
+        if ($order->dp_settlement_verified_at || $order->status === 'completed'
+            || (int) $order->subtotal - (int) $order->amount_due <= 0) {
+            return 'done';
+        }
+        if ($order->dp_settlement_proof) {
+            return 'review';
+        }
+        if ($order->status !== 'verified') {
+            return 'locked';
+        }
+
+        return 'open';
+    }
+
+    public function settlement(string $orderId)
+    {
+        $order = Order::where('order_id', $orderId)->first();
+        if (! $order) {
+            return redirect()->route('checkout')
+                ->with('status', 'Pesanan tidak ditemukan.');
+        }
+
+        if ($order->payment_type !== 'dp') {
+            return redirect()->route('checkout.payment', ['orderId' => strtolower($order->order_id)]);
+        }
+
+        if ($order->status === 'cancelled') {
+            return $this->redirectClosedOrder($order);
+        }
+
+        return view('pages.checkout.settlement', [
+            'title' => 'Pelunasan',
+            'order' => $this->buildOrderView($order),
+        ]);
+    }
+
+    public function uploadSettlement(Request $request, string $orderId)
+    {
+        $order = Order::where('order_id', $orderId)->first();
+        if (! $order) {
+            return back()->with('proof_status', 'error')
+                ->with('proof_message', 'Pesanan tidak ditemukan.');
+        }
+
+        $state = $this->settlementState($order);
+
+        if (! in_array($state, ['open', 'review'], true)) {
+            $messages = [
+                'not_dp' => 'Pesanan ini bukan tipe DP.',
+                'cancelled' => 'Pesanan ini telah dibatalkan.',
+                'done' => 'Pesanan ini sudah lunas.',
+                'locked' => 'DP kamu masih menunggu verifikasi admin. Pelunasan dapat dilakukan setelah DP diterima.',
+            ];
+
+            return redirect()->route('checkout.settlement', ['orderId' => strtolower($order->order_id)])
+                ->with('proof_status', 'error')
+                ->with('proof_message', $messages[$state] ?? 'Pelunasan tidak dapat diproses.');
+        }
+
+        $validated = $request->validate([
+            'proof' => ['required', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:5120'],
+        ], [
+            'proof.required' => 'File bukti pelunasan wajib dipilih.',
+            'proof.mimes' => 'Format file harus jpg, jpeg, png, webp, atau pdf.',
+            'proof.max' => 'Ukuran file maksimal 5MB.',
+        ]);
+
+        if ($order->dp_settlement_proof) {
+            Storage::disk('public')->delete($order->dp_settlement_proof);
+        }
+
+        $path = $validated['proof']->store('proofs/settlements', 'public');
+
+        $order->update([
+            'dp_settlement_proof' => $path,
+            'dp_settlement_uploaded_at' => now(),
+            'dp_settlement_verified_at' => null,
+        ]);
+
+        try {
+            Mail::to($order->customer_email)
+                ->send(new OrderInvoice($this->buildOrderView($order), 'settlement-received'));
+        } catch (\Throwable $e) {
+            Log::error('Failed to send settlement email', [
+                'order_id' => $order->order_id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
+        return redirect()->route('checkout.settlement', ['orderId' => strtolower($order->order_id)])
+            ->with('proof_status', 'success')
+            ->with('proof_message', 'Bukti pelunasan berhasil diunggah. Admin akan memverifikasi pembayaranmu.');
+    }
+
     private function buildOrderView(Order $order): array
     {
         return [
@@ -202,10 +314,20 @@ class CheckoutController extends Controller
             'items' => $order->item ?? [],
             'subtotal' => $order->subtotal,
             'amount_due' => $order->amount_due,
+            'remaining' => max(0, (int) $order->subtotal - (int) $order->amount_due),
             'payment_type' => $order->payment_type,
             'payment_type_label' => $order->payment_type === 'dp'
                 ? 'Down Payment (DP 50%)'
                 : 'Full Payment',
+            'settlement' => [
+                'state' => $this->settlementState($order),
+                'proof' => $order->dp_settlement_proof,
+                'proof_url' => $order->dp_settlement_proof
+                    ? asset('storage/'.$order->dp_settlement_proof)
+                    : null,
+                'uploaded_at' => $order->dp_settlement_uploaded_at?->toIso8601String(),
+                'verified_at' => $order->dp_settlement_verified_at?->toIso8601String(),
+            ],
             'payment' => array_merge(
                 ['type' => $order->payment_method_type, 'key' => $order->payment_method_key],
                 $order->payment_data ?? []
@@ -300,17 +422,11 @@ class CheckoutController extends Controller
             'payment_proof_uploaded_at' => now(),
         ]);
 
-        try {
-            Mail::to($order->customer_email)->send(new OrderInvoice($this->buildOrderView($order)));
-        } catch (\Throwable $e) {
-            Log::error('Failed to send invoice email', [
-                'order_id' => $order->order_id,
-                'error' => $e->getMessage(),
-            ]);
-        }
+        // Email invoice/pembayaran diterima dikirim saat admin memverifikasi pembayaran,
+        // bukan saat bukti diunggah. Lihat AdminController::updateStatus.
 
         return redirect()->route('checkout.success', ['orderId' => strtolower($order->order_id)])
             ->with('proof_status', 'success')
-            ->with('proof_message', 'Bukti transfer berhasil diunggah. Invoice telah dikirim ke email kamu.');
+            ->with('proof_message', 'Bukti transfer berhasil diunggah. Admin akan memverifikasi pembayaranmu dan invoice dikirim ke email.');
     }
 }
