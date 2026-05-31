@@ -95,6 +95,7 @@
             data-detail-url="{{ url('admin/orders/__ORDER__') }}"
             data-status-url="{{ url('admin/orders/__ORDER__/status') }}"
             data-sync-payment-url="{{ url('admin/orders/__ORDER__/sync-payment') }}"
+            data-settlement-verify-url="{{ url('admin/orders/__ORDER__/settlement-verify') }}"
             data-delete-url="{{ url('admin/orders/__ORDER__') }}">
             <div class="orders-filters grid grid-cols-1 gap-3 border-b border-mercury bg-skull/40 p-4 sm:grid-cols-2 lg:grid-cols-4">
                 <div>

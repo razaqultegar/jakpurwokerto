@@ -2,10 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\OrderInvoice;
 use App\Models\Order;
+use App\Support\OrderPresenter;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -320,17 +324,32 @@ class AdminController extends Controller
             ], 422);
         }
 
-        if ($next === 'completed' && $order->payment_type === 'dp' && empty($order->dp_settlement_proof)) {
+        if ($next === 'completed' && $order->payment_type === 'dp' && empty($order->dp_settlement_verified_at)) {
             return response()->json([
                 'ok' => false,
-                'message' => 'Upload bukti pelunasan DP terlebih dahulu sebelum menandai selesai.',
+                'message' => 'Verifikasi pelunasan DP terlebih dahulu sebelum menandai selesai.',
             ], 422);
         }
+
+        $wasVerified = $order->status === 'verified';
 
         $order->status = $next;
         $order->verified_at = $next === 'verified' ? ($order->verified_at ?? now()) : ($next === 'pending' ? null : $order->verified_at);
         $order->completed_at = $next === 'completed' ? now() : null;
         $order->save();
+
+        // Pembayaran baru diverifikasi admin → kirim email invoice/pembayaran diterima.
+        if ($next === 'verified' && ! $wasVerified) {
+            $hasRemaining = (int) $order->subtotal - (int) $order->amount_due > 0;
+
+            if ($order->payment_type === 'dp' && empty($order->dp_settlement_verified_at) && $hasRemaining) {
+                // DP diterima → ajakan pelunasan.
+                $this->sendOrderMail($order, 'dp-verified');
+            } else {
+                // Pembayaran penuh (atau DP tanpa sisa) → invoice pembayaran diterima.
+                $this->sendOrderMail($order, 'invoice');
+            }
+        }
 
         return response()->json([
             'ok' => true,
@@ -406,9 +425,61 @@ class AdminController extends Controller
         }
 
         $path = $validated['proof']->store('proofs/settlements', 'public');
-        $order->update(['dp_settlement_proof' => $path]);
+        $alreadyVerified = (bool) $order->dp_settlement_verified_at;
+        $order->update([
+            'dp_settlement_proof' => $path,
+            'dp_settlement_uploaded_at' => $order->dp_settlement_uploaded_at ?? now(),
+            'dp_settlement_verified_at' => now(),
+        ]);
 
-        return response()->json(['ok' => true, 'message' => 'Bukti pelunasan tersimpan.']);
+        if (! $alreadyVerified) {
+            $this->sendOrderMail($order, 'settlement-verified');
+        }
+
+        return response()->json([
+            'ok' => true,
+            'message' => 'Bukti pelunasan tersimpan & terverifikasi.',
+            'stats' => $this->orderStats(),
+        ]);
+    }
+
+    public function verifySettlement(Request $request, Order $order)
+    {
+        if ($order->payment_type !== 'dp') {
+            return response()->json(['ok' => false, 'message' => 'Pesanan bukan tipe DP.'], 422);
+        }
+
+        if (empty($order->dp_settlement_proof)) {
+            return response()->json(['ok' => false, 'message' => 'Belum ada bukti pelunasan untuk diverifikasi.'], 422);
+        }
+
+        if ($order->dp_settlement_verified_at) {
+            return response()->json(['ok' => false, 'message' => 'Pelunasan sudah diverifikasi.'], 422);
+        }
+
+        $order->update(['dp_settlement_verified_at' => now()]);
+
+        $this->sendOrderMail($order, 'settlement-verified');
+
+        return response()->json([
+            'ok' => true,
+            'message' => 'Pelunasan DP terverifikasi.',
+            'stats' => $this->orderStats(),
+        ]);
+    }
+
+    private function sendOrderMail(Order $order, string $mode): void
+    {
+        try {
+            Mail::to($order->customer_email)
+                ->send(new OrderInvoice(OrderPresenter::mailData($order), $mode));
+        } catch (\Throwable $e) {
+            Log::error('Failed to send order mail', [
+                'order_id' => $order->order_id,
+                'mode' => $mode,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     public function showOrder(Order $order)
@@ -701,19 +772,7 @@ class AdminController extends Controller
             .($order->payment_type === 'dp' ? '<div class="text-[10px] text-white/80">dari total '.$rupiah($order->subtotal).'</div>' : '')
             .'</div>'
             .'</div>'
-            .($order->payment_type === 'dp'
-                ? '<div class="mt-3 flex items-center justify-between rounded-xl border-2 border-dashed border-amber-300 bg-amber-50 px-4 py-3">'
-                    .'<div class="inline-flex items-center gap-2 text-amber-800">'
-                    .'<i class="ri-alarm-warning-line text-base"></i>'
-                    .'<span class="text-[12px] font-semibold">'.($order->dp_settlement_proof ? 'Pelunasan diterima' : 'Sisa pelunasan DP').'</span>'
-                    .'</div>'
-                    .'<span class="text-[14px] font-black '.($order->dp_settlement_proof ? 'text-emerald-700' : 'text-amber-700').'">'
-                    .($order->dp_settlement_proof
-                        ? '<i class="ri-checkbox-circle-fill"></i> Lunas'
-                        : $rupiah(max(0, $order->subtotal - $order->amount_due)))
-                    .'</span>'
-                    .'</div>'
-                : '')
+            .($order->payment_type === 'dp' ? $this->renderSettlementBlock($order, $rupiah) : '')
             .'<div class="mt-3 flex flex-wrap items-center gap-2">'.$proofHtml.'</div>'
             .'</div>'
 
@@ -751,6 +810,44 @@ class AdminController extends Controller
             .'</div>';
     }
 
+    private function renderSettlementBlock(Order $order, callable $rupiah): string
+    {
+        $remaining = max(0, (int) $order->subtotal - (int) $order->amount_due);
+        $verified = (bool) $order->dp_settlement_verified_at;
+        $hasProof = (bool) $order->dp_settlement_proof;
+
+        if ($verified) {
+            $label = 'Pelunasan terverifikasi';
+            $valueHtml = '<span class="text-[14px] font-black text-emerald-700"><i class="ri-checkbox-circle-fill"></i> Lunas</span>';
+            $box = 'border-emerald-300 bg-emerald-50';
+            $icon = '<i class="ri-checkbox-circle-line text-base text-emerald-600"></i>';
+            $textColor = 'text-emerald-800';
+            $action = '';
+        } elseif ($hasProof) {
+            $label = 'Menunggu verifikasi pelunasan';
+            $valueHtml = '<span class="text-[14px] font-black text-amber-700">'.$rupiah($remaining).'</span>';
+            $box = 'border-amber-300 bg-amber-50';
+            $icon = '<i class="ri-time-line text-base text-amber-600"></i>';
+            $textColor = 'text-amber-800';
+            $action = '<button type="button" data-action="settlement-verify" data-order="'.e($order->order_id).'" class="mt-2.5 inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-2 text-[12px] font-bold text-white shadow-sm transition active:scale-95 hover:bg-emerald-700"><i class="ri-shield-check-line"></i> Verifikasi Pelunasan</button>';
+        } else {
+            $label = 'Menunggu pelunasan pembeli';
+            $valueHtml = '<span class="text-[14px] font-black text-amber-700">'.$rupiah($remaining).'</span>';
+            $box = 'border-amber-300 bg-amber-50';
+            $icon = '<i class="ri-alarm-warning-line text-base text-amber-600"></i>';
+            $textColor = 'text-amber-800';
+            $action = '';
+        }
+
+        return '<div class="mt-3 rounded-xl border-2 border-dashed '.$box.' px-4 py-3">'
+            .'<div class="flex items-center justify-between">'
+            .'<div class="inline-flex items-center gap-2 '.$textColor.'">'.$icon
+            .'<span class="text-[12px] font-semibold">'.$label.'</span>'
+            .'</div>'.$valueHtml
+            .'</div>'.$action
+            .'</div>';
+    }
+
     private function renderActions(Order $order): string
     {
         $orderId = e($order->order_id);
@@ -762,6 +859,13 @@ class AdminController extends Controller
         if ($order->status === 'pending') {
             $items .= '<button type="button" role="menuitem" data-action="status" data-status="verified" data-order="'.$orderId.'" class="dropdown-item dropdown-item--success">'
                 .'<i class="ri-shield-check-line"></i><span>Pembayaran Diterima</span>'
+                .'</button>';
+        }
+
+        if ($order->payment_type === 'dp' && $order->dp_settlement_proof && ! $order->dp_settlement_verified_at
+            && $order->status !== 'cancelled') {
+            $items .= '<button type="button" role="menuitem" data-action="settlement-verify" data-order="'.$orderId.'" class="dropdown-item dropdown-item--success">'
+                .'<i class="ri-shield-check-line"></i><span>Verifikasi Pelunasan</span>'
                 .'</button>';
         }
 

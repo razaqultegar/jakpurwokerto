@@ -18,6 +18,9 @@ class Order extends Model
         'payment_proof_uploaded_at',
         'shipping_tracking',
         'dp_settlement_proof',
+        'dp_settlement_uploaded_at',
+        'dp_settlement_verified_at',
+        'dp_settlement_reminders',
         'item',
         'subtotal',
         'amount_due',
@@ -38,6 +41,9 @@ class Order extends Model
         'verified_at' => 'datetime',
         'completed_at' => 'datetime',
         'payment_proof_uploaded_at' => 'datetime',
+        'dp_settlement_uploaded_at' => 'datetime',
+        'dp_settlement_verified_at' => 'datetime',
+        'dp_settlement_reminders' => 'array',
     ];
 
     public function getRouteKeyName()

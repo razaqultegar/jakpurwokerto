@@ -118,6 +118,21 @@
                 <dd class="font-black text-primary">{{ $rupiah($order['amount_due']) }}</dd>
             </div>
         </dl>
+        @if ($order['payment_type'] === 'dp' && ($order['remaining'] ?? 0) > 0)
+        <div class="mt-3 rounded-2xl border border-dashed border-amber-300 bg-amber-50 p-4">
+            <div class="flex items-start gap-2">
+                <i class="ri-wallet-3-line shrink-0 text-base text-amber-600"></i>
+                <div class="flex-1">
+                    <p class="text-[11px] font-bold text-amber-800">Sisa pelunasan {{ $rupiah($order['remaining']) }}</p>
+                    <p class="mt-0.5 text-[10px] leading-snug text-amber-700">Setelah DP diverifikasi admin, kamu bisa melunasi sisa pembayaran lewat halaman pelunasan. Link juga kami kirim ke emailmu.</p>
+                </div>
+            </div>
+            <a href="{{ route('checkout.settlement', ['orderId' => strtolower($order['id'])]) }}" class="mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-amber-500 px-3 py-2 text-[11px] font-bold text-white shadow-sm transition active:scale-95 hover:bg-amber-600">
+                <i class="ri-arrow-right-circle-line text-sm"></i>
+                Buka Halaman Pelunasan
+            </a>
+        </div>
+        @endif
     </section>
     <div class="cta-floating">
         <div class="pointer-events-auto mx-auto max-w-480 cta-card">
