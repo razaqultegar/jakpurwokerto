@@ -57,13 +57,18 @@ class AdminController extends Controller
 
     private function orderStats(): array
     {
+        $confirmed = ['verified', 'paid', 'shipped', 'completed'];
+
         return [
             'total' => Order::count(),
             'pending' => Order::where('status', 'pending')->count(),
             'verified' => Order::where('status', 'verified')->count(),
+            'paid' => Order::where('status', 'paid')->count(),
+            'shipped' => Order::where('status', 'shipped')->count(),
             'completed' => Order::where('status', 'completed')->count(),
             'cancelled' => Order::where('status', 'cancelled')->count(),
-            'revenue' => Order::where('status', 'verified')->sum('amount_due'),
+            'confirmed' => Order::whereIn('status', $confirmed)->count(),
+            'revenue' => Order::whereIn('status', $confirmed)->sum('amount_due'),
         ];
     }
 
@@ -97,6 +102,11 @@ class AdminController extends Controller
                 'diverifikasi' => 'verified',
                 'verified' => 'verified',
                 'verifikasi' => 'verified',
+                'lunas' => 'paid',
+                'paid' => 'paid',
+                'dikirim' => 'shipped',
+                'shipped' => 'shipped',
+                'siap diambil' => 'shipped',
                 'selesai' => 'completed',
                 'completed' => 'completed',
                 'batal' => 'cancelled',
@@ -147,7 +157,7 @@ class AdminController extends Controller
         }
 
         $statusFilter = $request->input('filter_status');
-        if (in_array($statusFilter, ['pending', 'verified', 'completed', 'cancelled'], true)) {
+        if (in_array($statusFilter, ['pending', 'verified', 'paid', 'shipped', 'completed', 'cancelled'], true)) {
             $query->where('status', $statusFilter);
         }
 
@@ -178,6 +188,8 @@ class AdminController extends Controller
         $statusLabels = [
             'pending' => 'Menunggu Pembayaran',
             'verified' => 'Pembayaran Diterima',
+            'paid' => 'Lunas',
+            'shipped' => 'Dikirim',
             'completed' => 'Selesai',
             'cancelled' => 'Dibatalkan',
         ];
@@ -296,7 +308,7 @@ class AdminController extends Controller
     public function updateStatus(Request $request, Order $order)
     {
         $validated = $request->validate([
-            'status' => ['required', 'in:pending,verified,completed,cancelled'],
+            'status' => ['required', 'in:pending,verified,paid,shipped,completed,cancelled'],
         ]);
 
         $next = $validated['status'];
@@ -304,7 +316,9 @@ class AdminController extends Controller
 
         $allowed = match ($current) {
             'pending' => ['verified', 'cancelled'],
-            'verified' => ['completed', 'cancelled', 'pending'],
+            'verified' => ['paid', 'cancelled', 'pending'],
+            'paid' => ['shipped', 'cancelled'],
+            'shipped' => ['completed', 'cancelled'],
             'completed' => [],
             'cancelled' => ['pending'],
             default => [],
@@ -317,38 +331,45 @@ class AdminController extends Controller
             ], 422);
         }
 
-        if ($next === 'completed' && $order->shipping_method === 'kirim' && empty($order->shipping_tracking)) {
+        // Full payment sudah lunas sejak awal → langsung 'paid' saat pembayaran diverifikasi.
+        if ($next === 'verified' && $order->payment_type === 'full') {
+            $next = 'paid';
+        }
+
+        // DP hanya bisa 'paid' jika pelunasannya sudah diverifikasi.
+        if ($next === 'paid' && $order->payment_type === 'dp' && empty($order->dp_settlement_verified_at)) {
             return response()->json([
                 'ok' => false,
-                'message' => 'Input nomor resi terlebih dahulu sebelum menandai selesai.',
+                'message' => 'Verifikasi pelunasan DP terlebih dahulu.',
             ], 422);
         }
 
-        if ($next === 'completed' && $order->payment_type === 'dp' && empty($order->dp_settlement_verified_at)) {
+        // Pesanan kirim wajib punya nomor resi sebelum ditandai dikirim.
+        if ($next === 'shipped' && $order->shipping_method === 'kirim' && empty($order->shipping_tracking)) {
             return response()->json([
                 'ok' => false,
-                'message' => 'Verifikasi pelunasan DP terlebih dahulu sebelum menandai selesai.',
+                'message' => 'Input nomor resi terlebih dahulu sebelum menandai dikirim.',
             ], 422);
         }
 
-        $wasVerified = $order->status === 'verified';
+        $prev = $order->status;
 
         $order->status = $next;
-        $order->verified_at = $next === 'verified' ? ($order->verified_at ?? now()) : ($next === 'pending' ? null : $order->verified_at);
-        $order->completed_at = $next === 'completed' ? now() : null;
+        if (in_array($next, ['verified', 'paid', 'shipped', 'completed'], true)) {
+            $order->verified_at = $order->verified_at ?? now();
+        } elseif ($next === 'pending') {
+            $order->verified_at = null;
+        }
+        $order->completed_at = $next === 'completed' ? now() : ($next === 'pending' ? null : $order->completed_at);
         $order->save();
 
-        // Pembayaran baru diverifikasi admin → kirim email invoice/pembayaran diterima.
-        if ($next === 'verified' && ! $wasVerified) {
-            $hasRemaining = (int) $order->subtotal - (int) $order->amount_due > 0;
-
-            if ($order->payment_type === 'dp' && empty($order->dp_settlement_verified_at) && $hasRemaining) {
-                // DP diterima → ajakan pelunasan.
-                $this->sendOrderMail($order, 'dp-verified');
-            } else {
-                // Pembayaran penuh (atau DP tanpa sisa) → invoice pembayaran diterima.
-                $this->sendOrderMail($order, 'invoice');
-            }
+        // Email transaksional sesuai status baru.
+        if ($next === 'verified' && $prev !== 'verified' && $order->payment_type === 'dp') {
+            // DP diterima → ajakan pelunasan.
+            $this->sendOrderMail($order, 'dp-verified');
+        } elseif ($next === 'paid' && $prev !== 'paid' && $order->payment_type === 'full') {
+            // Full payment diverifikasi → invoice pembayaran diterima.
+            $this->sendOrderMail($order, 'invoice');
         }
 
         return response()->json([
@@ -426,11 +447,16 @@ class AdminController extends Controller
 
         $path = $validated['proof']->store('proofs/settlements', 'public');
         $alreadyVerified = (bool) $order->dp_settlement_verified_at;
-        $order->update([
+        $update = [
             'dp_settlement_proof' => $path,
             'dp_settlement_uploaded_at' => $order->dp_settlement_uploaded_at ?? now(),
             'dp_settlement_verified_at' => now(),
-        ]);
+        ];
+        // Pelunasan terverifikasi → naikkan status ke 'paid' (lunas).
+        if ($order->status === 'verified') {
+            $update['status'] = 'paid';
+        }
+        $order->update($update);
 
         if (! $alreadyVerified) {
             $this->sendOrderMail($order, 'settlement-verified');
@@ -457,7 +483,13 @@ class AdminController extends Controller
             return response()->json(['ok' => false, 'message' => 'Pelunasan sudah diverifikasi.'], 422);
         }
 
-        $order->update(['dp_settlement_verified_at' => now()]);
+        $update = ['dp_settlement_verified_at' => now()];
+        // Pelunasan terverifikasi → naikkan status ke 'paid' (lunas).
+        if ($order->status === 'verified') {
+            $update['status'] = 'paid';
+            $order->verified_at = $order->verified_at ?? now();
+        }
+        $order->update($update);
 
         $this->sendOrderMail($order, 'settlement-verified');
 
@@ -493,7 +525,7 @@ class AdminController extends Controller
 
     private function serializeOrder(Order $order): array
     {
-        $statusMeta = $this->statusMeta($order->status);
+        $statusMeta = $this->statusMeta($order->status, $order->shipping_method);
         $payment = $this->paymentLabel($order);
 
         $amountHtml = '<div class="font-bold text-foreground">Rp'.number_format($order->amount_due, 0, ',', '.').'</div>';
@@ -528,11 +560,15 @@ class AdminController extends Controller
         ];
     }
 
-    private function statusMeta(string $status): array
+    private function statusMeta(string $status, ?string $shippingMethod = null): array
     {
+        $shippedLabel = $shippingMethod === 'pickup' ? 'Siap Diambil' : 'Dikirim';
+
         return [
             'pending' => ['label' => 'Menunggu Pembayaran', 'class' => 'bg-amber-100 text-amber-700', 'icon' => 'ri-time-line'],
             'verified' => ['label' => 'Pembayaran Diterima', 'class' => 'bg-emerald-100 text-emerald-700', 'icon' => 'ri-shield-check-line'],
+            'paid' => ['label' => 'Lunas', 'class' => 'bg-teal-100 text-teal-700', 'icon' => 'ri-money-dollar-circle-line'],
+            'shipped' => ['label' => $shippedLabel, 'class' => 'bg-blue-100 text-blue-700', 'icon' => 'ri-truck-line'],
             'completed' => ['label' => 'Selesai', 'class' => 'bg-sky-100 text-sky-700', 'icon' => 'ri-flag-line'],
             'cancelled' => ['label' => 'Dibatalkan', 'class' => 'bg-red-100 text-red-700', 'icon' => 'ri-close-circle-line'],
         ][$status] ?? ['label' => ucfirst($status), 'class' => 'bg-gray-100 text-gray-700', 'icon' => 'ri-question-line'];
@@ -583,7 +619,7 @@ class AdminController extends Controller
     private function countSoldForSlug(string $slug): int
     {
         $sold = 0;
-        Order::whereIn('status', ['verified', 'completed'])
+        Order::whereIn('status', ['verified', 'paid', 'shipped', 'completed'])
             ->select(['item'])
             ->chunk(200, function ($orders) use (&$sold, $slug) {
                 foreach ($orders as $order) {
@@ -600,7 +636,7 @@ class AdminController extends Controller
 
     private function renderDetail(Order $order): string
     {
-        $statusMeta = $this->statusMeta($order->status);
+        $statusMeta = $this->statusMeta($order->status, $order->shipping_method);
         $payment = $this->paymentLabel($order);
         $rupiah = fn ($n) => 'Rp'.number_format((int) $n, 0, ',', '.');
 
@@ -682,7 +718,11 @@ class AdminController extends Controller
         ];
 
         if ($order->shipping_method === 'kirim') {
-            $shipAddrHtml = $field('Alamat Pengiriman', nl2br(e($order->customer_address ?? '-')), 'ri-map-pin-2-line');
+            $resiValue = $order->shipping_tracking
+                ? '<span class="font-mono font-bold text-foreground">'.e($order->shipping_tracking).'</span>'
+                : '<span class="text-amber-700">Belum ada resi</span>';
+            $shipAddrHtml = $field('Alamat Pengiriman', nl2br(e($order->customer_address ?? '-')), 'ri-map-pin-2-line')
+                .$field('Nomor Resi (JNT)', $resiValue, 'ri-barcode-line');
             $shipNoteHtml = $field('Kurir', 'JNT Express (ongkos kirim ditanggung pembeli)', 'ri-truck-line');
         } else {
             $cityKey = $order->pickup_location ?? '';
@@ -866,6 +906,25 @@ class AdminController extends Controller
             && $order->status !== 'cancelled') {
             $items .= '<button type="button" role="menuitem" data-action="settlement-verify" data-order="'.$orderId.'" class="dropdown-item dropdown-item--success">'
                 .'<i class="ri-shield-check-line"></i><span>Verifikasi Pelunasan</span>'
+                .'</button>';
+        }
+
+        if ($order->shipping_method === 'kirim' && in_array($order->status, ['paid', 'shipped'], true)) {
+            $items .= '<button type="button" role="menuitem" data-action="shipping" data-order="'.$orderId.'" data-tracking="'.e($order->shipping_tracking ?? '').'" class="dropdown-item dropdown-item--info">'
+                .'<i class="ri-barcode-line"></i><span>'.($order->shipping_tracking ? 'Ubah Nomor Resi' : 'Input Nomor Resi').'</span>'
+                .'</button>';
+        }
+
+        if ($order->status === 'paid') {
+            $shipLabel = $order->shipping_method === 'pickup' ? 'Tandai Siap Diambil' : 'Tandai Dikirim';
+            $items .= '<button type="button" role="menuitem" data-action="status" data-status="shipped" data-order="'.$orderId.'" class="dropdown-item dropdown-item--info">'
+                .'<i class="ri-truck-line"></i><span>'.$shipLabel.'</span>'
+                .'</button>';
+        }
+
+        if ($order->status === 'shipped') {
+            $items .= '<button type="button" role="menuitem" data-action="status" data-status="completed" data-order="'.$orderId.'" class="dropdown-item dropdown-item--success">'
+                .'<i class="ri-flag-line"></i><span>Tandai Selesai</span>'
                 .'</button>';
         }
 

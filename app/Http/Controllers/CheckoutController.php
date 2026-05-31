@@ -190,7 +190,8 @@ class CheckoutController extends Controller
         if ($order->status === 'cancelled') {
             return 'cancelled';
         }
-        if ($order->dp_settlement_verified_at || $order->status === 'completed'
+        if ($order->dp_settlement_verified_at
+            || in_array($order->status, ['paid', 'shipped', 'completed'], true)
             || (int) $order->subtotal - (int) $order->amount_due <= 0) {
             return 'done';
         }
@@ -345,7 +346,7 @@ class CheckoutController extends Controller
                 ->with('status', 'Pesanan tidak ditemukan.');
         }
 
-        if (in_array($order->status, ['verified', 'cancelled'], true)) {
+        if (in_array($order->status, ['verified', 'paid', 'shipped', 'completed', 'cancelled'], true)) {
             return $this->redirectClosedOrder($order);
         }
 
@@ -399,7 +400,7 @@ class CheckoutController extends Controller
                 ->with('proof_message', 'Pesanan tidak ditemukan.');
         }
 
-        if (in_array($order->status, ['verified', 'cancelled'], true)) {
+        if (in_array($order->status, ['verified', 'paid', 'shipped', 'completed', 'cancelled'], true)) {
             return $this->redirectClosedOrder($order);
         }
 

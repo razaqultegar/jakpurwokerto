@@ -28,7 +28,7 @@
         </div>
         <div class="rounded-xl border border-mercury bg-white p-4">
             <p class="text-[10px] font-semibold uppercase tracking-wider text-onyx">Pembayaran Diterima</p>
-            <p class="mt-1.5 text-xl font-black text-emerald-600" data-stat="verified">{{ number_format($stats['verified']) }}</p>
+            <p class="mt-1.5 text-xl font-black text-emerald-600" data-stat="confirmed">{{ number_format($stats['confirmed']) }}</p>
         </div>
         <div class="col-span-2 rounded-xl bg-linear-to-br from-primary via-primary-light to-primary-lighter p-4 text-white sm:col-span-3 lg:col-span-1">
             <p class="text-[10px] font-semibold uppercase tracking-wider text-white/80">Total Pendapatan</p>
@@ -96,6 +96,7 @@
             data-status-url="{{ url('admin/orders/__ORDER__/status') }}"
             data-sync-payment-url="{{ url('admin/orders/__ORDER__/sync-payment') }}"
             data-settlement-verify-url="{{ url('admin/orders/__ORDER__/settlement-verify') }}"
+            data-shipping-url="{{ url('admin/orders/__ORDER__/shipping') }}"
             data-delete-url="{{ url('admin/orders/__ORDER__') }}">
             <div class="orders-filters grid grid-cols-1 gap-3 border-b border-mercury bg-skull/40 p-4 sm:grid-cols-2 lg:grid-cols-4">
                 <div>
@@ -112,6 +113,8 @@
                         <option value="">Semua Status</option>
                         <option value="pending">Menunggu Pembayaran</option>
                         <option value="verified">Pembayaran Diterima</option>
+                        <option value="paid">Lunas</option>
+                        <option value="shipped">Dikirim</option>
                         <option value="completed">Selesai</option>
                         <option value="cancelled">Dibatalkan</option>
                     </select>
@@ -239,6 +242,44 @@
                         <button type="button" data-sync-close class="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg border border-mercury bg-white px-4 text-[13px] font-semibold text-foreground transition hover:bg-skull">Batal</button>
                         <button type="submit" data-sync-submit class="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg bg-primary px-4 text-[13px] font-bold text-white shadow-sm transition hover:bg-primary-light disabled:cursor-not-allowed disabled:opacity-60">
                             <i class="ri-save-3-line"></i> Simpan Perubahan
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="shipping-modal" class="order-modal" hidden aria-hidden="true">
+        <div class="order-modal__backdrop" data-shipping-close></div>
+        <div class="order-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="shipping-modal-title">
+            <button type="button" class="order-modal__close" data-shipping-close aria-label="Tutup">
+                <i class="ri-close-line"></i>
+            </button>
+            <div class="order-modal__body">
+                <div class="detail-hero">
+                    <div class="detail-hero__bg"></div>
+                    <div class="relative flex flex-col gap-2 pr-12">
+                        <span class="detail-chip detail-chip--glass w-fit font-mono"><i class="ri-truck-line"></i> <span data-shipping-order-id>—</span></span>
+                        <h2 id="shipping-modal-title" class="text-base font-black leading-tight text-white">Nomor Resi Pengiriman</h2>
+                        <p class="text-[12px] leading-relaxed text-white/85">Masukkan nomor resi JNT Express. Resi wajib diisi sebelum pesanan kirim bisa ditandai selesai.</p>
+                    </div>
+                </div>
+
+                <form data-shipping-form class="flex flex-col gap-4 px-5 py-5">
+                    <div>
+                        <label for="shipping-tracking-input" class="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-onyx">Nomor Resi</label>
+                        <div class="group relative">
+                            <span class="pointer-events-none absolute inset-y-0 left-0 flex w-12 items-center justify-center border-r border-mercury text-[15px] text-onyx"><i class="ri-barcode-line"></i></span>
+                            <input id="shipping-tracking-input" type="text" autocomplete="off" maxlength="100" data-shipping-input placeholder="Cth. JX1234567890"
+                                class="h-12 w-full rounded-xl border border-mercury bg-white pl-14 pr-4 text-[15px] font-bold tracking-wide text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20" />
+                        </div>
+                        <p class="mt-1.5 hidden text-[11px] font-semibold text-red-600" data-shipping-error></p>
+                    </div>
+
+                    <div class="-mx-5 -mb-5 mt-1 flex items-center justify-end gap-2 border-t border-mercury bg-skull/40 px-5 py-3">
+                        <button type="button" data-shipping-close class="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg border border-mercury bg-white px-4 text-[13px] font-semibold text-foreground transition hover:bg-skull">Batal</button>
+                        <button type="submit" data-shipping-submit class="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg bg-primary px-4 text-[13px] font-bold text-white shadow-sm transition hover:bg-primary-light disabled:cursor-not-allowed disabled:opacity-60">
+                            <i class="ri-save-3-line"></i> Simpan Resi
                         </button>
                     </div>
                 </form>
