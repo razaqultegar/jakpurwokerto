@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
         status: root?.dataset.statusUrl,
         syncPayment: root?.dataset.syncPaymentUrl,
         settlementVerify: root?.dataset.settlementVerifyUrl,
+        shipping: root?.dataset.shippingUrl,
         delete: root?.dataset.deleteUrl,
     };
 
@@ -179,7 +180,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const btn = e.target.closest('button[data-action]');
         if (!btn) return;
         e.preventDefault();
-        const map = { detail: handleDetail, delete: handleDelete, 'sync-payment': handleSyncPayment, 'settlement-verify': handleSettlementVerify };
+        const map = { detail: handleDetail, status: handleStatus, delete: handleDelete, 'sync-payment': handleSyncPayment, 'settlement-verify': handleSettlementVerify, shipping: handleShipping };
         map[btn.dataset.action]?.(btn);
     });
 
@@ -335,6 +336,75 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // ===== Shipping (Resi) Modal =====
+    const shippingModal = document.getElementById('shipping-modal');
+    const shippingForm = shippingModal?.querySelector('[data-shipping-form]');
+    const shippingInput = shippingModal?.querySelector('[data-shipping-input]');
+    const shippingError = shippingModal?.querySelector('[data-shipping-error]');
+    const shippingSubmit = shippingModal?.querySelector('[data-shipping-submit]');
+    const shippingOrderIdEl = shippingModal?.querySelector('[data-shipping-order-id]');
+    const shippingState = { orderId: null };
+    let shippingLastTrigger = null;
+
+    const openShippingModal = (orderId, tracking, trigger) => {
+        if (!shippingModal) return;
+        shippingState.orderId = orderId;
+        shippingLastTrigger = trigger || null;
+        if (shippingOrderIdEl) shippingOrderIdEl.textContent = orderId;
+        if (shippingInput) shippingInput.value = tracking || '';
+        if (shippingError) shippingError.classList.add('hidden');
+        if (shippingSubmit) shippingSubmit.disabled = false;
+        shippingModal.hidden = false;
+        shippingModal.removeAttribute('aria-hidden');
+        document.body.style.overflow = 'hidden';
+        setTimeout(() => shippingInput?.focus({ preventScroll: true }), 30);
+    };
+
+    const closeShippingModal = () => {
+        if (!shippingModal || shippingModal.hidden) return;
+        shippingModal.hidden = true;
+        shippingModal.setAttribute('aria-hidden', 'true');
+        if (!detailModal || detailModal.hidden) document.body.style.overflow = '';
+        shippingLastTrigger?.focus({ preventScroll: true });
+        shippingLastTrigger = null;
+    };
+
+    shippingModal?.querySelectorAll('[data-shipping-close]').forEach((el) => {
+        el.addEventListener('click', closeShippingModal);
+    });
+
+    const handleShipping = (btn) => {
+        if (!endpoints.shipping) return;
+        openShippingModal(btn.dataset.order, btn.dataset.tracking || '', btn);
+    };
+
+    shippingForm?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!shippingState.orderId || !endpoints.shipping) return;
+        const value = (shippingInput?.value || '').trim();
+        if (!value) {
+            if (shippingError) { shippingError.textContent = 'Nomor resi wajib diisi.'; shippingError.classList.remove('hidden'); }
+            return;
+        }
+
+        if (shippingSubmit) shippingSubmit.disabled = true;
+        try {
+            const fd = new FormData();
+            fd.append('tracking', value);
+            const res = await fetch(buildUrl(endpoints.shipping, shippingState.orderId), { method: 'POST', headers, body: fd });
+            let payload = null;
+            try { payload = await res.json(); } catch (_) {}
+            if (!res.ok || !payload?.ok) throw new Error(payload?.message || 'Gagal menyimpan resi.');
+            toast?.fire({ icon: 'success', title: 'Resi tersimpan', text: `Pesanan ${shippingState.orderId} diperbarui.` });
+            dt.ajax.reload(null, false);
+            await refreshOpenDetail(shippingState.orderId);
+            closeShippingModal();
+        } catch (err) {
+            if (shippingError) { shippingError.textContent = err.message; shippingError.classList.remove('hidden'); }
+            if (shippingSubmit) shippingSubmit.disabled = false;
+        }
+    });
+
     const handleDetail = async (btn) => {
         const orderId = btn.dataset.order;
         lastTrigger = btn;
@@ -346,6 +416,17 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) {
             Swal.fire({ icon: 'error', title: 'Gagal', text: e.message });
         }
+    };
+
+    // Muat ulang isi modal detail bila pesanan yang sedang dibuka == orderId.
+    const refreshOpenDetail = async (orderId) => {
+        const openOrder = detailModalContent?.querySelector('.detail-modal')?.dataset?.order;
+        if (!openOrder || openOrder !== orderId) return;
+        try {
+            const r = await fetch(buildUrl(endpoints.detail, openOrder), { headers });
+            const p = await r.json();
+            if (p?.ok && detailModalContent) detailModalContent.innerHTML = p.html;
+        } catch (_) {}
     };
 
     const toast = createToast();
@@ -377,6 +458,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 text: 'Pembayaran pesanan akan ditandai sudah diterima dan terhitung ke stok dan pendapatan.',
                 icon: 'question',
                 confirmText: 'Ya, diterima',
+                toast: 'Pembayaran berhasil diterima.',
+            },
+            shipped: {
+                title: 'Tandai pesanan dikirim?',
+                text: 'Pesanan akan ditandai dikirim / siap diambil. Untuk pesanan kirim, pastikan nomor resi sudah diisi.',
+                icon: 'question',
+                confirmText: 'Ya, lanjut',
+                toast: 'Pesanan ditandai dikirim.',
+            },
+            completed: {
+                title: 'Tandai pesanan selesai?',
+                text: 'Pesanan akan ditandai SELESAI. Pastikan pembayaran lunas dan (untuk pesanan kirim) nomor resi sudah diisi.',
+                icon: 'question',
+                confirmText: 'Ya, selesai',
+                toast: 'Pesanan ditandai selesai.',
             },
         };
         const cfg = confirmMap[status];
@@ -403,8 +499,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error(payload?.message || 'Terjadi kesalahan.');
             }
             applyStats(payload.stats);
-            toast?.fire({ icon: 'success', title: 'Status diperbarui', text: 'Pembayaran berhasil diterima.' });
+            toast?.fire({ icon: 'success', title: 'Status diperbarui', text: cfg.toast });
             dt.ajax.reload(null, false);
+            await refreshOpenDetail(orderId);
         } catch (e) {
             Swal.fire({ icon: 'error', title: 'Gagal', text: e.message });
         }
@@ -527,7 +624,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const btn = e.target.closest('button[data-action]');
         if (!btn) return;
         closeDropdowns();
-        const map = { detail: handleDetail, status: handleStatus, delete: handleDelete, 'sync-payment': handleSyncPayment, 'settlement-verify': handleSettlementVerify };
+        const map = { detail: handleDetail, status: handleStatus, delete: handleDelete, 'sync-payment': handleSyncPayment, 'settlement-verify': handleSettlementVerify, shipping: handleShipping };
         map[btn.dataset.action]?.(btn);
     });
 
