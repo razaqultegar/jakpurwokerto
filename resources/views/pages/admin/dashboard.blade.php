@@ -26,9 +26,28 @@
             <p class="text-[10px] font-semibold uppercase tracking-wider text-onyx">Menunggu Pembayaran</p>
             <p class="mt-1.5 text-xl font-black text-amber-600" data-stat="pending">{{ number_format($stats['pending']) }}</p>
         </div>
-        <div class="rounded-xl border border-mercury bg-white p-4">
-            <p class="text-[10px] font-semibold uppercase tracking-wider text-onyx">Pembayaran Diterima</p>
+        <div class="group relative rounded-xl border border-mercury bg-white p-4">
+            <div class="flex items-start justify-between gap-2">
+                <p class="text-[10px] font-semibold uppercase tracking-wider text-onyx">Pembayaran Diterima</p>
+                <button type="button" class="-mr-1 -mt-1 shrink-0 rounded-md p-1 text-onyx/50 transition hover:text-primary focus:text-primary focus:outline-none" aria-label="Rincian DP &amp; Lunas">
+                    <i class="ri-information-line text-sm"></i>
+                </button>
+            </div>
             <p class="mt-1.5 text-xl font-black text-emerald-600" data-stat="confirmed">{{ number_format($stats['confirmed']) }}</p>
+
+            <div class="invisible absolute right-3 top-12 z-20 w-48 origin-top-right -translate-y-1 scale-95 rounded-xl border border-mercury bg-white p-3 opacity-0 shadow-xl ring-1 ring-black/5 transition duration-150 group-hover:visible group-hover:translate-y-0 group-hover:scale-100 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:scale-100 group-focus-within:opacity-100">
+                <p class="text-[10px] font-bold uppercase tracking-wider text-onyx">Rincian Pembayaran</p>
+                <div class="mt-2 space-y-2">
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-amber-700"><i class="ri-hourglass-line"></i> DP (belum lunas)</span>
+                        <span class="text-[13px] font-black text-amber-700" data-stat="verified">{{ number_format($stats['verified']) }}</span>
+                    </div>
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-teal-700"><i class="ri-checkbox-circle-line"></i> Lunas</span>
+                        <span class="text-[13px] font-black text-teal-700" data-stat="settled">{{ number_format($stats['settled']) }}</span>
+                    </div>
+                </div>
+            </div>
         </div>
         <div class="col-span-2 rounded-xl bg-linear-to-br from-primary via-primary-light to-primary-lighter p-4 text-white sm:col-span-3 lg:col-span-1">
             <p class="text-[10px] font-semibold uppercase tracking-wider text-white/80">Total Pendapatan</p>
@@ -36,51 +55,9 @@
         </div>
     </div>
 
-    @if (!empty($stockCards))
-        <div class="mt-3 flex flex-col gap-3">
-            @foreach ($stockCards as $card)
-                @php
-                    $tone = $card['remaining'] === null
-                        ? ['bar' => 'bg-mercury', 'text' => 'text-foreground']
-                        : ($card['remaining'] <= 0
-                            ? ['bar' => 'bg-red-500', 'text' => 'text-red-600']
-                            : ($card['limit'] > 0 && $card['remaining'] < ($card['limit'] * 0.2)
-                                ? ['bar' => 'bg-amber-500', 'text' => 'text-amber-600']
-                                : ['bar' => 'bg-emerald-500', 'text' => 'text-emerald-600']));
-                @endphp
-                <div class="flex flex-wrap items-center gap-4 rounded-xl border border-mercury bg-white p-4">
-                    <div class="flex items-center gap-3">
-                        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                            <i class="ri-shirt-line text-xl"></i>
-                        </div>
-                        <div class="min-w-0">
-                            <p class="text-[10px] font-semibold uppercase tracking-wider text-onyx">Stok Terjual</p>
-                            <p class="truncate text-[13px] font-bold text-foreground">{{ $card['name'] }}</p>
-                        </div>
-                    </div>
-                    <div class="min-w-0 flex-1">
-                        @if ($card['limit'] > 0)
-                            <div class="flex items-center justify-between gap-2">
-                                <p class="text-[13px] font-black {{ $tone['text'] }}">
-                                    {{ number_format($card['sold']) }}
-                                    <span class="text-[12px] font-bold text-onyx">/ {{ number_format($card['limit']) }}</span>
-                                </p>
-                                <p class="text-[11px] text-onyx">
-                                    Sisa <span class="font-bold {{ $tone['text'] }}">{{ number_format($card['remaining']) }}</span> · {{ $card['progress'] }}%
-                                </p>
-                            </div>
-                            <div class="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-skull">
-                                <div class="h-full {{ $tone['bar'] }} transition-all" style="width: {{ $card['progress'] }}%"></div>
-                            </div>
-                        @else
-                            <p class="text-[13px] font-black {{ $tone['text'] }}">{{ number_format($card['sold']) }}</p>
-                            <p class="mt-0.5 text-[11px] text-onyx">Stok tidak diatur</p>
-                        @endif
-                    </div>
-                </div>
-            @endforeach
-        </div>
-    @endif
+    <div class="mt-3 flex flex-col gap-3 empty:mt-0" data-stock-root>
+        @include('pages.admin._partials.stock-cards', ['stockCards' => $stockCards])
+    </div>
 
     <div class="mt-6">
         <div class="mb-3">
@@ -113,10 +90,10 @@
                         <option value="">Semua Status</option>
                         <option value="pending">Menunggu Pembayaran</option>
                         <option value="verified">Pembayaran Diterima</option>
-                        <option value="paid">Lunas</option>
-                        <option value="shipped">Dikirim</option>
-                        <option value="completed">Selesai</option>
-                        <option value="cancelled">Dibatalkan</option>
+                        <option value="paid">Pembayaran Lunas</option>
+                        <option value="shipped">Pesanan Dikirim</option>
+                        <option value="completed">Pesanan Selesai</option>
+                        <option value="cancelled">Pesanan Dibatalkan</option>
                     </select>
                 </div>
                 <div>
