@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
         syncPayment: root?.dataset.syncPaymentUrl,
         settlementVerify: root?.dataset.settlementVerifyUrl,
         shipping: root?.dataset.shippingUrl,
+        pickup: root?.dataset.pickupUrl,
         delete: root?.dataset.deleteUrl,
     };
 
@@ -24,6 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const filters = {
         payment_type: '',
         status: '',
+        shipping_method: '',
         date_from: '',
         date_to: '',
     };
@@ -37,6 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
             data: (d) => {
                 d.filter_payment_type = filters.payment_type;
                 d.filter_status = filters.status;
+                d.filter_shipping_method = filters.shipping_method;
                 d.filter_date_from = filters.date_from;
                 d.filter_date_to = filters.date_to;
             },
@@ -63,13 +66,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const paymentSelect = filterRoot?.querySelector('[data-filter="payment_type"]');
     const statusSelect = filterRoot?.querySelector('[data-filter="status"]');
+    const shippingSelect = filterRoot?.querySelector('[data-filter="shipping_method"]');
     const dateInput = filterRoot?.querySelector('[data-filter="date_range"]');
     const resetBtn = filterRoot?.querySelector('[data-filter-reset]');
 
-    initSelect2([paymentSelect, statusSelect], { dropdownParent: filterRoot });
+    initSelect2([paymentSelect, statusSelect, shippingSelect], { dropdownParent: filterRoot });
 
     const $ = window.jQuery;
-    [paymentSelect, statusSelect].forEach((el) => {
+    [paymentSelect, statusSelect, shippingSelect].forEach((el) => {
         if (!el) return;
         const onChange = () => {
             filters[el.dataset.filter] = el.value || '';
@@ -120,10 +124,12 @@ document.addEventListener('DOMContentLoaded', () => {
     resetBtn?.addEventListener('click', () => {
         filters.payment_type = '';
         filters.status = '';
+        filters.shipping_method = '';
         filters.date_from = '';
         filters.date_to = '';
         resetSelect2(paymentSelect);
         resetSelect2(statusSelect);
+        resetSelect2(shippingSelect);
         datePicker?.clear();
         toggleDateClear(false);
         dt.ajax.reload();
@@ -135,6 +141,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const params = new URLSearchParams();
         if (filters.payment_type) params.set('filter_payment_type', filters.payment_type);
         if (filters.status) params.set('filter_status', filters.status);
+        if (filters.shipping_method) params.set('filter_shipping_method', filters.shipping_method);
         if (filters.date_from) params.set('filter_date_from', filters.date_from);
         if (filters.date_to) params.set('filter_date_to', filters.date_to);
         const qs = params.toString();
@@ -180,7 +187,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const btn = e.target.closest('button[data-action]');
         if (!btn) return;
         e.preventDefault();
-        const map = { detail: handleDetail, status: handleStatus, delete: handleDelete, 'sync-payment': handleSyncPayment, 'settlement-verify': handleSettlementVerify, shipping: handleShipping };
+        const map = { detail: handleDetail, status: handleStatus, delete: handleDelete, 'sync-payment': handleSyncPayment, 'settlement-verify': handleSettlementVerify, shipping: handleShipping, pickup: handlePickup };
         map[btn.dataset.action]?.(btn);
     });
 
@@ -440,6 +447,114 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // ===== Pickup (Titik Temu) Modal =====
+    const pickupModal = document.getElementById('pickup-modal');
+    const pickupForm = pickupModal?.querySelector('[data-pickup-form]');
+    const pickupAddressInput = pickupModal?.querySelector('[data-pickup-address]');
+    const pickupContactNameInput = pickupModal?.querySelector('[data-pickup-contact-name]');
+    const pickupContactPhoneInput = pickupModal?.querySelector('[data-pickup-contact-phone]');
+    const pickupError = pickupModal?.querySelector('[data-pickup-error]');
+    const pickupSubmit = pickupModal?.querySelector('[data-pickup-submit]');
+    const pickupTitle = pickupModal?.querySelector('[data-pickup-title]');
+    const pickupSubtitle = pickupModal?.querySelector('[data-pickup-subtitle]');
+    const pickupOrderIdEl = pickupModal?.querySelector('[data-pickup-order-id]');
+    const pickupState = { orderId: null, mode: 'edit' };
+    let pickupLastTrigger = null;
+
+    const pickupCopy = {
+        edit: {
+            title: 'Ubah Info Pengambilan',
+            subtitle: 'Perbarui alamat & kontak pengurus untuk pesanan ini.',
+            submit: '<i class="ri-save-3-line"></i> Simpan',
+        },
+        ship: {
+            title: 'Tandai Siap Diambil',
+            subtitle: 'Tentukan alamat & kontak pengurus. Pesanan akan ditandai siap diambil dan info ini dikirim ke pembeli.',
+            submit: '<i class="ri-store-2-line"></i> Siap Diambil',
+        },
+    };
+
+    const openPickupModal = (btn, mode = 'edit') => {
+        if (!pickupModal) return;
+        pickupState.orderId = btn.dataset.order;
+        pickupState.mode = pickupCopy[mode] ? mode : 'edit';
+        pickupLastTrigger = btn || null;
+        const copy = pickupCopy[pickupState.mode];
+        if (pickupTitle) pickupTitle.textContent = copy.title;
+        if (pickupSubtitle) pickupSubtitle.textContent = copy.subtitle;
+        if (pickupSubmit) { pickupSubmit.innerHTML = copy.submit; pickupSubmit.disabled = false; }
+        if (pickupOrderIdEl) pickupOrderIdEl.textContent = btn.dataset.order;
+        if (pickupAddressInput) pickupAddressInput.value = btn.dataset.pickupAddress || '';
+        if (pickupContactNameInput) pickupContactNameInput.value = btn.dataset.pickupContactName || '';
+        if (pickupContactPhoneInput) pickupContactPhoneInput.value = btn.dataset.pickupContactPhone || '';
+        if (pickupError) pickupError.classList.add('hidden');
+        pickupModal.hidden = false;
+        pickupModal.removeAttribute('aria-hidden');
+        document.body.style.overflow = 'hidden';
+        setTimeout(() => pickupAddressInput?.focus({ preventScroll: true }), 30);
+    };
+
+    const closePickupModal = () => {
+        if (!pickupModal || pickupModal.hidden) return;
+        pickupModal.hidden = true;
+        pickupModal.setAttribute('aria-hidden', 'true');
+        if (!detailModal || detailModal.hidden) document.body.style.overflow = '';
+        pickupLastTrigger?.focus({ preventScroll: true });
+        pickupLastTrigger = null;
+    };
+
+    pickupModal?.querySelectorAll('[data-pickup-close]').forEach((el) => {
+        el.addEventListener('click', closePickupModal);
+    });
+
+    const handlePickup = (btn) => {
+        const mode = btn.dataset.mode || 'edit';
+        if (mode === 'ship' ? !endpoints.status : !endpoints.pickup) return;
+        openPickupModal(btn, mode);
+    };
+
+    pickupForm?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!pickupState.orderId) return;
+        const address = (pickupAddressInput?.value || '').trim();
+        const contactName = (pickupContactNameInput?.value || '').trim();
+        const contactPhone = (pickupContactPhoneInput?.value || '').trim();
+
+        const showErr = (msg) => { if (pickupError) { pickupError.textContent = msg; pickupError.classList.remove('hidden'); } };
+        if (!address) return showErr('Alamat / titik temu wajib diisi.');
+        if (!/^[0-9]{8,20}$/.test(contactPhone)) return showErr('Nomor kontak wajib diisi (hanya angka, mis. 6281234567890).');
+
+        const isShip = pickupState.mode === 'ship';
+        const endpoint = isShip ? endpoints.status : endpoints.pickup;
+        if (!endpoint) return;
+
+        if (pickupSubmit) pickupSubmit.disabled = true;
+        try {
+            const fd = new FormData();
+            fd.append('pickup_address', address);
+            fd.append('pickup_contact_name', contactName);
+            fd.append('pickup_contact_phone', contactPhone);
+            if (isShip) fd.append('status', 'shipped');
+            const res = await fetch(buildUrl(endpoint, pickupState.orderId), { method: 'POST', headers, body: fd });
+            let payload = null;
+            try { payload = await res.json(); } catch (_) {}
+            if (!res.ok || !payload?.ok) throw new Error(payload?.message || (isShip ? 'Gagal menandai siap diambil.' : 'Gagal menyimpan info pengambilan.'));
+            if (isShip) {
+                applyStats(payload.stats);
+                applyStock(payload.stockHtml);
+                toast?.fire({ icon: 'success', title: 'Siap diambil', text: `${pickupState.orderId} ditandai siap diambil & info dikirim ke pembeli.` });
+            } else {
+                toast?.fire({ icon: 'success', title: 'Info tersimpan', text: `Info pengambilan ${pickupState.orderId} diperbarui.` });
+            }
+            dt.ajax.reload(null, false);
+            await refreshOpenDetail(pickupState.orderId);
+            closePickupModal();
+        } catch (err) {
+            showErr(err.message);
+            if (pickupSubmit) pickupSubmit.disabled = false;
+        }
+    });
+
     const handleDetail = async (btn) => {
         const orderId = btn.dataset.order;
         lastTrigger = btn;
@@ -507,13 +622,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 icon: 'question',
                 confirmText: 'Ya, lunas',
                 toast: 'Pesanan ditandai lunas.',
-            },
-            shipped: {
-                title: 'Tandai siap diambil?',
-                text: 'Pesanan akan ditandai siap diambil dan email berisi lokasi & kontak pengurus dikirim ke pembeli.',
-                icon: 'question',
-                confirmText: 'Ya, siap diambil',
-                toast: 'Pesanan ditandai siap diambil.',
             },
             completed: {
                 title: 'Tandai pesanan selesai?',
@@ -675,7 +783,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const btn = e.target.closest('button[data-action]');
         if (!btn) return;
         closeDropdowns();
-        const map = { detail: handleDetail, status: handleStatus, delete: handleDelete, 'sync-payment': handleSyncPayment, 'settlement-verify': handleSettlementVerify, shipping: handleShipping };
+        const map = { detail: handleDetail, status: handleStatus, delete: handleDelete, 'sync-payment': handleSyncPayment, 'settlement-verify': handleSettlementVerify, shipping: handleShipping, pickup: handlePickup };
         map[btn.dataset.action]?.(btn);
     });
 

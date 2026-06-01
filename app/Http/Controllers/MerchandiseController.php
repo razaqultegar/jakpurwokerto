@@ -82,7 +82,9 @@ class MerchandiseController extends Controller
     private function countSold(string $slug): int
     {
         $sold = 0;
-        Order::whereIn('status', ['verified', 'completed'])
+        // Sejajar dengan dashboard: semua pesanan yang pembayarannya sudah diterima
+        // (verified/paid/shipped/completed) terhitung sebagai stok terjual.
+        Order::whereIn('status', ['verified', 'paid', 'shipped', 'completed'])
             ->select(['item'])
             ->chunk(200, function ($orders) use (&$sold, $slug) {
                 foreach ($orders as $order) {

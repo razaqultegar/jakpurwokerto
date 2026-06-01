@@ -4,11 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Mail\OrderInvoice;
 use App\Models\Order;
+use App\Models\PickupLocation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class CheckoutController extends Controller
 {
@@ -36,12 +38,7 @@ class CheckoutController extends Controller
 
     private function pickupLocations()
     {
-        $locations = [];
-        foreach (config('pickup.locations', []) as $key => $loc) {
-            $locations[$key] = ['key' => $key, 'name' => $loc['name']];
-        }
-
-        return $locations;
+        return PickupLocation::options();
     }
 
     private function checkoutData()
@@ -84,7 +81,7 @@ class CheckoutController extends Controller
             'email' => ['required', 'email', 'max:160'],
             'phone' => ['required', 'string', 'regex:/^[0-9]{8,15}$/'],
             'shipping_method' => ['required', 'in:pickup,kirim'],
-            'pickup_location' => ['nullable', 'in:purwokerto,ajibarang,jakarta', 'required_if:shipping_method,pickup'],
+            'pickup_location' => ['nullable', Rule::in(array_keys($this->pickupLocations())), 'required_if:shipping_method,pickup'],
             'address' => ['nullable', 'string', 'max:500', 'required_if:shipping_method,kirim'],
             'payment_type' => ['required', 'in:dp,full'],
             'payment_method' => ['required', 'string'],
