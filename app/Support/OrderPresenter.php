@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use App\Models\Order;
+use App\Models\PickupLocation;
 
 class OrderPresenter
 {
@@ -19,9 +20,7 @@ class OrderPresenter
      */
     public static function mailData(Order $order): array
     {
-        $pickup = $order->pickup_location
-            ? config('pickup.locations.'.$order->pickup_location)
-            : null;
+        $pickup = PickupLocation::findByKey($order->pickup_location);
 
         return [
             'id' => $order->order_id,
@@ -37,11 +36,12 @@ class OrderPresenter
                 'address' => $order->customer_address,
                 'tracking' => $order->shipping_tracking,
                 'pickup_location' => $order->pickup_location,
-                'pickup_location_label' => $pickup['name']
+                'pickup_location_label' => $pickup?->name
                     ?? ($order->pickup_location ? ucfirst($order->pickup_location) : null),
-                'pickup_address' => $pickup['address'] ?? null,
-                'pickup_contact_name' => $pickup['contact_name'] ?? null,
-                'pickup_contact_phone' => $pickup['contact_phone'] ?? null,
+                // Titik temu disimpan per-pesanan.
+                'pickup_address' => $order->pickup_address,
+                'pickup_contact_name' => $order->pickup_contact_name,
+                'pickup_contact_phone' => $order->pickup_contact_phone,
             ],
             'items' => $order->item ?? [],
             'subtotal' => (int) $order->subtotal,

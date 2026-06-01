@@ -22,6 +22,7 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::get('/orders/{order}', [AdminController::class, 'showOrder'])->name('orders.show');
     Route::post('/orders/{order}/status', [AdminController::class, 'updateStatus'])->name('orders.status');
     Route::post('/orders/{order}/shipping', [AdminController::class, 'updateShipping'])->name('orders.shipping');
+    Route::post('/orders/{order}/pickup', [AdminController::class, 'updatePickup'])->name('orders.pickup');
     Route::post('/orders/{order}/dp-proof', [AdminController::class, 'uploadDpProof'])->name('orders.dp-proof');
     Route::post('/orders/{order}/settlement-verify', [AdminController::class, 'verifySettlement'])->name('orders.settlement-verify');
     Route::post('/orders/{order}/sync-payment', [AdminController::class, 'syncPayment'])->name('orders.sync-payment');

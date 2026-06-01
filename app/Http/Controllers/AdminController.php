@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Mail\OrderInvoice;
 use App\Models\Order;
+use App\Models\PickupLocation;
 use App\Support\OrderPresenter;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -167,6 +168,11 @@ class AdminController extends Controller
             $query->where('status', $statusFilter);
         }
 
+        $shippingFilter = $request->input('filter_shipping_method');
+        if (in_array($shippingFilter, ['kirim', 'pickup'], true)) {
+            $query->where('shipping_method', $shippingFilter);
+        }
+
         $dateFrom = $request->input('filter_date_from');
         $dateTo = $request->input('filter_date_to');
         if ($dateFrom) {
@@ -195,7 +201,7 @@ class AdminController extends Controller
             'pending' => 'Menunggu Pembayaran',
             'verified' => 'Pembayaran Diterima',
             'paid' => 'Pembayaran Lunas',
-            'shipped' => 'Pesanan Dikirim',
+            'shipped' => 'Pesanan Dikirim / Siap Diambil',
             'completed' => 'Pesanan Selesai',
             'cancelled' => 'Pesanan Dibatalkan',
         ];
@@ -316,6 +322,9 @@ class AdminController extends Controller
         $validated = $request->validate([
             'status' => ['required', 'in:pending,verified,paid,shipped,completed,cancelled'],
             'tracking' => ['nullable', 'string', 'max:100'],
+            'pickup_address' => ['nullable', 'string', 'max:255'],
+            'pickup_contact_name' => ['nullable', 'string', 'max:100'],
+            'pickup_contact_phone' => ['nullable', 'string', 'max:30'],
         ]);
 
         $next = $validated['status'];
@@ -353,6 +362,21 @@ class AdminController extends Controller
                 return response()->json([
                     'ok' => false,
                     'message' => 'Input nomor resi terlebih dahulu sebelum menandai dikirim.',
+                ], 422);
+            }
+        }
+
+        // Pesanan pickup wajib punya titik temu (alamat & kontak) per-pesanan sebelum ditandai siap diambil.
+        if ($next === 'shipped' && $order->shipping_method === 'pickup') {
+            foreach (['pickup_address', 'pickup_contact_name', 'pickup_contact_phone'] as $field) {
+                if ($request->filled($field)) {
+                    $order->{$field} = trim((string) $request->input($field));
+                }
+            }
+            if (empty($order->pickup_address) || empty($order->pickup_contact_phone)) {
+                return response()->json([
+                    'ok' => false,
+                    'message' => 'Lengkapi alamat & nomor kontak pengambilan terlebih dahulu.',
                 ], 422);
             }
         }
@@ -409,6 +433,25 @@ class AdminController extends Controller
         $order->update(['shipping_tracking' => $validated['tracking']]);
 
         return response()->json(['ok' => true, 'message' => 'Nomor resi tersimpan.']);
+    }
+
+    public function updatePickup(Request $request, Order $order)
+    {
+        if ($order->shipping_method !== 'pickup') {
+            return response()->json(['ok' => false, 'message' => 'Pesanan bukan tipe ambil di tempat.'], 422);
+        }
+
+        $validated = $request->validate([
+            'pickup_address' => ['required', 'string', 'max:255'],
+            'pickup_contact_name' => ['nullable', 'string', 'max:100'],
+            'pickup_contact_phone' => ['required', 'string', 'max:30', 'regex:/^[0-9]{8,20}$/'],
+        ], [
+            'pickup_contact_phone.regex' => 'Nomor kontak hanya boleh angka (format internasional, mis. 6281234567890).',
+        ]);
+
+        $order->update($validated);
+
+        return response()->json(['ok' => true, 'message' => 'Info pengambilan tersimpan.']);
     }
 
     public function destroyOrder(Order $order)
@@ -582,7 +625,7 @@ class AdminController extends Controller
 
     private function statusMeta(string $status, ?string $shippingMethod = null): array
     {
-        $shippedLabel = $shippingMethod === 'pickup' ? 'Pesanan Siap Diambil' : 'Pesanan Dikirim';
+        $shippedLabel = 'Pesanan Dikirim / Siap Diambil';
 
         return [
             'pending' => ['label' => 'Menunggu Pembayaran', 'class' => 'bg-amber-100 text-amber-700', 'icon' => 'ri-time-line'],
@@ -731,12 +774,6 @@ class AdminController extends Controller
             .'</div>';
 
         // Pengiriman block (kirim vs pickup specifics)
-        $pickupLocations = [
-            'purwokerto' => 'Purwokerto',
-            'ajibarang' => 'Ajibarang',
-            'jakarta' => 'Jakarta',
-        ];
-
         if ($order->shipping_method === 'kirim') {
             $resiValue = $order->shipping_tracking
                 ? '<span class="font-mono font-bold text-foreground">'.e($order->shipping_tracking).'</span>'
@@ -745,10 +782,25 @@ class AdminController extends Controller
                 .$field('Nomor Resi (JNT)', $resiValue, 'ri-barcode-line');
             $shipNoteHtml = $field('Kurir', 'JNT Express (ongkos kirim ditanggung pembeli)', 'ri-truck-line');
         } else {
-            $cityKey = $order->pickup_location ?? '';
-            $cityName = $pickupLocations[$cityKey] ?? ucfirst($cityKey ?: '-');
-            $shipAddrHtml = $field('Kota Pengambilan', e($cityName), 'ri-map-pin-2-line');
-            $shipNoteHtml = $field('Catatan', 'Titik temu & jadwal pengambilan akan dikonfirmasi admin melalui WhatsApp.', 'ri-information-2-line');
+            $city = PickupLocation::findByKey($order->pickup_location);
+            $cityName = $city?->name ?? ucfirst($order->pickup_location ?: '-');
+
+            // Titik temu diisi per-pesanan saat ditandai siap diambil.
+            $addr = (string) ($order->pickup_address ?? '');
+            $contactName = (string) ($order->pickup_contact_name ?? '');
+            $contactPhone = (string) ($order->pickup_contact_phone ?? '');
+
+            $addrValue = $addr !== ''
+                ? nl2br(e($addr))
+                : '<span class="text-amber-700">Belum ditentukan</span>';
+            $contactValue = $contactPhone !== ''
+                ? e(($contactName !== '' ? $contactName.' · ' : '').'+'.$contactPhone)
+                : '<span class="text-amber-700">Belum ditentukan</span>';
+
+            $shipAddrHtml = $field('Kota Pengambilan', e($cityName), 'ri-map-pin-2-line')
+                .$field('Alamat / Titik Temu', $addrValue, 'ri-navigation-line')
+                .$field('Kontak Pengurus', $contactValue, 'ri-user-location-line');
+            $shipNoteHtml = $field('Catatan', 'Alamat & kontak pengambilan diatur per pesanan dan dikirim ke pembeli saat ditandai siap diambil.', 'ri-information-2-line');
         }
 
         // ===== Build HTML =====
@@ -938,6 +990,14 @@ class AdminController extends Controller
                 .'</button>';
         }
 
+        // Data titik temu pickup diisi & disimpan per-pesanan.
+        $pickupAttrs = '';
+        if ($order->shipping_method === 'pickup') {
+            $pickupAttrs = ' data-pickup-address="'.e($order->pickup_address ?? '').'"'
+                .' data-pickup-contact-name="'.e($order->pickup_contact_name ?? '').'"'
+                .' data-pickup-contact-phone="'.e($order->pickup_contact_phone ?? '').'"';
+        }
+
         // Koreksi nomor resi setelah pesanan kirim ditandai dikirim.
         if ($order->shipping_method === 'kirim' && $order->status === 'shipped') {
             $items .= '<button type="button" role="menuitem" data-action="shipping" data-mode="edit" data-order="'.$orderId.'" data-tracking="'.e($order->shipping_tracking ?? '').'" class="dropdown-item dropdown-item--resi">'
@@ -945,10 +1005,18 @@ class AdminController extends Controller
                 .'</button>';
         }
 
+        // Koreksi titik temu setelah pesanan pickup ditandai siap diambil.
+        if ($order->shipping_method === 'pickup' && $order->status === 'shipped') {
+            $items .= '<button type="button" role="menuitem" data-action="pickup" data-mode="edit" data-order="'.$orderId.'"'.$pickupAttrs.' class="dropdown-item dropdown-item--resi">'
+                .'<i class="ri-map-pin-2-line"></i><span>Ubah Info Pengambilan</span>'
+                .'</button>';
+        }
+
         if ($order->status === 'paid') {
             if ($order->shipping_method === 'pickup') {
-                $items .= '<button type="button" role="menuitem" data-action="status" data-status="shipped" data-order="'.$orderId.'" class="dropdown-item dropdown-item--ship">'
-                    .'<i class="ri-truck-line"></i><span>Tandai Siap Diambil</span>'
+                // Pickup: buka modal titik temu → simpan alamat & kontak + tandai siap diambil sekaligus.
+                $items .= '<button type="button" role="menuitem" data-action="pickup" data-mode="ship" data-order="'.$orderId.'"'.$pickupAttrs.' class="dropdown-item dropdown-item--ship">'
+                    .'<i class="ri-store-2-line"></i><span>Tandai Siap Diambil</span>'
                     .'</button>';
             } else {
                 // Kirim: buka modal resi → simpan resi + tandai dikirim sekaligus.

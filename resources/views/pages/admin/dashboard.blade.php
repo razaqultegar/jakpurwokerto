@@ -74,10 +74,28 @@
             data-sync-payment-url="{{ url('admin/orders/__ORDER__/sync-payment') }}"
             data-settlement-verify-url="{{ url('admin/orders/__ORDER__/settlement-verify') }}"
             data-shipping-url="{{ url('admin/orders/__ORDER__/shipping') }}"
+            data-pickup-url="{{ url('admin/orders/__ORDER__/pickup') }}"
             data-delete-url="{{ url('admin/orders/__ORDER__') }}">
             <div class="orders-filters grid grid-cols-1 gap-3 border-b border-mercury bg-skull/40 p-4 sm:grid-cols-2 lg:grid-cols-4">
                 <div>
-                    <label class="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-onyx">Tipe Pembayaran</label>
+                    <label class="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-onyx">Tanggal Pemesanan</label>
+                    <div class="jpw-flatpickr-wrap">
+                        <input type="text" class="jpw-flatpickr" data-filter="date_range" placeholder="Pilih rentang tanggal…" autocomplete="off" />
+                        <button type="button" class="jpw-flatpickr-clear" data-filter-date-clear aria-label="Hapus tanggal" hidden>
+                            <i class="ri-close-line"></i>
+                        </button>
+                    </div>
+                </div>
+                <div>
+                    <label class="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-onyx">Metode Pengiriman</label>
+                    <select class="orders-filter w-full" data-filter="shipping_method">
+                        <option value="">Semua Pengiriman</option>
+                        <option value="kirim">Dikirim (Kurir)</option>
+                        <option value="pickup">Ambil di Tempat</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-onyx">Jenis Pembayaran</label>
                     <select class="orders-filter w-full" data-filter="payment_type">
                         <option value="">Semua Tipe</option>
                         <option value="dp">DP (50%)</option>
@@ -91,21 +109,12 @@
                         <option value="pending">Menunggu Pembayaran</option>
                         <option value="verified">Pembayaran Diterima</option>
                         <option value="paid">Pembayaran Lunas</option>
-                        <option value="shipped">Pesanan Dikirim</option>
+                        <option value="shipped">Pesanan Dikirim / Siap Diambil</option>
                         <option value="completed">Pesanan Selesai</option>
                         <option value="cancelled">Pesanan Dibatalkan</option>
                     </select>
                 </div>
-                <div>
-                    <label class="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-onyx">Rentang Tanggal</label>
-                    <div class="jpw-flatpickr-wrap">
-                        <input type="text" class="jpw-flatpickr" data-filter="date_range" placeholder="Pilih rentang tanggal…" autocomplete="off" />
-                        <button type="button" class="jpw-flatpickr-clear" data-filter-date-clear aria-label="Hapus tanggal" hidden>
-                            <i class="ri-close-line"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="flex items-end gap-2">
+                <div class="flex items-end gap-2 sm:col-span-2 lg:col-span-4">
                     <button type="button" data-filter-reset
                         class="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-lg border border-mercury bg-white px-4 text-[13px] font-semibold text-foreground transition hover:bg-skull">
                         <i class="ri-refresh-line"></i>
@@ -257,6 +266,52 @@
                         <button type="button" data-shipping-close class="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg border border-mercury bg-white px-4 text-[13px] font-semibold text-foreground transition hover:bg-skull">Batal</button>
                         <button type="submit" data-shipping-submit class="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg bg-primary px-4 text-[13px] font-bold text-white shadow-sm transition hover:bg-primary-light disabled:cursor-not-allowed disabled:opacity-60">
                             <i class="ri-save-3-line"></i> Simpan Resi
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="pickup-modal" class="order-modal" hidden aria-hidden="true">
+        <div class="order-modal__backdrop" data-pickup-close></div>
+        <div class="order-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="pickup-modal-title">
+            <button type="button" class="order-modal__close" data-pickup-close aria-label="Tutup">
+                <i class="ri-close-line"></i>
+            </button>
+            <div class="order-modal__body">
+                <div class="detail-hero">
+                    <div class="detail-hero__bg"></div>
+                    <div class="relative flex flex-col gap-2 pr-12">
+                        <span class="detail-chip detail-chip--glass w-fit font-mono"><i class="ri-store-2-line"></i> <span data-pickup-order-id>—</span></span>
+                        <h2 id="pickup-modal-title" data-pickup-title class="text-base font-black leading-tight text-white">Titik Pengambilan</h2>
+                        <p data-pickup-subtitle class="text-[12px] leading-relaxed text-white/85">Tentukan alamat & kontak pengurus untuk pesanan ini. Info ini dikirim ke pembeli saat ditandai siap diambil.</p>
+                    </div>
+                </div>
+
+                <form data-pickup-form class="flex flex-col gap-4 px-5 py-5">
+                    <div>
+                        <label for="pickup-address-input" class="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-onyx">Alamat / Titik Temu</label>
+                        <textarea id="pickup-address-input" rows="2" maxlength="255" autocomplete="off" data-pickup-address placeholder="Cth. Jl. Soedirman No.10, depan Alun-alun Purwokerto"
+                            class="w-full rounded-xl border border-mercury bg-white px-4 py-2.5 text-[14px] text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"></textarea>
+                    </div>
+                    <div>
+                        <label for="pickup-contact-name-input" class="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-onyx">Nama Pengurus</label>
+                        <input id="pickup-contact-name-input" type="text" maxlength="100" autocomplete="off" data-pickup-contact-name placeholder="Cth. Budi"
+                            class="h-12 w-full rounded-xl border border-mercury bg-white px-4 text-[14px] text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20" />
+                    </div>
+                    <div>
+                        <label for="pickup-contact-phone-input" class="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-onyx">Nomor Kontak (WhatsApp)</label>
+                        <input id="pickup-contact-phone-input" type="text" inputmode="numeric" maxlength="30" autocomplete="off" data-pickup-contact-phone placeholder="Cth. 6281234567890"
+                            class="h-12 w-full rounded-xl border border-mercury bg-white px-4 text-[14px] tabular-nums text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20" />
+                        <p class="mt-1 text-[11px] text-onyx">Format internasional tanpa "+" (mis. 6281234567890).</p>
+                    </div>
+                    <p class="hidden text-[11px] font-semibold text-red-600" data-pickup-error></p>
+
+                    <div class="-mx-5 -mb-5 mt-1 flex items-center justify-end gap-2 border-t border-mercury bg-skull/40 px-5 py-3">
+                        <button type="button" data-pickup-close class="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg border border-mercury bg-white px-4 text-[13px] font-semibold text-foreground transition hover:bg-skull">Batal</button>
+                        <button type="submit" data-pickup-submit class="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg bg-primary px-4 text-[13px] font-bold text-white shadow-sm transition hover:bg-primary-light disabled:cursor-not-allowed disabled:opacity-60">
+                            <i class="ri-save-3-line"></i> Simpan
                         </button>
                     </div>
                 </form>
