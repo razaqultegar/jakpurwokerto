@@ -75,6 +75,7 @@
             data-settlement-verify-url="{{ url('admin/orders/__ORDER__/settlement-verify') }}"
             data-shipping-url="{{ url('admin/orders/__ORDER__/shipping') }}"
             data-pickup-url="{{ url('admin/orders/__ORDER__/pickup') }}"
+            data-payment-proof-url="{{ url('admin/orders/__ORDER__/payment-proof') }}"
             data-delete-url="{{ url('admin/orders/__ORDER__') }}">
             <div class="orders-filters grid grid-cols-1 gap-3 border-b border-mercury bg-skull/40 p-4 sm:grid-cols-2 lg:grid-cols-4">
                 <div>
@@ -312,6 +313,45 @@
                         <button type="button" data-pickup-close class="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg border border-mercury bg-white px-4 text-[13px] font-semibold text-foreground transition hover:bg-skull">Batal</button>
                         <button type="submit" data-pickup-submit class="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg bg-primary px-4 text-[13px] font-bold text-white shadow-sm transition hover:bg-primary-light disabled:cursor-not-allowed disabled:opacity-60">
                             <i class="ri-save-3-line"></i> Simpan
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="payment-proof-modal" class="order-modal" hidden aria-hidden="true">
+        <div class="order-modal__backdrop" data-proof-close></div>
+        <div class="order-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="payment-proof-modal-title">
+            <button type="button" class="order-modal__close" data-proof-close aria-label="Tutup">
+                <i class="ri-close-line"></i>
+            </button>
+            <div class="order-modal__body">
+                <div class="detail-hero">
+                    <div class="detail-hero__bg"></div>
+                    <div class="relative flex flex-col gap-2 pr-12">
+                        <span class="detail-chip detail-chip--glass w-fit font-mono"><i class="ri-receipt-line"></i> <span data-proof-order-id>—</span></span>
+                        <h2 id="payment-proof-modal-title" data-proof-title class="text-base font-black leading-tight text-white">Bukti Transfer</h2>
+                        <p data-proof-subtitle class="text-[12px] leading-relaxed text-white/85">Unggah bukti transfer pembayaran untuk pesanan ini.</p>
+                    </div>
+                </div>
+
+                <form data-proof-form class="flex flex-col gap-4 px-5 py-5">
+                    <div>
+                        <label class="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-onyx">File Bukti Transfer</label>
+                        <label class="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-mercury bg-skull/40 px-4 py-6 text-center transition hover:border-primary hover:bg-primary-softer">
+                            <i class="ri-upload-cloud-2-line text-2xl text-onyx"></i>
+                            <span data-proof-filename class="text-[12px] font-semibold text-onyx">Klik untuk pilih file</span>
+                            <span class="text-[10px] text-onyx/70">JPG · PNG · WEBP · PDF — maks. 5 MB</span>
+                            <input type="file" accept=".jpg,.jpeg,.png,.webp,.pdf,image/*,application/pdf" data-proof-input class="hidden" />
+                        </label>
+                        <p class="mt-1.5 hidden text-[11px] font-semibold text-red-600" data-proof-error></p>
+                    </div>
+
+                    <div class="-mx-5 -mb-5 mt-1 flex items-center justify-end gap-2 border-t border-mercury bg-skull/40 px-5 py-3">
+                        <button type="button" data-proof-close class="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg border border-mercury bg-white px-4 text-[13px] font-semibold text-foreground transition hover:bg-skull">Batal</button>
+                        <button type="submit" data-proof-submit class="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg bg-primary px-4 text-[13px] font-bold text-white shadow-sm transition hover:bg-primary-light disabled:cursor-not-allowed disabled:opacity-60">
+                            <i class="ri-upload-2-line"></i> Unggah
                         </button>
                     </div>
                 </form>

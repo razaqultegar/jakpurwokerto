@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
         settlementVerify: root?.dataset.settlementVerifyUrl,
         shipping: root?.dataset.shippingUrl,
         pickup: root?.dataset.pickupUrl,
+        paymentProof: root?.dataset.paymentProofUrl,
         delete: root?.dataset.deleteUrl,
     };
 
@@ -187,7 +188,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const btn = e.target.closest('button[data-action]');
         if (!btn) return;
         e.preventDefault();
-        const map = { detail: handleDetail, status: handleStatus, delete: handleDelete, 'sync-payment': handleSyncPayment, 'settlement-verify': handleSettlementVerify, shipping: handleShipping, pickup: handlePickup };
+        const map = { detail: handleDetail, status: handleStatus, delete: handleDelete, 'sync-payment': handleSyncPayment, 'settlement-verify': handleSettlementVerify, shipping: handleShipping, pickup: handlePickup, 'payment-proof': handlePaymentProof };
         map[btn.dataset.action]?.(btn);
     });
 
@@ -555,6 +556,111 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // ===== Bukti Transfer (Payment Proof) Modal =====
+    const proofModal = document.getElementById('payment-proof-modal');
+    const proofForm = proofModal?.querySelector('[data-proof-form]');
+    const proofInput = proofModal?.querySelector('[data-proof-input]');
+    const proofFilename = proofModal?.querySelector('[data-proof-filename]');
+    const proofError = proofModal?.querySelector('[data-proof-error]');
+    const proofSubmit = proofModal?.querySelector('[data-proof-submit]');
+    const proofTitle = proofModal?.querySelector('[data-proof-title]');
+    const proofSubtitle = proofModal?.querySelector('[data-proof-subtitle]');
+    const proofOrderIdEl = proofModal?.querySelector('[data-proof-order-id]');
+    const proofState = { orderId: null, type: 'payment' };
+    let proofLastTrigger = null;
+
+    const proofCopy = {
+        payment: {
+            title: 'Bukti Transfer',
+            add: 'Unggah bukti transfer pembayaran untuk pesanan ini.',
+            replace: 'Unggah file baru untuk mengganti bukti transfer lama. File lama akan dihapus.',
+        },
+        settlement: {
+            title: 'Bukti Pelunasan DP',
+            add: 'Unggah bukti transfer pelunasan sisa DP untuk pesanan ini.',
+            replace: 'Unggah file baru untuk mengganti bukti pelunasan lama. File lama akan dihapus.',
+        },
+    };
+
+    const resetProofField = () => {
+        if (proofInput) proofInput.value = '';
+        if (proofFilename) proofFilename.textContent = 'Klik untuk pilih file';
+        if (proofError) proofError.classList.add('hidden');
+    };
+
+    const openProofModal = (btn) => {
+        if (!proofModal) return;
+        proofState.orderId = btn.dataset.order;
+        proofState.type = proofCopy[btn.dataset.type] ? btn.dataset.type : 'payment';
+        proofLastTrigger = btn || null;
+        const replacing = btn.dataset.hasProof === '1';
+        const copy = proofCopy[proofState.type];
+        if (proofTitle) proofTitle.textContent = (replacing ? 'Ganti ' : 'Tambah ') + copy.title;
+        if (proofSubtitle) proofSubtitle.textContent = replacing ? copy.replace : copy.add;
+        if (proofOrderIdEl) proofOrderIdEl.textContent = btn.dataset.order;
+        if (proofSubmit) proofSubmit.disabled = false;
+        resetProofField();
+        proofModal.hidden = false;
+        proofModal.removeAttribute('aria-hidden');
+        document.body.style.overflow = 'hidden';
+    };
+
+    const closeProofModal = () => {
+        if (!proofModal || proofModal.hidden) return;
+        proofModal.hidden = true;
+        proofModal.setAttribute('aria-hidden', 'true');
+        if (!detailModal || detailModal.hidden) document.body.style.overflow = '';
+        resetProofField();
+        proofLastTrigger?.focus({ preventScroll: true });
+        proofLastTrigger = null;
+    };
+
+    proofModal?.querySelectorAll('[data-proof-close]').forEach((el) => {
+        el.addEventListener('click', closeProofModal);
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && proofModal && !proofModal.hidden) closeProofModal();
+    });
+
+    proofInput?.addEventListener('change', () => {
+        const file = proofInput.files?.[0];
+        if (proofFilename) proofFilename.textContent = file ? file.name : 'Klik untuk pilih file';
+        if (file && proofError) proofError.classList.add('hidden');
+    });
+
+    const handlePaymentProof = (btn) => {
+        if (!endpoints.paymentProof) return;
+        openProofModal(btn);
+    };
+
+    proofForm?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!proofState.orderId || !endpoints.paymentProof) return;
+        const file = proofInput?.files?.[0];
+        const showErr = (msg) => { if (proofError) { proofError.textContent = msg; proofError.classList.remove('hidden'); } };
+        if (!file) return showErr('Pilih file bukti transfer terlebih dahulu.');
+        if (file.size > 5 * 1024 * 1024) return showErr('Ukuran file maksimal 5 MB.');
+
+        if (proofSubmit) proofSubmit.disabled = true;
+        try {
+            const fd = new FormData();
+            fd.append('proof', file);
+            fd.append('type', proofState.type);
+            const res = await fetch(buildUrl(endpoints.paymentProof, proofState.orderId), { method: 'POST', headers, body: fd });
+            let payload = null;
+            try { payload = await res.json(); } catch (_) {}
+            if (!res.ok || !payload?.ok) throw new Error(payload?.message || 'Gagal mengunggah bukti transfer.');
+            applyStats(payload.stats);
+            toast?.fire({ icon: 'success', title: 'Bukti tersimpan', text: payload.message || `Bukti transfer ${proofState.orderId} diperbarui.` });
+            dt.ajax.reload(null, false);
+            await refreshOpenDetail(proofState.orderId);
+            closeProofModal();
+        } catch (err) {
+            showErr(err.message);
+            if (proofSubmit) proofSubmit.disabled = false;
+        }
+    });
+
     const handleDetail = async (btn) => {
         const orderId = btn.dataset.order;
         lastTrigger = btn;
@@ -783,7 +889,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const btn = e.target.closest('button[data-action]');
         if (!btn) return;
         closeDropdowns();
-        const map = { detail: handleDetail, status: handleStatus, delete: handleDelete, 'sync-payment': handleSyncPayment, 'settlement-verify': handleSettlementVerify, shipping: handleShipping, pickup: handlePickup };
+        const map = { detail: handleDetail, status: handleStatus, delete: handleDelete, 'sync-payment': handleSyncPayment, 'settlement-verify': handleSettlementVerify, shipping: handleShipping, pickup: handlePickup, 'payment-proof': handlePaymentProof };
         map[btn.dataset.action]?.(btn);
     });
 
