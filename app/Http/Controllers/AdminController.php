@@ -492,6 +492,58 @@ class AdminController extends Controller
         ]);
     }
 
+    public function uploadPaymentProof(Request $request, Order $order)
+    {
+        $validated = $request->validate([
+            'proof' => ['required', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:5120'],
+            'type' => ['nullable', 'in:payment,settlement'],
+        ]);
+
+        $type = $validated['type'] ?? 'payment';
+
+        // Bukti pelunasan hanya berlaku untuk pesanan DP.
+        if ($type === 'settlement') {
+            if ($order->payment_type !== 'dp') {
+                return response()->json(['ok' => false, 'message' => 'Pesanan bukan tipe DP.'], 422);
+            }
+
+            $replacing = (bool) $order->dp_settlement_proof;
+            if ($replacing) {
+                Storage::disk('public')->delete($order->dp_settlement_proof);
+            }
+
+            $path = $request->file('proof')->store('proofs/settlements', 'public');
+            $order->update([
+                'dp_settlement_proof' => $path,
+                'dp_settlement_uploaded_at' => $order->dp_settlement_uploaded_at ?? now(),
+            ]);
+
+            return response()->json([
+                'ok' => true,
+                'message' => $replacing ? 'Bukti pelunasan berhasil diganti.' : 'Bukti pelunasan berhasil ditambahkan.',
+                'stats' => $this->orderStats(),
+            ]);
+        }
+
+        // Bukti transfer awal / pembayaran.
+        $replacing = (bool) $order->payment_proof;
+        if ($replacing) {
+            Storage::disk('public')->delete($order->payment_proof);
+        }
+
+        $path = $request->file('proof')->store('proofs', 'public');
+        $order->update([
+            'payment_proof' => $path,
+            'payment_proof_uploaded_at' => now(),
+        ]);
+
+        return response()->json([
+            'ok' => true,
+            'message' => $replacing ? 'Bukti transfer berhasil diganti.' : 'Bukti transfer berhasil ditambahkan.',
+            'stats' => $this->orderStats(),
+        ]);
+    }
+
     public function uploadDpProof(Request $request, Order $order)
     {
         if ($order->payment_type !== 'dp') {
@@ -746,23 +798,8 @@ class AdminController extends Controller
                 .'</div>';
         }
 
-        // Proof chips
-        $proofs = [];
-        if ($order->payment_proof) {
-            $uploadedAt = $order->payment_proof_uploaded_at;
-            $uploadedLabel = $uploadedAt
-                ? $uploadedAt->locale('id')->translatedFormat('d M Y · H:i').' WIB'
-                : null;
-            $proofs[] = '<a href="'.e(asset('storage/'.$order->payment_proof)).'" target="_blank" class="detail-chip detail-chip--primary"><i class="ri-image-line"></i> Bukti Pembayaran <i class="ri-external-link-line text-[10px]"></i></a>'
-                .($uploadedLabel ? '<span class="inline-flex items-center gap-1 text-[11px] text-onyx"><i class="ri-time-line text-[12px]"></i> '.e($uploadedLabel).'</span>' : '');
-        }
-        if ($order->payment_type === 'dp' && $order->dp_settlement_proof) {
-            $proofs[] = '<a href="'.e(asset('storage/'.$order->dp_settlement_proof)).'" target="_blank" class="detail-chip detail-chip--success"><i class="ri-checkbox-circle-line"></i> Bukti Pelunasan DP <i class="ri-external-link-line text-[10px]"></i></a>';
-        }
-        if (empty($proofs)) {
-            $proofs[] = '<span class="detail-chip detail-chip--muted"><i class="ri-image-add-line"></i> Belum ada bukti</span>';
-        }
-        $proofHtml = implode('', $proofs);
+        // Bukti transfer: baris per-slot (lihat + tambah/ganti).
+        $proofRows = $this->renderProofRows($order);
 
         // Field row helper
         $field = fn ($label, $value, $icon = null) => '<div class="flex gap-3">'
@@ -885,7 +922,7 @@ class AdminController extends Controller
             .'</div>'
             .'</div>'
             .($order->payment_type === 'dp' ? $this->renderSettlementBlock($order, $rupiah) : '')
-            .'<div class="mt-3 flex flex-wrap items-center gap-2">'.$proofHtml.'</div>'
+            .$proofRows
             .'</div>'
 
             .'</div>';
@@ -919,6 +956,72 @@ class AdminController extends Controller
             .'<div class="detail-card__title text-amber-800"><i class="ri-error-warning-line"></i> Kemungkinan Pesanan Duplikat ('.$dupes->count().')</div>'
             .'<div class="text-[12px] text-amber-800/80">Pelanggan ini punya pesanan lain yang masih menunggu pembayaran tanpa bukti. Batalkan yang tidak terpakai.</div>'
             .'<div class="mt-2 flex flex-col gap-2">'.$itemsHtml.'</div>'
+            .'</div>';
+    }
+
+    /**
+     * Daftar bukti transfer (per-slot) di modal detail: lihat + tambah/ganti.
+     * Pesanan DP memiliki 2 slot: bukti transfer awal & bukti pelunasan.
+     */
+    private function renderProofRows(Order $order): string
+    {
+        $row = function (string $type, string $label, ?string $path, $uploadedAt) use ($order): string {
+            $has = (bool) $path;
+
+            $uploadedLabel = $uploadedAt
+                ? 'Diunggah '.$uploadedAt->locale('id')->translatedFormat('d M Y · H:i').' WIB'
+                : 'Sudah diunggah';
+
+            // Ikon + status kiri.
+            if ($has) {
+                $iconWrap = 'bg-emerald-50 text-emerald-600 ring-1 ring-emerald-200';
+                $icon = 'ri-image-2-line';
+                $statusHtml = '<div class="mt-0.5 inline-flex items-center gap-1 text-[11px] text-onyx"><i class="ri-checkbox-circle-fill text-[12px] text-emerald-500"></i> '.e($uploadedLabel).'</div>';
+            } else {
+                $iconWrap = 'bg-amber-50 text-amber-600 ring-1 ring-amber-200';
+                $icon = 'ri-image-add-line';
+                $statusHtml = '<div class="mt-0.5 inline-flex items-center gap-1 text-[11px] font-semibold text-amber-600"><i class="ri-error-warning-line text-[12px]"></i> Belum ada bukti</div>';
+            }
+
+            // Tombol kanan.
+            $viewBtn = $has
+                ? '<a href="'.e(asset('storage/'.$path)).'" target="_blank" rel="noopener" class="inline-flex h-8 items-center gap-1 rounded-lg border border-mercury bg-white px-2.5 text-[11px] font-bold text-foreground transition hover:border-primary hover:text-primary"><i class="ri-eye-line text-[13px]"></i> Lihat</a>'
+                : '';
+            $actionBtn = $has
+                ? '<button type="button" data-action="payment-proof" data-type="'.$type.'" data-order="'.e($order->order_id).'" data-has-proof="1" class="inline-flex h-8 items-center gap-1 rounded-lg border border-primary-soft bg-primary-softer px-2.5 text-[11px] font-bold text-primary transition hover:bg-primary-soft"><i class="ri-image-edit-line text-[13px]"></i> Ganti</button>'
+                : '<button type="button" data-action="payment-proof" data-type="'.$type.'" data-order="'.e($order->order_id).'" data-has-proof="0" class="inline-flex h-8 items-center gap-1 rounded-lg bg-primary px-2.5 text-[11px] font-bold text-white shadow-sm transition hover:bg-primary-light"><i class="ri-upload-2-line text-[13px]"></i> Tambah</button>';
+
+            return '<div class="flex items-center justify-between gap-3 rounded-xl border border-mercury bg-skull/40 px-3 py-2.5">'
+                .'<div class="flex min-w-0 items-center gap-2.5">'
+                .'<div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg '.$iconWrap.'"><i class="'.$icon.' text-base"></i></div>'
+                .'<div class="min-w-0">'
+                .'<div class="truncate text-[12px] font-bold text-foreground">'.e($label).'</div>'
+                .$statusHtml
+                .'</div>'
+                .'</div>'
+                .'<div class="flex shrink-0 items-center gap-1.5">'.$viewBtn.$actionBtn.'</div>'
+                .'</div>';
+        };
+
+        $rows = $row(
+            'payment',
+            $order->payment_type === 'dp' ? 'Bukti Transfer DP' : 'Bukti Transfer',
+            $order->payment_proof,
+            $order->payment_proof_uploaded_at,
+        );
+
+        if ($order->payment_type === 'dp') {
+            $rows .= $row(
+                'settlement',
+                'Bukti Pelunasan DP',
+                $order->dp_settlement_proof,
+                $order->dp_settlement_uploaded_at,
+            );
+        }
+
+        return '<div class="mt-3">'
+            .'<div class="mb-2 text-[10px] font-bold uppercase tracking-wider text-onyx">Bukti Transfer</div>'
+            .'<div class="flex flex-col gap-2">'.$rows.'</div>'
             .'</div>';
     }
 
