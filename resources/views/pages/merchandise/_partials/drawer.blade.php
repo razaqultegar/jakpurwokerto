@@ -1,3 +1,9 @@
+@php
+    $state = $merch['state'] ?? [];
+    $isAfterEnd = $state['is_after_end'] ?? false;
+@endphp
+
+@unless ($isAfterEnd)
 <div class="overlay" aria-hidden="true" data-cart-drawer>
     <div class="overlay-backdrop--dark" data-cart-backdrop></div>
     <aside class="absolute right-0 top-0 flex h-full w-[88%] max-w-sm translate-x-full flex-col bg-white shadow-2xl transition-transform duration-300 ease-out" aria-modal="true" data-cart-panel>
@@ -39,3 +45,4 @@
         </footer>
     </aside>
 </div>
+@endunless

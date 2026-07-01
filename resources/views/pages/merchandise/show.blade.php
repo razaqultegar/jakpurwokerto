@@ -10,7 +10,6 @@
     @endif
     @include('pages.merchandise._partials.hero')
     @include('pages.merchandise._partials.info')
-    <hr class="section-divider">
     @include('pages.merchandise._partials.options')
     <hr class="section-divider">
     <section class="section">

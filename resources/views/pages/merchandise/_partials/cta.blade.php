@@ -1,9 +1,10 @@
 @php
     $state = $merch['state'];
     $isBeforeStart = $state['is_before_start'];
+    $isAfterEnd = $state['is_after_end'];
 @endphp
 
-@unless ($isBeforeStart)
+@unless ($isBeforeStart || $isAfterEnd)
 <div class="cta-floating">
     <div class="cta-floating__inner">
         <div class="cta-collapse" data-merch-selected>

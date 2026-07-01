@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Mail\OrderInvoice;
 use App\Models\Order;
 use App\Models\PickupLocation;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -76,6 +77,20 @@ class CheckoutController extends Controller
 
     public function store(Request $request)
     {
+        $poStartStr = '2026-05-20T19:28:00+07:00';
+        $poEndStr = '2026-06-20T23:59:59+07:00';
+        $now = now();
+        $poStart = Carbon::parse($poStartStr);
+        $poEnd = Carbon::parse($poEndStr);
+
+        if ($now->lt($poStart)) {
+            return back()->withErrors(['checkout' => 'Pre-Order belum dibuka.'])->withInput();
+        }
+
+        if ($now->gt($poEnd)) {
+            return back()->withErrors(['checkout' => 'Pre-Order telah ditutup. Terima kasih atas minat Anda!'])->withInput();
+        }
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'min:3', 'max:120'],
             'email' => ['required', 'email', 'max:160'],

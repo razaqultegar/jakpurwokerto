@@ -23,6 +23,7 @@ export function initCountdown(root) {
         if (els.status) els.status.textContent = status;
     };
 
+    let timer;
     const tick = () => {
         const now = Date.now();
         if (now < startAt) {
@@ -36,5 +37,5 @@ export function initCountdown(root) {
     };
 
     tick();
-    const timer = setInterval(tick, 1000);
+    timer = setInterval(tick, 1000);
 }
