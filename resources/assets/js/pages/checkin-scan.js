@@ -134,7 +134,9 @@ document.addEventListener('DOMContentLoaded', () => {
         confirmAlertIcon.className = 'ri-checkbox-circle-fill text-3xl';
         confirmAlertTitle.textContent = 'Check-in Berhasil';
         confirmAlertName.textContent = payload.order?.customer_name ?? '';
-        confirmAlertMessage.textContent = payload.message;
+        confirmAlertMessage.textContent = payload.order?.order_completed
+            ? `${payload.message} Semua tiket sudah check-in — pesanan ditandai selesai.`
+            : payload.message;
         confirmAlertActions.hidden = true;
         confirmAlertContinueBtn.hidden = false;
     };
