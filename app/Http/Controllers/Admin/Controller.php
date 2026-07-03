@@ -1,96 +1,28 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
-use App\Mail\OrderInvoice;
+use App\Http\Controllers\Controller as BaseController;
 use App\Models\Order;
 use App\Models\PickupLocation;
-use App\Support\OrderPresenter;
-use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Storage;
-use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Style\Alignment;
-use PhpOffice\PhpSpreadsheet\Style\Border;
-use PhpOffice\PhpSpreadsheet\Style\Fill;
-use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-use Symfony\Component\HttpFoundation\StreamedResponse;
+use Carbon\Carbon;
 
-class AdminController extends Controller
+abstract class Controller extends BaseController
 {
-    public function dashboard()
+    protected const MERCH_STOCK_LIMITS = [
+        'the-7ourney' => 300,
+    ];
+
+    protected function isTicketOrder(Order $order): bool
     {
-        return view('pages.admin.dashboard', [
-            'title' => 'Beranda',
-            'stats' => $this->orderStats(),
-            'stockCards' => $this->stockCards(),
-            'filterCategory' => null,
-        ]);
+        $items = collect($order->item ?? []);
+
+        return $items->isNotEmpty() && $items->every(fn ($line) => ($line['category'] ?? null) === 'Tiket');
     }
 
-    public function ticket()
-    {
-        return view('pages.admin.dashboard', [
-            'title' => 'Pesanan Tiket',
-            'stats' => $this->ticketStats(),
-            'stockCards' => [],
-            'filterCategory' => 'Tiket',
-        ]);
-    }
-
-    public function merchandise()
-    {
-        return view('pages.admin.dashboard', [
-            'title' => 'Pesanan Merchandise',
-            'stats' => $this->merchandiseStats(),
-            'stockCards' => $this->stockCards(),
-            'filterCategory' => 'Merchandise',
-        ]);
-    }
-
-    private function ticketStats(): array
-    {
-        $base = Order::whereRaw("JSON_SEARCH(item, 'one', 'Tiket', NULL, '$[*].category') IS NOT NULL");
-        $confirmed = ['verified', 'paid', 'shipped', 'completed'];
-
-        return [
-            'total' => (clone $base)->count(),
-            'pending' => (clone $base)->where('status', 'pending')->count(),
-            'verified' => (clone $base)->where('status', 'verified')->count(),
-            'paid' => (clone $base)->where('status', 'paid')->count(),
-            'shipped' => (clone $base)->where('status', 'shipped')->count(),
-            'completed' => (clone $base)->where('status', 'completed')->count(),
-            'cancelled' => (clone $base)->where('status', 'cancelled')->count(),
-            'confirmed' => (clone $base)->whereIn('status', $confirmed)->count(),
-            'settled' => (clone $base)->whereIn('status', ['paid', 'shipped', 'completed'])->count(),
-            'revenue' => (clone $base)->whereIn('status', $confirmed)->sum('amount_due'),
-        ];
-    }
-
-    private function merchandiseStats(): array
-    {
-        $base = Order::whereRaw("JSON_SEARCH(item, 'one', 'Tiket', NULL, '$[*].category') IS NULL");
-        $confirmed = ['verified', 'paid', 'shipped', 'completed'];
-
-        return [
-            'total' => (clone $base)->count(),
-            'pending' => (clone $base)->where('status', 'pending')->count(),
-            'verified' => (clone $base)->where('status', 'verified')->count(),
-            'paid' => (clone $base)->where('status', 'paid')->count(),
-            'shipped' => (clone $base)->where('status', 'shipped')->count(),
-            'completed' => (clone $base)->where('status', 'completed')->count(),
-            'cancelled' => (clone $base)->where('status', 'cancelled')->count(),
-            'confirmed' => (clone $base)->whereIn('status', $confirmed)->count(),
-            'settled' => (clone $base)->whereIn('status', ['paid', 'shipped', 'completed'])->count(),
-            'revenue' => (clone $base)->whereIn('status', $confirmed)->sum('amount_due'),
-        ];
-    }
-
-    private function stockCards(): array
+    protected function stockCards(): array
     {
         $catalog = [
             'the-7ourney' => ['name' => 'THE 7OURNEY', 'limit' => self::MERCH_STOCK_LIMITS['the-7ourney'] ?? 0],
@@ -115,12 +47,12 @@ class AdminController extends Controller
         return $cards;
     }
 
-    private function stockCardsHtml(): string
+    protected function stockCardsHtml(): string
     {
         return view('pages.admin._partials.stock-cards', ['stockCards' => $this->stockCards()])->render();
     }
 
-    private function orderStats(): array
+    protected function orderStats(): array
     {
         $confirmed = ['verified', 'paid', 'shipped', 'completed'];
 
@@ -138,84 +70,7 @@ class AdminController extends Controller
         ];
     }
 
-    public function ordersData(Request $request)
-    {
-        $draw = (int) $request->input('draw', 1);
-        $start = (int) $request->input('start', 0);
-        $length = (int) $request->input('length', 10);
-        $search = trim((string) $request->input('search.value', ''));
-
-        $columns = [
-            0 => 'order_id',
-            1 => 'created_at',
-            2 => 'customer_name',
-            3 => 'created_at',
-            4 => 'amount_due',
-            5 => 'payment_method_type',
-            6 => 'status',
-        ];
-        $orderColIdx = (int) $request->input('order.0.column', 1);
-        $orderDir = $request->input('order.0.dir', 'desc') === 'asc' ? 'asc' : 'desc';
-        $orderCol = $columns[$orderColIdx] ?? 'created_at';
-
-        $base = $this->applyOrderFilters(Order::query(), $request);
-        $total = (clone $base)->count();
-
-        if ($search !== '') {
-            $statusAliases = [
-                'menunggu' => 'pending',
-                'pending' => 'pending',
-                'diverifikasi' => 'verified',
-                'verified' => 'verified',
-                'verifikasi' => 'verified',
-                'lunas' => 'paid',
-                'paid' => 'paid',
-                'dikirim' => 'shipped',
-                'shipped' => 'shipped',
-                'siap diambil' => 'shipped',
-                'selesai' => 'completed',
-                'completed' => 'completed',
-                'batal' => 'cancelled',
-                'cancelled' => 'cancelled',
-                'dibatalkan' => 'cancelled',
-            ];
-            $needle = mb_strtolower($search);
-            $statusMatch = null;
-            foreach ($statusAliases as $alias => $value) {
-                if (str_contains($alias, $needle)) {
-                    $statusMatch = $value;
-                    break;
-                }
-            }
-
-            $base->where(function ($q) use ($search, $statusMatch) {
-                $like = '%'.$search.'%';
-                $q->where('order_id', 'like', $like)
-                    ->orWhere('customer_name', 'like', $like)
-                    ->orWhere('customer_email', 'like', $like)
-                    ->orWhere('customer_phone', 'like', $like);
-                if ($statusMatch) {
-                    $q->orWhere('status', $statusMatch);
-                }
-            });
-        }
-
-        $filtered = (clone $base)->count();
-
-        $rows = $base->orderBy($orderCol, $orderDir)
-            ->skip($start)
-            ->take($length > 0 ? $length : 10)
-            ->get();
-
-        return response()->json([
-            'draw' => $draw,
-            'recordsTotal' => $total,
-            'recordsFiltered' => $filtered,
-            'data' => $rows->map(fn ($o) => $this->serializeOrder($o))->all(),
-        ]);
-    }
-
-    private function applyOrderFilters($query, Request $request)
+    protected function applyOrderFilters($query, Request $request)
     {
         $paymentType = $request->input('filter_payment_type');
         if (in_array($paymentType, ['dp', 'full'], true)) {
@@ -257,454 +112,7 @@ class AdminController extends Controller
         return $query;
     }
 
-    public function exportOrders(Request $request): StreamedResponse
-    {
-        $orders = $this->applyOrderFilters(Order::query(), $request)
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-        $statusLabels = [
-            'pending' => 'Menunggu Pembayaran',
-            'verified' => 'Pembayaran Diterima',
-            'paid' => 'Pembayaran Lunas',
-            'shipped' => 'Pesanan Dikirim / Siap Diambil',
-            'completed' => 'Pesanan Selesai',
-            'cancelled' => 'Pesanan Dibatalkan',
-        ];
-        $paymentTypeLabels = ['dp' => 'DP (50%)', 'full' => 'Bayar Lunas'];
-        $shippingLabels = ['kirim' => 'Dikirim', 'pickup' => 'Ambil di Tempat'];
-
-        $spreadsheet = new Spreadsheet;
-        $sheet = $spreadsheet->getActiveSheet();
-        $sheet->setTitle('Pesanan');
-
-        $headers = [
-            'ID Pesanan',
-            'Tanggal',
-            'Nama Pelanggan',
-            'Email',
-            'Telepon',
-            'Pengiriman',
-            'Lokasi/Alamat',
-            'Metode Pembayaran',
-            'Tipe Pembayaran',
-            'Tanggal Pembayaran',
-            'Subtotal',
-            'Dibayar',
-            'Sisa',
-            'Status',
-            'Item',
-        ];
-
-        foreach ($headers as $i => $label) {
-            $sheet->setCellValue([$i + 1, 1], $label);
-        }
-
-        $lastCol = $sheet->getHighestColumn();
-        $headerRange = 'A1:'.$lastCol.'1';
-        $sheet->getStyle($headerRange)->applyFromArray([
-            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
-            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '1F2937']],
-            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
-            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'D1D5DB']]],
-        ]);
-        $sheet->getRowDimension(1)->setRowHeight(22);
-
-        $row = 2;
-        foreach ($orders as $order) {
-            $itemsText = collect($order->item ?? [])->map(function ($line) {
-                $qty = (int) ($line['qty'] ?? 0);
-                $price = (int) ($line['price'] ?? 0) + (int) ($line['fee'] ?? 0);
-                $variant = trim(implode(' · ', array_filter([$line['category'] ?? '', $line['sleeve'] ?? '', $line['size'] ?? ''])));
-                $name = $line['name'] ?? '-';
-
-                return $qty.'× '.$name.($variant !== '' ? ' ('.$variant.')' : '').' @ Rp'.number_format($price, 0, ',', '.');
-            })->implode("\n");
-
-            $paymentMethod = match ($order->payment_method_type) {
-                'bank' => 'Transfer Bank · '.($order->payment_data['label'] ?? '-'),
-                'qris' => 'QRIS',
-                default => ucfirst((string) $order->payment_method_type),
-            };
-
-            $address = $order->shipping_method === 'kirim'
-                ? (string) $order->customer_address
-                : ucfirst((string) $order->pickup_location);
-
-            $subtotal = (int) $order->subtotal;
-            $paid = (int) $order->amount_due;
-            $remaining = max(0, $subtotal - $paid);
-
-            $values = [
-                $order->order_id,
-                optional($order->created_at)->format('Y-m-d H:i'),
-                $order->customer_name,
-                $order->customer_email,
-                $order->customer_phone,
-                $shippingLabels[$order->shipping_method] ?? $order->shipping_method,
-                $address,
-                $paymentMethod,
-                $paymentTypeLabels[$order->payment_type] ?? $order->payment_type,
-                optional($order->payment_proof_uploaded_at)->format('Y-m-d H:i'),
-                $subtotal,
-                $paid,
-                $remaining,
-                $statusLabels[$order->status] ?? $order->status,
-                $itemsText,
-            ];
-
-            foreach ($values as $i => $value) {
-                $sheet->setCellValue([$i + 1, $row], $value);
-            }
-            $row++;
-        }
-
-        $lastRow = $row - 1;
-        if ($lastRow >= 2) {
-            $sheet->getStyle('A2:'.$lastCol.$lastRow)->applyFromArray([
-                'alignment' => ['vertical' => Alignment::VERTICAL_TOP, 'wrapText' => true],
-                'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'E5E7EB']]],
-            ]);
-            $sheet->getStyle('K2:M'.$lastRow)->getNumberFormat()->setFormatCode('#,##0');
-        }
-
-        foreach (range(1, count($headers)) as $colIdx) {
-            $sheet->getColumnDimension(Coordinate::stringFromColumnIndex($colIdx))->setAutoSize(true);
-        }
-        $sheet->freezePane('A2');
-
-        $filename = 'pesanan-'.now()->format('Ymd-His').'.xlsx';
-
-        return response()->streamDownload(function () use ($spreadsheet) {
-            (new Xlsx($spreadsheet))->save('php://output');
-        }, $filename, [
-            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'Cache-Control' => 'max-age=0, no-cache, no-store, must-revalidate',
-        ]);
-    }
-
-    public function updateStatus(Request $request, Order $order)
-    {
-        $validated = $request->validate([
-            'status' => ['required', 'in:pending,verified,paid,shipped,completed,cancelled'],
-            'tracking' => ['nullable', 'string', 'max:100'],
-            'pickup_address' => ['nullable', 'string', 'max:255'],
-            'pickup_contact_name' => ['nullable', 'string', 'max:100'],
-            'pickup_contact_phone' => ['nullable', 'string', 'max:30'],
-        ]);
-
-        $next = $validated['status'];
-        $current = $order->status;
-
-        $allowed = match ($current) {
-            'pending' => ['verified', 'cancelled'],
-            'verified' => ['paid', 'cancelled', 'pending'],
-            'paid' => ['shipped', 'cancelled'],
-            'shipped' => ['completed', 'cancelled'],
-            'completed' => [],
-            'cancelled' => ['pending'],
-            default => [],
-        };
-
-        if (! in_array($next, $allowed, true)) {
-            return response()->json([
-                'ok' => false,
-                'message' => 'Transisi status tidak diperbolehkan.',
-            ], 422);
-        }
-
-        // Full payment sudah lunas sejak awal → langsung 'paid' saat pembayaran diverifikasi.
-        if ($next === 'verified' && $order->payment_type === 'full') {
-            $next = 'paid';
-        }
-
-        // Pesanan kirim wajib punya nomor resi sebelum ditandai dikirim.
-        // Resi bisa dikirim bersama aksi ini (alur gabungan "Tandai Dikirim").
-        if ($next === 'shipped' && $order->shipping_method === 'kirim') {
-            if (! empty($validated['tracking'])) {
-                $order->shipping_tracking = trim($validated['tracking']);
-            }
-            if (empty($order->shipping_tracking)) {
-                return response()->json([
-                    'ok' => false,
-                    'message' => 'Input nomor resi terlebih dahulu sebelum menandai dikirim.',
-                ], 422);
-            }
-        }
-
-        // Pesanan pickup wajib punya titik temu (alamat & kontak) per-pesanan sebelum ditandai siap diambil.
-        if ($next === 'shipped' && $order->shipping_method === 'pickup') {
-            foreach (['pickup_address', 'pickup_contact_name', 'pickup_contact_phone'] as $field) {
-                if ($request->filled($field)) {
-                    $order->{$field} = trim((string) $request->input($field));
-                }
-            }
-            if (empty($order->pickup_address) || empty($order->pickup_contact_phone)) {
-                return response()->json([
-                    'ok' => false,
-                    'message' => 'Lengkapi alamat & nomor kontak pengambilan terlebih dahulu.',
-                ], 422);
-            }
-        }
-
-        $prev = $order->status;
-
-        // Tandai lunas manual: DP yang dilunasi tanpa bukti dari pembeli (konfirmasi admin).
-        $manualSettlement = false;
-        if ($next === 'paid' && $order->payment_type === 'dp' && empty($order->dp_settlement_verified_at)) {
-            $order->dp_settlement_verified_at = now();
-            $order->dp_settlement_uploaded_at = $order->dp_settlement_uploaded_at ?? now();
-            $manualSettlement = true;
-        }
-
-        $order->status = $next;
-        if (in_array($next, ['verified', 'paid', 'shipped', 'completed'], true)) {
-            $order->verified_at = $order->verified_at ?? now();
-        } elseif ($next === 'pending') {
-            $order->verified_at = null;
-        }
-        $order->completed_at = $next === 'completed' ? now() : ($next === 'pending' ? null : $order->completed_at);
-        $order->save();
-
-        // Email transaksional sesuai status baru.
-        if ($next === 'verified' && $prev !== 'verified' && $order->payment_type === 'dp') {
-            // DP diterima → ajakan pelunasan.
-            $this->sendOrderMail($order, 'dp-verified');
-        } elseif ($next === 'paid' && $prev !== 'paid') {
-            // Lunas: full payment → invoice; DP (manual/terverifikasi) → konfirmasi lunas.
-            $this->sendOrderMail($order, $order->payment_type === 'full' ? 'invoice' : 'settlement-verified');
-        } elseif ($next === 'shipped' && $prev !== 'shipped') {
-            // Dikirim (kurir) → kirim resi; pickup → info lokasi & kontak pengurus.
-            $this->sendOrderMail($order, $order->shipping_method === 'pickup' ? 'pickup-ready' : 'shipped');
-        }
-
-        return response()->json([
-            'ok' => true,
-            'message' => $manualSettlement ? 'Pesanan ditandai lunas.' : 'Status pesanan diperbarui.',
-            'stats' => $this->orderStats(),
-            'stockHtml' => $this->stockCardsHtml(),
-        ]);
-    }
-
-    public function updateShipping(Request $request, Order $order)
-    {
-        if ($order->shipping_method !== 'kirim') {
-            return response()->json(['ok' => false, 'message' => 'Pesanan bukan tipe kirim.'], 422);
-        }
-
-        $validated = $request->validate([
-            'tracking' => ['required', 'string', 'max:100'],
-        ]);
-
-        $order->update(['shipping_tracking' => $validated['tracking']]);
-
-        return response()->json(['ok' => true, 'message' => 'Nomor resi tersimpan.']);
-    }
-
-    public function updatePickup(Request $request, Order $order)
-    {
-        if ($order->shipping_method !== 'pickup') {
-            return response()->json(['ok' => false, 'message' => 'Pesanan bukan tipe ambil di tempat.'], 422);
-        }
-
-        $validated = $request->validate([
-            'pickup_address' => ['required', 'string', 'max:255'],
-            'pickup_contact_name' => ['nullable', 'string', 'max:100'],
-            'pickup_contact_phone' => ['required', 'string', 'max:30', 'regex:/^[0-9]{8,20}$/'],
-        ], [
-            'pickup_contact_phone.regex' => 'Nomor kontak hanya boleh angka (format internasional, mis. 6281234567890).',
-        ]);
-
-        $order->update($validated);
-
-        return response()->json(['ok' => true, 'message' => 'Info pengambilan tersimpan.']);
-    }
-
-    public function destroyOrder(Order $order)
-    {
-        $order->status = 'cancelled';
-        $order->save();
-
-        return response()->json([
-            'ok' => true,
-            'message' => 'Pesanan dibatalkan.',
-            'stats' => $this->orderStats(),
-            'stockHtml' => $this->stockCardsHtml(),
-        ]);
-    }
-
-    public function syncPayment(Request $request, Order $order)
-    {
-        if ($order->status === 'cancelled') {
-            return response()->json(['ok' => false, 'message' => 'Pesanan sudah dibatalkan.'], 422);
-        }
-
-        $validated = $request->validate([
-            'amount_due' => ['required', 'integer', 'min:1', 'max:'.(int) $order->subtotal],
-        ]);
-
-        $order->update(['amount_due' => $validated['amount_due']]);
-
-        return response()->json([
-            'ok' => true,
-            'message' => 'Total pembayaran diperbarui.',
-            'stats' => $this->orderStats(),
-            'order' => [
-                'order_id' => $order->order_id,
-                'amount_due' => (int) $order->amount_due,
-                'subtotal' => (int) $order->subtotal,
-                'remaining' => max(0, (int) $order->subtotal - (int) $order->amount_due),
-            ],
-        ]);
-    }
-
-    public function uploadPaymentProof(Request $request, Order $order)
-    {
-        $validated = $request->validate([
-            'proof' => ['required', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:5120'],
-            'type' => ['nullable', 'in:payment,settlement'],
-        ]);
-
-        $type = $validated['type'] ?? 'payment';
-
-        // Bukti pelunasan hanya berlaku untuk pesanan DP.
-        if ($type === 'settlement') {
-            if ($order->payment_type !== 'dp') {
-                return response()->json(['ok' => false, 'message' => 'Pesanan bukan tipe DP.'], 422);
-            }
-
-            $replacing = (bool) $order->dp_settlement_proof;
-            if ($replacing) {
-                Storage::disk('public')->delete($order->dp_settlement_proof);
-            }
-
-            $path = $request->file('proof')->store('proofs/settlements', 'public');
-            $order->update([
-                'dp_settlement_proof' => $path,
-                'dp_settlement_uploaded_at' => $order->dp_settlement_uploaded_at ?? now(),
-            ]);
-
-            return response()->json([
-                'ok' => true,
-                'message' => $replacing ? 'Bukti pelunasan berhasil diganti.' : 'Bukti pelunasan berhasil ditambahkan.',
-                'stats' => $this->orderStats(),
-            ]);
-        }
-
-        // Bukti transfer awal / pembayaran.
-        $replacing = (bool) $order->payment_proof;
-        if ($replacing) {
-            Storage::disk('public')->delete($order->payment_proof);
-        }
-
-        $path = $request->file('proof')->store('proofs', 'public');
-        $order->update([
-            'payment_proof' => $path,
-            'payment_proof_uploaded_at' => now(),
-        ]);
-
-        return response()->json([
-            'ok' => true,
-            'message' => $replacing ? 'Bukti transfer berhasil diganti.' : 'Bukti transfer berhasil ditambahkan.',
-            'stats' => $this->orderStats(),
-        ]);
-    }
-
-    public function uploadDpProof(Request $request, Order $order)
-    {
-        if ($order->payment_type !== 'dp') {
-            return response()->json(['ok' => false, 'message' => 'Pesanan bukan tipe DP.'], 422);
-        }
-
-        $validated = $request->validate([
-            'proof' => ['required', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:5120'],
-        ]);
-
-        if ($order->dp_settlement_proof) {
-            Storage::disk('public')->delete($order->dp_settlement_proof);
-        }
-
-        $path = $validated['proof']->store('proofs/settlements', 'public');
-        $alreadyVerified = (bool) $order->dp_settlement_verified_at;
-        $update = [
-            'dp_settlement_proof' => $path,
-            'dp_settlement_uploaded_at' => $order->dp_settlement_uploaded_at ?? now(),
-            'dp_settlement_verified_at' => now(),
-        ];
-        // Pelunasan terverifikasi → naikkan status ke 'paid' (lunas).
-        if ($order->status === 'verified') {
-            $update['status'] = 'paid';
-        }
-        $order->update($update);
-
-        if (! $alreadyVerified) {
-            $this->sendOrderMail($order, 'settlement-verified');
-        }
-
-        return response()->json([
-            'ok' => true,
-            'message' => 'Bukti pelunasan tersimpan & terverifikasi.',
-            'stats' => $this->orderStats(),
-            'stockHtml' => $this->stockCardsHtml(),
-        ]);
-    }
-
-    public function verifySettlement(Request $request, Order $order)
-    {
-        if ($order->payment_type !== 'dp') {
-            return response()->json(['ok' => false, 'message' => 'Pesanan bukan tipe DP.'], 422);
-        }
-
-        if (empty($order->dp_settlement_proof)) {
-            return response()->json(['ok' => false, 'message' => 'Belum ada bukti pelunasan untuk diverifikasi.'], 422);
-        }
-
-        if ($order->dp_settlement_verified_at) {
-            return response()->json(['ok' => false, 'message' => 'Pelunasan sudah diverifikasi.'], 422);
-        }
-
-        $update = ['dp_settlement_verified_at' => now()];
-        // Pelunasan terverifikasi → naikkan status ke 'paid' (lunas).
-        if ($order->status === 'verified') {
-            $update['status'] = 'paid';
-            $order->verified_at = $order->verified_at ?? now();
-        }
-        $order->update($update);
-
-        $this->sendOrderMail($order, 'settlement-verified');
-
-        return response()->json([
-            'ok' => true,
-            'message' => 'Pelunasan DP terverifikasi.',
-            'stats' => $this->orderStats(),
-            'stockHtml' => $this->stockCardsHtml(),
-        ]);
-    }
-
-    private function sendOrderMail(Order $order, string $mode): void
-    {
-        try {
-            Mail::to($order->customer_email)
-                ->send(new OrderInvoice(OrderPresenter::mailData($order), $mode));
-        } catch (\Throwable $e) {
-            Log::error('Failed to send order mail', [
-                'order_id' => $order->order_id,
-                'mode' => $mode,
-                'error' => $e->getMessage(),
-            ]);
-        }
-    }
-
-    public function showOrder(Order $order)
-    {
-        return response()->json([
-            'ok' => true,
-            'html' => $this->renderDetail($order),
-            'title' => 'Detail Pesanan '.$order->order_id,
-        ]);
-    }
-
-    private function serializeOrder(Order $order): array
+    protected function serializeOrder(Order $order): array
     {
         $statusMeta = $this->statusMeta($order->status, $order->shipping_method);
         $payment = $this->paymentLabel($order);
@@ -741,7 +149,7 @@ class AdminController extends Controller
         ];
     }
 
-    private function statusMeta(string $status, ?string $shippingMethod = null): array
+    protected function statusMeta(string $status, ?string $shippingMethod = null): array
     {
         $shippedLabel = 'Pesanan Dikirim / Siap Diambil';
 
@@ -755,7 +163,7 @@ class AdminController extends Controller
         ][$status] ?? ['label' => ucfirst($status), 'class' => 'bg-gray-100 text-gray-700', 'icon' => 'ri-question-line'];
     }
 
-    private function paymentLabel(Order $order): array
+    protected function paymentLabel(Order $order): array
     {
         if ($order->payment_method_type === 'bank') {
             $name = $order->payment_data['label'] ?? 'Transfer Bank';
@@ -769,11 +177,7 @@ class AdminController extends Controller
         return ['label' => ucfirst($order->payment_method_type ?? '-'), 'icon' => 'ri-wallet-3-line', 'color' => 'onyx'];
     }
 
-    private const MERCH_STOCK_LIMITS = [
-        'the-7ourney' => 300,
-    ];
-
-    private function findDuplicatePendingOrders(Order $order): Collection
+    protected function findDuplicatePendingOrders(Order $order): Collection
     {
         $email = trim((string) $order->customer_email);
         $phone = preg_replace('/\D+/', '', (string) $order->customer_phone);
@@ -797,7 +201,7 @@ class AdminController extends Controller
             ->get();
     }
 
-    private function countSoldForSlug(string $slug): int
+    protected function countSoldForSlug(string $slug): int
     {
         $sold = 0;
         Order::whereIn('status', ['verified', 'paid', 'shipped', 'completed'])
@@ -815,7 +219,7 @@ class AdminController extends Controller
         return $sold;
     }
 
-    private function renderDetail(Order $order): string
+    protected function renderDetail(Order $order): string
     {
         $statusMeta = $this->statusMeta($order->status, $order->shipping_method);
         $payment = $this->paymentLabel($order);
@@ -836,6 +240,8 @@ class AdminController extends Controller
         $shipIcon = $order->shipping_method === 'pickup' ? 'ri-store-2-line' : 'ri-truck-line';
         $shipLabel = $order->shipping_method === 'pickup' ? 'Ambil di Tempat' : 'Dikirim';
 
+        $isTicketOrder = $this->isTicketOrder($order);
+
         $rawPhone = preg_replace('/\D+/', '', (string) $order->customer_phone);
         $waPhone = $rawPhone !== '' ? (str_starts_with($rawPhone, '0') ? '62'.substr($rawPhone, 1) : (str_starts_with($rawPhone, '62') ? $rawPhone : '62'.$rawPhone)) : '';
         $phoneDisplay = $rawPhone !== '' ? '+62'.ltrim(preg_replace('/^62/', '', $rawPhone), '0') : '-';
@@ -847,7 +253,12 @@ class AdminController extends Controller
             $price = (int) ($line['price'] ?? 0);
             $fee = (int) ($line['fee'] ?? 0);
             $lineTotal = ($price + $fee) * $qty;
-            $variant = trim(implode(' · ', array_filter([$line['category'] ?? '', $line['sleeve'] ?? '', $line['size'] ?? ''])));
+            // Placeholder '-' (mis. size tiket yang tidak berlaku) & duplikat kategori/varian disaring.
+            $variantParts = array_filter(
+                [$line['category'] ?? '', $line['sleeve'] ?? '', $line['size'] ?? ''],
+                fn ($v) => $v !== '' && $v !== '-'
+            );
+            $variant = implode(' · ', array_unique($variantParts));
 
             $itemsHtml .= '<div class="flex items-center gap-3 rounded-xl border border-mercury bg-white px-3 py-2.5">'
                 .'<div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary-softer text-primary ring-1 ring-primary-soft">'
@@ -916,6 +327,7 @@ class AdminController extends Controller
             .'<div class="flex flex-wrap items-center gap-2">'
             .'<span class="detail-chip detail-chip--glass">'.e($order->order_id).'</span>'
             .'<span class="detail-chip detail-chip--status '.$statusMeta['class'].'"><i class="'.$statusMeta['icon'].'"></i> '.$statusMeta['label'].'</span>'
+            .'<a href="'.e(url('admin/orders/'.$order->order_id.'/invoice')).'" target="_blank" class="detail-chip detail-chip--glass"><i class="ri-file-pdf-2-line"></i> Unduh Invoice</a>'
             .'</div>'
             .'<div class="flex items-center gap-3">'
             .'<div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white text-lg font-black text-primary shadow-md">'.e($initials).'</div>'
@@ -933,8 +345,8 @@ class AdminController extends Controller
             // Duplicate pending orders warning (above customer/shipping)
             .$this->renderDuplicateCard($order)
 
-            // Two-column: contact + shipping
-            .'<div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">'
+            // Kontak pelanggan, dan pengiriman (disembunyikan untuk pesanan tiket karena selalu ambil di tempat tanpa titik temu).
+            .'<div class="mt-3 grid grid-cols-1 gap-3'.($isTicketOrder ? '' : ' sm:grid-cols-2').'">'
             .'<div class="detail-card">'
             .'<div class="detail-card__title"><i class="ri-user-3-line"></i> Pelanggan</div>'
             .'<div class="space-y-2.5">'
@@ -950,13 +362,14 @@ class AdminController extends Controller
             .'</div>'
             .'</div>'
 
-            .'<div class="detail-card">'
+            .($isTicketOrder ? '' :
+            '<div class="detail-card">'
             .'<div class="detail-card__title"><i class="'.$shipIcon.'"></i> Pengiriman</div>'
             .'<div class="space-y-2.5">'
             .$shipAddrHtml
             .$shipNoteHtml
             .'</div>'
-            .'</div>'
+            .'</div>')
             .'</div>'
 
             // Items
@@ -994,7 +407,7 @@ class AdminController extends Controller
             .'</div>';
     }
 
-    private function renderDuplicateCard(Order $order): string
+    protected function renderDuplicateCard(Order $order): string
     {
         $dupes = $this->findDuplicatePendingOrders($order);
         if ($dupes->isEmpty()) {
@@ -1029,7 +442,7 @@ class AdminController extends Controller
      * Daftar bukti transfer (per-slot) di modal detail: lihat + tambah/ganti.
      * Pesanan DP memiliki 2 slot: bukti transfer awal & bukti pelunasan.
      */
-    private function renderProofRows(Order $order): string
+    protected function renderProofRows(Order $order): string
     {
         $row = function (string $type, string $label, ?string $path, $uploadedAt) use ($order): string {
             $has = (bool) $path;
@@ -1091,7 +504,7 @@ class AdminController extends Controller
             .'</div>';
     }
 
-    private function renderSettlementBlock(Order $order, callable $rupiah): string
+    protected function renderSettlementBlock(Order $order, callable $rupiah): string
     {
         $remaining = max(0, (int) $order->subtotal - (int) $order->amount_due);
         $verified = (bool) $order->dp_settlement_verified_at;
@@ -1129,13 +542,16 @@ class AdminController extends Controller
             .'</div>';
     }
 
-    private function renderActions(Order $order): string
+    protected function renderActions(Order $order): string
     {
         $orderId = e($order->order_id);
 
         $items = '<button type="button" role="menuitem" data-action="detail" data-order="'.$orderId.'" class="dropdown-item">'
             .'<i class="ri-eye-line"></i><span>Lihat Detail</span>'
-            .'</button>';
+            .'</button>'
+            .'<a href="'.e(url('admin/orders/'.$order->order_id.'/invoice')).'" target="_blank" role="menuitem" class="dropdown-item">'
+            .'<i class="ri-file-pdf-2-line"></i><span>Unduh Invoice (PDF)</span>'
+            .'</a>';
 
         if ($order->status === 'pending') {
             $items .= '<button type="button" role="menuitem" data-action="status" data-status="verified" data-order="'.$orderId.'" class="dropdown-item dropdown-item--success">'

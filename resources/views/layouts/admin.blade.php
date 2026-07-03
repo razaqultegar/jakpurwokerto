@@ -24,20 +24,24 @@
                 </div>
                 <nav class="flex-1 space-y-1 overflow-y-auto px-3 py-4 text-sm">
                     <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-2 rounded-md px-3 py-2 {{ request()->routeIs('admin.dashboard') ? 'bg-gray-800 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
-                        <i class="ri-dashboard-line"></i> Dashboard
+                        <i class="ri-dashboard-line"></i>
+                        Dashboard
                     </a>
                     <a href="{{ route('admin.ticket') }}" class="flex items-center gap-2 rounded-md px-3 py-2 {{ request()->routeIs('admin.ticket*') ? 'bg-gray-800 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
-                        <i class="ri-ticket-2-line"></i> Pesanan Tiket
+                        <i class="ri-ticket-2-line"></i>
+                        Tiket
                     </a>
                     <a href="{{ route('admin.merchandise') }}" class="flex items-center gap-2 rounded-md px-3 py-2 {{ request()->routeIs('admin.merchandise*') ? 'bg-gray-800 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
-                        <i class="ri-shirt-line"></i> Pesanan Merchandise
+                        <i class="ri-shirt-line"></i>
+                        Merchandise
                     </a>
                 </nav>
                 <div class="border-t border-gray-800 px-3 py-3">
                     <form action="{{ route('logout') }}" method="post">
                         @csrf
                         <button type="submit" class="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-gray-300 hover:bg-gray-800 hover:text-white">
-                            <i class="ri-logout-box-r-line"></i> Keluar
+                            <i class="ri-logout-box-r-line"></i>
+                            Keluar
                         </button>
                     </form>
                 </div>

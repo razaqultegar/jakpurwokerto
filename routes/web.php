@@ -1,6 +1,9 @@
 <?php
 
-use App\Http\Controllers\AdminController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\MerchandiseController as AdminMerchandiseController;
+use App\Http\Controllers\Admin\OrderController as AdminOrderController;
+use App\Http\Controllers\Admin\TicketController as AdminTicketController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MerchandiseController;
@@ -20,19 +23,20 @@ Route::get('/pelunasan/{orderId}', [CheckoutController::class, 'settlement'])->n
 Route::post('/pelunasan/{orderId}/bukti', [CheckoutController::class, 'uploadSettlement'])->name('checkout.settlement.proof');
 
 Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
-    Route::get('/ticket', [AdminController::class, 'ticket'])->name('ticket');
-    Route::get('/merchandise', [AdminController::class, 'merchandise'])->name('merchandise');
-    Route::get('/orders/data', [AdminController::class, 'ordersData'])->name('orders.data');
-    Route::get('/orders/export', [AdminController::class, 'exportOrders'])->name('orders.export');
-    Route::get('/orders/{order}', [AdminController::class, 'showOrder'])->name('orders.show');
-    Route::post('/orders/{order}/status', [AdminController::class, 'updateStatus'])->name('orders.status');
-    Route::post('/orders/{order}/shipping', [AdminController::class, 'updateShipping'])->name('orders.shipping');
-    Route::post('/orders/{order}/pickup', [AdminController::class, 'updatePickup'])->name('orders.pickup');
-    Route::post('/orders/{order}/payment-proof', [AdminController::class, 'uploadPaymentProof'])->name('orders.payment-proof');
-    Route::post('/orders/{order}/dp-proof', [AdminController::class, 'uploadDpProof'])->name('orders.dp-proof');
-    Route::post('/orders/{order}/settlement-verify', [AdminController::class, 'verifySettlement'])->name('orders.settlement-verify');
-    Route::post('/orders/{order}/sync-payment', [AdminController::class, 'syncPayment'])->name('orders.sync-payment');
-    Route::delete('/orders/{order}', [AdminController::class, 'destroyOrder'])->name('orders.destroy');
+    Route::get('/', AdminDashboardController::class)->name('dashboard');
+    Route::get('/ticket', AdminTicketController::class)->name('ticket');
+    Route::get('/merchandise', AdminMerchandiseController::class)->name('merchandise');
+    Route::get('/orders/data', [AdminOrderController::class, 'data'])->name('orders.data');
+    Route::get('/orders/export', [AdminOrderController::class, 'export'])->name('orders.export');
+    Route::get('/orders/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
+    Route::get('/orders/{order}/invoice', [AdminOrderController::class, 'invoice'])->name('orders.invoice');
+    Route::post('/orders/{order}/status', [AdminOrderController::class, 'updateStatus'])->name('orders.status');
+    Route::post('/orders/{order}/shipping', [AdminOrderController::class, 'updateShipping'])->name('orders.shipping');
+    Route::post('/orders/{order}/pickup', [AdminOrderController::class, 'updatePickup'])->name('orders.pickup');
+    Route::post('/orders/{order}/payment-proof', [AdminOrderController::class, 'uploadPaymentProof'])->name('orders.payment-proof');
+    Route::post('/orders/{order}/dp-proof', [AdminOrderController::class, 'uploadDpProof'])->name('orders.dp-proof');
+    Route::post('/orders/{order}/settlement-verify', [AdminOrderController::class, 'verifySettlement'])->name('orders.settlement-verify');
+    Route::post('/orders/{order}/sync-payment', [AdminOrderController::class, 'syncPayment'])->name('orders.sync-payment');
+    Route::delete('/orders/{order}', [AdminOrderController::class, 'destroy'])->name('orders.destroy');
 });
 
