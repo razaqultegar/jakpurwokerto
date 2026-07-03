@@ -5,7 +5,7 @@
     </div>
 
     <div class="space-y-3" data-method-group>
-        <div>
+        <div data-bank-transfer-section>
             <div class="mb-1.5 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-onyx">
                 <i class="ri-bank-line text-xs"></i>
                 Bank Transfer

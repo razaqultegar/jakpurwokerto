@@ -77,18 +77,23 @@ class CheckoutController extends Controller
 
     public function store(Request $request)
     {
-        $poStartStr = '2026-05-20T19:28:00+07:00';
-        $poEndStr = '2026-06-20T23:59:59+07:00';
-        $now = now();
-        $poStart = Carbon::parse($poStartStr);
-        $poEnd = Carbon::parse($poEndStr);
+        $rawItems = $request->input('items', []);
+        $isTicketOnly = ! empty($rawItems) && collect($rawItems)->every(fn ($it) => ($it['category'] ?? null) === 'Tiket');
 
-        if ($now->lt($poStart)) {
-            return back()->withErrors(['checkout' => 'Pre-Order belum dibuka.'])->withInput();
-        }
+        if (! $isTicketOnly) {
+            $poStartStr = '2026-05-20T19:28:00+07:00';
+            $poEndStr = '2026-06-20T23:59:59+07:00';
+            $now = now();
+            $poStart = Carbon::parse($poStartStr);
+            $poEnd = Carbon::parse($poEndStr);
 
-        if ($now->gt($poEnd)) {
-            return back()->withErrors(['checkout' => 'Pre-Order telah ditutup. Terima kasih atas minat Anda!'])->withInput();
+            if ($now->lt($poStart)) {
+                return back()->withErrors(['checkout' => 'Pre-Order belum dibuka.'])->withInput();
+            }
+
+            if ($now->gt($poEnd)) {
+                return back()->withErrors(['checkout' => 'Pre-Order telah ditutup. Terima kasih atas minat Anda!'])->withInput();
+            }
         }
 
         $validated = $request->validate([
@@ -96,10 +101,10 @@ class CheckoutController extends Controller
             'email' => ['required', 'email', 'max:160'],
             'phone' => ['required', 'string', 'regex:/^[0-9]{8,15}$/'],
             'shipping_method' => ['required', 'in:pickup,kirim'],
-            'pickup_location' => ['nullable', Rule::in(array_keys($this->pickupLocations())), 'required_if:shipping_method,pickup'],
-            'address' => ['nullable', 'string', 'max:500', 'required_if:shipping_method,kirim'],
+            'pickup_location' => ['nullable', Rule::in(array_keys($this->pickupLocations())), Rule::requiredIf(fn () => ! $isTicketOnly && $request->input('shipping_method') === 'pickup')],
+            'address' => ['nullable', 'string', 'max:500', Rule::requiredIf(fn () => ! $isTicketOnly && $request->input('shipping_method') === 'kirim')],
             'payment_type' => ['required', 'in:dp,full'],
-            'payment_method' => ['required', 'string'],
+            'payment_method' => ['required', 'string', Rule::when($isTicketOnly, ['in:qris:'.$this->checkoutData()['qris']['key']])],
             'items' => ['required', 'array', 'min:1'],
             'items.*.slug' => ['nullable', 'string', 'max:120'],
             'items.*.name' => ['required', 'string', 'max:160'],
@@ -111,6 +116,11 @@ class CheckoutController extends Controller
             'items.*.price' => ['required', 'integer', 'min:0', 'max:100000000'],
             'items.*.fee' => ['nullable', 'integer', 'min:0', 'max:10000000'],
         ]);
+
+        if ($isTicketOnly) {
+            $validated['shipping_method'] = 'pickup';
+            $validated['payment_type'] = 'full';
+        }
 
         $items = array_map(fn ($it) => [
             'slug' => $it['slug'] ?? null,

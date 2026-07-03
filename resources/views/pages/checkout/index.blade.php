@@ -7,10 +7,14 @@
         @include('pages.checkout._partials.summary')
         <hr class="section-divider">
         @include('pages.checkout._partials.form')
-        <hr class="section-divider">
-        @include('pages.checkout._partials.shipping-method')
-        <hr class="section-divider">
-        @include('pages.checkout._partials.payment-type')
+        <hr class="section-divider" data-shipping-divider>
+        <div data-shipping-section>
+            @include('pages.checkout._partials.shipping-method')
+        </div>
+        <hr class="section-divider" data-payment-type-divider>
+        <div data-payment-type-section>
+            @include('pages.checkout._partials.payment-type')
+        </div>
         <hr class="section-divider">
         @include('pages.checkout._partials.payment-method')
         @include('pages.checkout._partials.cta')

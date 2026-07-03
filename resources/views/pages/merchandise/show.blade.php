@@ -36,10 +36,27 @@
             @endforeach
         </div>
     </section>
-    @include('pages.merchandise._partials.cta')
+    @unless ($merch['state']['is_before_start'] || $merch['state']['is_after_end'])
+    @include('pages._shared.product-cta', [
+        'prefix' => 'merch',
+        'waTitle' => 'Tanya seputar produk',
+        'waText' => 'Halo Admin, saya ingin tanya seputar produk merchandise ' . $merch['name'] . '.',
+        'selectedVariantDefault' => 'Pilih opsi dulu',
+        'alertTitle' => 'Pilih ukuran dulu',
+        'alertMessage' => 'Silakan pilih ukuran jersey terlebih dahulu sebelum melanjutkan.',
+    ])
+    @endunless
     @include('pages.merchandise._partials.size-guide')
-    @include('pages.merchandise._partials.share')
-    @include('pages.merchandise._partials.drawer')
+    @include('pages._shared.share-sheet', [
+        'shareUrl' => url()->current(),
+        'shareText' => ($merch['name'] ?? 'Merchandise') . ' - ' . ($merch['tagline'] ?? ''),
+        'shareSubtitle' => 'Ajak teman lihat merchandise ini',
+    ])
+    @unless ($merch['state']['is_after_end'] ?? false)
+    @include('pages._shared.cart-drawer', [
+        'emptyMessage' => 'Pilih kategori dan ukuran jersey, lalu tambahkan ke keranjang.',
+    ])
+    @endunless
 @endsection
 
 @push('scripts')

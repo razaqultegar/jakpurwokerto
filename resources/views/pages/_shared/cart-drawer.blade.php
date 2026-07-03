@@ -1,9 +1,3 @@
-@php
-    $state = $merch['state'] ?? [];
-    $isAfterEnd = $state['is_after_end'] ?? false;
-@endphp
-
-@unless ($isAfterEnd)
 <div class="overlay" aria-hidden="true" data-cart-drawer>
     <div class="overlay-backdrop--dark" data-cart-backdrop></div>
     <aside class="absolute right-0 top-0 flex h-full w-[88%] max-w-sm translate-x-full flex-col bg-white shadow-2xl transition-transform duration-300 ease-out" aria-modal="true" data-cart-panel>
@@ -28,7 +22,7 @@
                 </div>
                 <div>
                     <div class="text-sm font-bold text-foreground">Keranjang masih kosong</div>
-                    <p class="mt-1 text-[11px] leading-relaxed text-onyx">Pilih kategori dan ukuran jersey, lalu tambahkan ke keranjang.</p>
+                    <p class="mt-1 text-[11px] leading-relaxed text-onyx">{{ $emptyMessage }}</p>
                 </div>
             </div>
             <ul class="hidden flex-col gap-2.5" data-cart-list></ul>
@@ -45,4 +39,3 @@
         </footer>
     </aside>
 </div>
-@endunless

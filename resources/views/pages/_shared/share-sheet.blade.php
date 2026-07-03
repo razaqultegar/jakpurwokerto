@@ -1,7 +1,3 @@
-@php
-    $shareUrl = url()->current();
-    $shareText = ($merch['name'] ?? 'Merchandise') . ' - ' . ($merch['tagline'] ?? '');
-@endphp
 <div class="overlay" aria-hidden="true" data-share>
     <div class="overlay-backdrop--dark" data-share-backdrop></div>
     <div class="absolute inset-x-0 bottom-0 mx-auto flex w-full max-w-screen-sm translate-y-full flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl transition-transform duration-300 ease-out" aria-modal="true" data-share-panel>
@@ -15,7 +11,7 @@
                 </span>
                 <div>
                     <h2 class="section-title">Bagikan</h2>
-                    <p class="text-[10px] text-onyx">Ajak teman lihat merchandise ini</p>
+                    <p class="text-[10px] text-onyx">{{ $shareSubtitle }}</p>
                 </div>
             </div>
             <button type="button" class="icon-btn-sm" data-share-close>

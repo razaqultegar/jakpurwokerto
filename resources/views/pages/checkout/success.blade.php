@@ -66,7 +66,11 @@
         <div class="space-y-2">
             @foreach ($items as $it)
             <div class="flex items-center gap-3 rounded-2xl bg-skull p-3 ring-1 ring-mercury">
-                @if (! empty($it['image']))
+                @if (($it['category'] ?? '') === 'Tiket')
+                <span class="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-white text-primary ring-1 ring-mercury">
+                    <i class="ri-ticket-2-fill text-2xl"></i>
+                </span>
+                @elseif (! empty($it['image']))
                 <img src="{{ asset('build/' . $it['image']) }}" alt="{{ $it['name'] }}" class="h-16 w-16 shrink-0 rounded-xl object-cover ring-1 ring-mercury">
                 @else
                 <span class="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-white text-primary ring-1 ring-mercury">
@@ -74,8 +78,8 @@
                 </span>
                 @endif
                 <div class="min-w-0 flex-1">
-                    <div class="truncate text-xs font-bold text-foreground">{{ $it['name'] }}</div>
-                    <div class="mt-0.5 text-[10px] text-onyx">{{ $it['category'] }} · {{ $it['sleeve'] }} · Ukuran {{ $it['size'] }}</div>
+                    <div class="truncate text-xs font-bold text-foreground">{{ ($it['category'] ?? '') === 'Tiket' ? $it['category'] : $it['name'] }}</div>
+                    <div class="mt-0.5 text-[10px] text-onyx">{{ ($it['category'] ?? '') === 'Tiket' ? $it['name'] : ($it['category'] . ' · ' . $it['sleeve'] . ' · Ukuran ' . $it['size']) }}</div>
                     <div class="mt-1 inline-flex items-center gap-2">
                         <span class="rounded-md bg-white px-1.5 py-0.5 text-[10px] font-semibold text-foreground ring-1 ring-mercury">x{{ $it['qty'] }}</span>
                         <span class="text-[11px] font-bold text-primary">{{ $rupiah($it['price']) }}</span>
