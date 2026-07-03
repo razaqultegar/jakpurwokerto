@@ -69,7 +69,7 @@
                 </span>
                 <div class="flex-1">
                     <p class="text-xs font-black text-amber-800">DP sedang diverifikasi</p>
-                    <p class="mt-1 text-[11px] leading-snug text-amber-700">Pelunasan baru bisa dilakukan setelah admin memverifikasi pembayaran DP-mu. Kami akan mengirim email begitu DP diterima.</p>
+                    <p class="mt-1 text-[11px] leading-snug text-amber-700">Pelunasan baru bisa dilakukan setelah admin memverifikasi pembayaran DP-mu.</p>
                 </div>
             </div>
         </div>

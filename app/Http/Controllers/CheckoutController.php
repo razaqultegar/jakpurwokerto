@@ -2,12 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Mail\OrderInvoice;
 use App\Models\Order;
 use App\Models\PickupLocation;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -59,7 +57,7 @@ class CheckoutController extends Controller
             'qris' => [
                 'key' => 'qris',
                 'name' => 'QRIS',
-                'merchant' => 'a.n. Tsani Imaniyah',
+                'merchant' => 'a.n. Febrian Dwi Adha',
                 'image' => 'medias/payments/qris.jpeg',
             ],
             'admin_whatsapp' => '6282298001051',
@@ -76,15 +74,34 @@ class CheckoutController extends Controller
 
     public function store(Request $request)
     {
+        $rawItems = $request->input('items', []);
+        $isTicketOnly = ! empty($rawItems) && collect($rawItems)->every(fn ($it) => ($it['category'] ?? null) === 'Tiket');
+
+        if (! $isTicketOnly) {
+            $poStartStr = '2026-05-20T19:28:00+07:00';
+            $poEndStr = '2026-06-20T23:59:59+07:00';
+            $now = now();
+            $poStart = Carbon::parse($poStartStr);
+            $poEnd = Carbon::parse($poEndStr);
+
+            if ($now->lt($poStart)) {
+                return back()->withErrors(['checkout' => 'Pre-Order belum dibuka.'])->withInput();
+            }
+
+            if ($now->gt($poEnd)) {
+                return back()->withErrors(['checkout' => 'Pre-Order telah ditutup. Terima kasih atas minat Anda!'])->withInput();
+            }
+        }
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'min:3', 'max:120'],
             'email' => ['required', 'email', 'max:160'],
             'phone' => ['required', 'string', 'regex:/^[0-9]{8,15}$/'],
             'shipping_method' => ['required', 'in:pickup,kirim'],
-            'pickup_location' => ['nullable', Rule::in(array_keys($this->pickupLocations())), 'required_if:shipping_method,pickup'],
-            'address' => ['nullable', 'string', 'max:500', 'required_if:shipping_method,kirim'],
+            'pickup_location' => ['nullable', Rule::in(array_keys($this->pickupLocations())), Rule::requiredIf(fn () => ! $isTicketOnly && $request->input('shipping_method') === 'pickup')],
+            'address' => ['nullable', 'string', 'max:500', Rule::requiredIf(fn () => ! $isTicketOnly && $request->input('shipping_method') === 'kirim')],
             'payment_type' => ['required', 'in:dp,full'],
-            'payment_method' => ['required', 'string'],
+            'payment_method' => ['required', 'string', Rule::when($isTicketOnly, ['in:qris:'.$this->checkoutData()['qris']['key']])],
             'items' => ['required', 'array', 'min:1'],
             'items.*.slug' => ['nullable', 'string', 'max:120'],
             'items.*.name' => ['required', 'string', 'max:160'],
@@ -96,6 +113,11 @@ class CheckoutController extends Controller
             'items.*.price' => ['required', 'integer', 'min:0', 'max:100000000'],
             'items.*.fee' => ['nullable', 'integer', 'min:0', 'max:10000000'],
         ]);
+
+        if ($isTicketOnly) {
+            $validated['shipping_method'] = 'pickup';
+            $validated['payment_type'] = 'full';
+        }
 
         $items = array_map(fn ($it) => [
             'slug' => $it['slug'] ?? null,
@@ -268,16 +290,6 @@ class CheckoutController extends Controller
             'dp_settlement_verified_at' => null,
         ]);
 
-        try {
-            Mail::to($order->customer_email)
-                ->send(new OrderInvoice($this->buildOrderView($order), 'settlement-received'));
-        } catch (\Throwable $e) {
-            Log::error('Failed to send settlement email', [
-                'order_id' => $order->order_id,
-                'error' => $e->getMessage(),
-            ]);
-        }
-
         return redirect()->route('checkout.settlement', ['orderId' => strtolower($order->order_id)])
             ->with('proof_status', 'success')
             ->with('proof_message', 'Bukti pelunasan berhasil diunggah. Admin akan memverifikasi pembayaranmu.');
@@ -421,11 +433,8 @@ class CheckoutController extends Controller
             'payment_proof_uploaded_at' => now(),
         ]);
 
-        // Email invoice/pembayaran diterima dikirim saat admin memverifikasi pembayaran,
-        // bukan saat bukti diunggah. Lihat AdminController::updateStatus.
-
         return redirect()->route('checkout.success', ['orderId' => strtolower($order->order_id)])
             ->with('proof_status', 'success')
-            ->with('proof_message', 'Bukti transfer berhasil diunggah. Admin akan memverifikasi pembayaranmu dan invoice dikirim ke email.');
+            ->with('proof_message', 'Bukti transfer berhasil diunggah. Admin akan memverifikasi pembayaranmu.');
     }
 }

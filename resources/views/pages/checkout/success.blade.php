@@ -35,7 +35,7 @@
                 </div>
             </div>
             <p class="relative mt-3 text-[11px] leading-snug text-white/90">
-                Invoice telah dikirim ke <span class="font-bold">{{ $order['customer']['email'] }}</span>. Silakan cek email kamu secara berkala untuk informasi terbaru terkait pesanan.
+                Admin akan menghubungimu di <span class="font-bold">{{ $order['customer']['phone'] }}</span> untuk konfirmasi dan invoice pesanan.
             </p>
         </div>
     </section>
@@ -54,7 +54,7 @@
                     Diproses
                 </span>
             </div>
-            <p class="mt-2 text-[10px] leading-snug text-onyx">Simpan ID Pesanan ini sebagai referensi. Kami akan menghubungi kamu via email untuk update pesanan.</p>
+            <p class="mt-2 text-[10px] leading-snug text-onyx">Simpan ID Pesanan ini sebagai referensi. Admin akan menghubungi kamu langsung untuk update pesanan.</p>
         </div>
     </section>
     <hr class="section-divider">
@@ -66,7 +66,11 @@
         <div class="space-y-2">
             @foreach ($items as $it)
             <div class="flex items-center gap-3 rounded-2xl bg-skull p-3 ring-1 ring-mercury">
-                @if (! empty($it['image']))
+                @if (($it['category'] ?? '') === 'Tiket')
+                <span class="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-white text-primary ring-1 ring-mercury">
+                    <i class="ri-ticket-2-fill text-2xl"></i>
+                </span>
+                @elseif (! empty($it['image']))
                 <img src="{{ asset('build/' . $it['image']) }}" alt="{{ $it['name'] }}" class="h-16 w-16 shrink-0 rounded-xl object-cover ring-1 ring-mercury">
                 @else
                 <span class="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-white text-primary ring-1 ring-mercury">
@@ -74,8 +78,8 @@
                 </span>
                 @endif
                 <div class="min-w-0 flex-1">
-                    <div class="truncate text-xs font-bold text-foreground">{{ $it['name'] }}</div>
-                    <div class="mt-0.5 text-[10px] text-onyx">{{ $it['category'] }} · {{ $it['sleeve'] }} · Ukuran {{ $it['size'] }}</div>
+                    <div class="truncate text-xs font-bold text-foreground">{{ ($it['category'] ?? '') === 'Tiket' ? $it['category'] : $it['name'] }}</div>
+                    <div class="mt-0.5 text-[10px] text-onyx">{{ ($it['category'] ?? '') === 'Tiket' ? $it['name'] : ($it['category'] . ' · ' . $it['sleeve'] . ' · Ukuran ' . $it['size']) }}</div>
                     <div class="mt-1 inline-flex items-center gap-2">
                         <span class="rounded-md bg-white px-1.5 py-0.5 text-[10px] font-semibold text-foreground ring-1 ring-mercury">x{{ $it['qty'] }}</span>
                         <span class="text-[11px] font-bold text-primary">{{ $rupiah($it['price']) }}</span>
@@ -124,7 +128,7 @@
                 <i class="ri-wallet-3-line shrink-0 text-base text-amber-600"></i>
                 <div class="flex-1">
                     <p class="text-[11px] font-bold text-amber-800">Sisa pelunasan {{ $rupiah($order['remaining']) }}</p>
-                    <p class="mt-0.5 text-[10px] leading-snug text-amber-700">Setelah DP diverifikasi admin, kamu bisa melunasi sisa pembayaran lewat halaman pelunasan. Link juga kami kirim ke emailmu.</p>
+                    <p class="mt-0.5 text-[10px] leading-snug text-amber-700">Setelah DP diverifikasi admin, kamu bisa melunasi sisa pembayaran lewat halaman pelunasan ini.</p>
                 </div>
             </div>
             <a href="{{ route('checkout.settlement', ['orderId' => strtolower($order['id'])]) }}" class="mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-amber-500 px-3 py-2 text-[11px] font-bold text-white shadow-sm transition active:scale-95 hover:bg-amber-600">

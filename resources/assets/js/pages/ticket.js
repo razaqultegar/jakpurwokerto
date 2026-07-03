@@ -1,0 +1,460 @@
+const Swiper = window.Swiper;
+
+function initHeroSwiper() {
+    const el = document.querySelector('[data-hero-swiper]');
+    if (!el) return;
+
+    const counter = document.querySelector('[data-hero-counter]');
+    const total = el.querySelectorAll('.swiper-slide').length;
+
+    new Swiper(el, {
+        loop: true,
+        speed: 500,
+        autoplay: { delay: 4000, disableOnInteraction: false },
+        navigation: {
+            nextEl: '.hero-swiper-next',
+            prevEl: '.hero-swiper-prev',
+        },
+        pagination: {
+            el: '.hero-swiper-pagination',
+            clickable: true,
+            bulletClass: 'hero-bullet',
+            bulletActiveClass: 'hero-bullet-active',
+            renderBullet: (_, className) =>
+                `<span class="${className}"></span>`,
+        },
+        on: {
+            slideChange(swiper) {
+                if (counter) counter.textContent = `${swiper.realIndex + 1} / ${total}`;
+            },
+        },
+    });
+}
+
+function initGallerySwiper() {
+    const el = document.querySelector('[data-gallery-swiper]');
+    if (!el) return;
+
+    new Swiper(el, {
+        slidesPerView: 'auto',
+        spaceBetween: 10,
+        grabCursor: true,
+        navigation: {
+            nextEl: '.gallery-swiper-next',
+            prevEl: '.gallery-swiper-prev',
+            disabledClass: 'swiper-button-disabled',
+        },
+    });
+}
+
+function initShare() {
+    const root = document.querySelector('[data-share]');
+    if (!root) return;
+
+    const panel = root.querySelector('[data-share-panel]');
+    const backdrop = root.querySelector('[data-share-backdrop]');
+    const openBtns = document.querySelectorAll('[data-share-open]');
+    const closeBtn = root.querySelector('[data-share-close]');
+    const copyBtn = root.querySelector('[data-share-copy]');
+    const copyIcon = root.querySelector('[data-share-copy-icon]');
+    const copyLabel = root.querySelector('[data-share-copy-label]');
+    const igBtn = root.querySelector('[data-share-instagram]');
+    const urlEl = root.querySelector('[data-share-url]');
+    const shareUrl = urlEl ? urlEl.textContent.trim() : window.location.href;
+
+    const open = () => {
+        root.setAttribute('aria-hidden', 'false');
+        backdrop.classList.remove('opacity-0');
+        backdrop.classList.add('opacity-100');
+        panel.classList.remove('translate-y-full');
+        document.body.style.overflow = 'hidden';
+    };
+
+    const close = () => {
+        root.setAttribute('aria-hidden', 'true');
+        backdrop.classList.add('opacity-0');
+        backdrop.classList.remove('opacity-100');
+        panel.classList.add('translate-y-full');
+        document.body.style.overflow = '';
+    };
+
+    if (copyBtn) {
+        copyBtn.addEventListener('click', async () => {
+            try {
+                await navigator.clipboard.writeText(shareUrl);
+            } catch (_) {
+                const ta = document.createElement('textarea');
+                ta.value = shareUrl;
+                document.body.appendChild(ta);
+                ta.select();
+                try { document.execCommand('copy'); } catch (_) {}
+                document.body.removeChild(ta);
+            }
+            if (copyIcon) {
+                copyIcon.classList.remove('ri-link');
+                copyIcon.classList.add('ri-check-line');
+            }
+            if (copyLabel) copyLabel.textContent = 'Tersalin';
+            setTimeout(() => {
+                if (copyIcon) {
+                    copyIcon.classList.add('ri-link');
+                    copyIcon.classList.remove('ri-check-line');
+                }
+                if (copyLabel) copyLabel.textContent = 'Salin Link';
+            }, 1800);
+        });
+    }
+
+    if (igBtn) {
+        igBtn.addEventListener('click', async () => {
+            try {
+                await navigator.clipboard.writeText(shareUrl);
+            } catch (_) {}
+            window.open('https://www.instagram.com/', '_blank', 'noopener');
+        });
+    }
+
+    openBtns.forEach((btn) => btn.addEventListener('click', open));
+    if (closeBtn) closeBtn.addEventListener('click', close);
+    if (backdrop) backdrop.addEventListener('click', close);
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && root.getAttribute('aria-hidden') === 'false') close();
+    });
+}
+
+function getSelectedTicket() {
+    const active = document.querySelector('[data-ticket-key][aria-pressed="true"]');
+    const fallback = document.querySelector('[data-default-ticket]');
+    const ticketEl = active || fallback;
+    if (!ticketEl) return null;
+
+    return {
+        key: ticketEl.dataset.ticketKey,
+        name: ticketEl.dataset.ticketName,
+        price: parseInt(ticketEl.dataset.ticketPrice || '0', 10),
+        desc: ticketEl.dataset.ticketDesc,
+        note: ticketEl.dataset.ticketNote,
+    };
+}
+
+function initTicketPicker() {
+    const buttons = document.querySelectorAll('[data-ticket-key][aria-pressed]');
+    buttons.forEach((btn) => {
+        btn.addEventListener('click', () => {
+            buttons.forEach((b) => b.setAttribute('aria-pressed', b === btn ? 'true' : 'false'));
+            refreshSelectedStrip();
+        });
+    });
+}
+
+function refreshSelectedStrip() {
+    const strip = document.querySelector('[data-ticket-selected]');
+    if (!strip) return;
+    const panel = strip.querySelector('[data-ticket-selected-panel]');
+    const variantEl = strip.querySelector('[data-ticket-selected-variant]');
+    const totalEl = strip.querySelector('[data-ticket-selected-total]');
+    const qtyEl = strip.querySelector('[data-ticket-selected-qty]');
+
+    const ticket = getSelectedTicket();
+    const qty = getQuantity();
+
+    const hiddenClass = 'translate-y-[calc(100%+1rem)]';
+
+    if (!ticket) {
+        panel.classList.add(hiddenClass);
+        panel.classList.remove('translate-y-0');
+        strip.classList.remove('is-open');
+        return;
+    }
+
+    const total = ticket.price * qty;
+    if (variantEl) variantEl.textContent = ticket.name;
+    if (totalEl) totalEl.textContent = formatRupiah(total);
+    if (qtyEl) qtyEl.textContent = qty;
+    panel.classList.remove(hiddenClass);
+    panel.classList.add('translate-y-0');
+    strip.classList.add('is-open');
+}
+
+function hideSelectedStrip() {
+    const strip = document.querySelector('[data-ticket-selected]');
+    if (!strip) return;
+    const panel = strip.querySelector('[data-ticket-selected-panel]');
+    panel.classList.add('translate-y-[calc(100%+1rem)]');
+    panel.classList.remove('translate-y-0');
+    strip.classList.remove('is-open');
+}
+
+function getQuantity() {
+    const el = document.querySelector('[data-qty-value]');
+    return el ? parseInt(el.textContent, 10) || 1 : 1;
+}
+
+function initAlert() {
+    const root = document.querySelector('[data-ticket-alert]');
+    if (!root) return { show: () => {} };
+
+    const panel = root.querySelector('[data-ticket-alert-panel]');
+    const titleEl = root.querySelector('[data-ticket-alert-title]');
+    const msgEl = root.querySelector('[data-ticket-alert-message]');
+    const closeBtn = root.querySelector('[data-ticket-alert-close]');
+    let timer = null;
+
+    const hiddenClass = 'translate-y-[calc(100%+1rem)]';
+
+    const hide = () => {
+        panel.classList.add(hiddenClass);
+        panel.classList.remove('translate-y-0');
+        root.classList.remove('is-open');
+    };
+
+    const show = (message, title = 'Tiket belum tersedia') => {
+        if (titleEl) titleEl.textContent = title;
+        if (msgEl) msgEl.textContent = message;
+        root.classList.add('is-open');
+        panel.classList.remove(hiddenClass);
+        panel.classList.add('translate-y-0');
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(hide, 3200);
+    };
+
+    if (closeBtn) closeBtn.addEventListener('click', hide);
+    return { show, hide };
+}
+
+function formatRupiah(n) {
+    return 'Rp' + n.toLocaleString('id-ID');
+}
+
+const CART_STORAGE_KEY = 'jpw.cart.v1';
+
+function loadCart() {
+    try {
+        const raw = localStorage.getItem(CART_STORAGE_KEY);
+        if (!raw) return [];
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed : [];
+    } catch (_) {
+        return [];
+    }
+}
+
+function saveCart(items) {
+    try {
+        localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
+    } catch (_) {}
+}
+
+function initCart(alert) {
+    const drawer = document.querySelector('[data-cart-drawer]');
+    if (!drawer) return;
+
+    const panel = drawer.querySelector('[data-cart-panel]');
+    const backdrop = drawer.querySelector('[data-cart-backdrop]');
+    const openBtn = document.querySelector('[data-cart-open]');
+    const closeBtn = drawer.querySelector('[data-cart-close]');
+    const addBtn = document.querySelector('[data-cart-add]');
+    const orderBtn = document.querySelector('[data-cart-order]');
+    const checkoutBtn = drawer.querySelector('[data-cart-checkout]');
+    const list = drawer.querySelector('[data-cart-list]');
+    const empty = drawer.querySelector('[data-cart-empty]');
+    const totalEl = drawer.querySelector('[data-cart-total]');
+    const summaryEl = drawer.querySelector('[data-cart-summary]');
+    const countEl = document.querySelector('[data-cart-count]');
+
+    const meta = document.querySelector('[data-event-meta]');
+    const eventSlug = meta ? (meta.dataset.eventSlug || '') : '';
+    const eventName = meta ? (meta.dataset.eventName || '') : '';
+    const eventImage = meta ? (meta.dataset.eventImage || '') : '';
+
+    const items = loadCart();
+
+    const open = () => {
+        drawer.setAttribute('aria-hidden', 'false');
+        backdrop.classList.remove('opacity-0');
+        backdrop.classList.add('opacity-100');
+        panel.classList.remove('translate-x-full');
+        document.body.style.overflow = 'hidden';
+    };
+
+    const close = () => {
+        drawer.setAttribute('aria-hidden', 'true');
+        backdrop.classList.add('opacity-0');
+        backdrop.classList.remove('opacity-100');
+        panel.classList.add('translate-x-full');
+        document.body.style.overflow = '';
+    };
+
+    const render = () => {
+        const totalQty = items.reduce((s, it) => s + it.qty, 0);
+        const totalPrice = items.reduce((s, it) => s + it.qty * (it.price + (it.fee || 0)), 0);
+
+        if (countEl) {
+            countEl.textContent = totalQty;
+            countEl.classList.toggle('hidden', totalQty === 0);
+            countEl.classList.toggle('flex', totalQty > 0);
+        }
+        if (summaryEl) summaryEl.textContent = totalQty;
+        if (totalEl) totalEl.textContent = formatRupiah(totalPrice);
+        if (checkoutBtn) checkoutBtn.disabled = totalQty === 0;
+
+        if (items.length === 0) {
+            empty.classList.remove('hidden');
+            empty.classList.add('flex');
+            list.classList.add('hidden');
+            list.classList.remove('flex');
+            list.innerHTML = '';
+            return;
+        }
+
+        empty.classList.add('hidden');
+        empty.classList.remove('flex');
+        list.classList.remove('hidden');
+        list.classList.add('flex');
+        list.innerHTML = items.map((it, i) => {
+            const isTicket = it.category === 'Tiket';
+            const icon = isTicket ? 'ri-ticket-2-fill' : 'ri-shirt-fill';
+            const details = isTicket
+                ? `${it.category}`
+                : `${it.category} · ${it.sleeve} · ${it.size}${it.fee > 0 ? ` <span class="text-primary">(+${formatRupiah(it.fee)} kustom)</span>` : ''}`;
+
+            return `
+                <li class="flex items-center gap-3 rounded-2xl bg-skull p-3 ring-1 ring-mercury">
+                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary text-white">
+                        <i class="${icon} text-lg"></i>
+                    </span>
+                    <div class="flex-1 min-w-0">
+                        <div class="text-xs font-bold text-foreground truncate">${isTicket ? it.category : it.name}</div>
+                        <div class="mt-0.5 text-[11px] text-onyx">${isTicket ? it.name : details}</div>
+                        <div class="mt-1 text-[11px] font-semibold text-primary">${formatRupiah(it.price + (it.fee || 0))} × ${it.qty}</div>
+                    </div>
+                    <button type="button" class="flex h-8 w-8 items-center justify-center rounded-full bg-white text-foreground ring-1 ring-mercury shrink-0" data-cart-remove="${i}">
+                        <i class="ri-delete-bin-line text-sm"></i>
+                    </button>
+                </li>
+            `;
+        }).join('');
+
+        list.querySelectorAll('[data-cart-remove]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const idx = parseInt(btn.dataset.cartRemove, 10);
+                items.splice(idx, 1);
+                saveCart(items);
+                render();
+            });
+        });
+    };
+
+    const addToCart = () => {
+        const ticket = getSelectedTicket();
+        if (!ticket) {
+            alert.show('Silakan pilih kategori tiket terlebih dahulu sebelum menambahkan ke keranjang.');
+            return false;
+        }
+        const qty = getQuantity();
+        const existing = items.find((it) => it.category === 'Tiket' && it.sleeve === ticket.name && it.slug === eventSlug);
+        if (existing) {
+            existing.qty += qty;
+        } else {
+            items.push({
+                slug: eventSlug,
+                name: eventName,
+                image: eventImage,
+                size: '-',
+                category: 'Tiket',
+                sleeve: ticket.name,
+                qty,
+                price: ticket.price,
+                fee: 0,
+            });
+        }
+        saveCart(items);
+        render();
+        return true;
+    };
+
+    if (openBtn) openBtn.addEventListener('click', open);
+    if (closeBtn) closeBtn.addEventListener('click', close);
+    if (backdrop) backdrop.addEventListener('click', close);
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && drawer.getAttribute('aria-hidden') === 'false') close();
+    });
+
+    if (addBtn) {
+        addBtn.addEventListener('click', () => {
+            if (addToCart()) {
+                hideSelectedStrip();
+                open();
+            }
+        });
+    }
+
+    if (orderBtn) {
+        orderBtn.addEventListener('click', () => {
+            if (items.length > 0) {
+                hideSelectedStrip();
+                window.location.href = '/checkout';
+                return;
+            }
+            const ticket = getSelectedTicket();
+            if (!ticket) {
+                alert.show('Silakan pilih kategori tiket terlebih dahulu sebelum memesan.');
+                return;
+            }
+            if (addToCart()) {
+                hideSelectedStrip();
+                window.location.href = '/checkout';
+            }
+        });
+    }
+
+    if (checkoutBtn) {
+        checkoutBtn.addEventListener('click', () => {
+            if (items.length === 0) return;
+            window.location.href = '/checkout';
+        });
+    }
+
+    render();
+}
+
+function initQuantity() {
+    const root = document.querySelector('[data-ticket-options]');
+    if (!root) return;
+
+    const dec = root.querySelector('[data-qty-decrement]');
+    const inc = root.querySelector('[data-qty-increment]');
+    const display = root.querySelector('[data-qty-value]');
+    const min = 1;
+    let qty = 1;
+
+    const render = () => {
+        display.textContent = qty;
+        dec.disabled = qty <= min;
+    };
+
+    dec.addEventListener('click', () => {
+        if (qty > min) {
+            qty -= 1;
+            render();
+            refreshSelectedStrip();
+        }
+    });
+
+    inc.addEventListener('click', () => {
+        qty += 1;
+        render();
+        refreshSelectedStrip();
+    });
+
+    render();
+}
+
+initHeroSwiper();
+initGallerySwiper();
+initTicketPicker();
+initShare();
+initQuantity();
+const ticketAlert = initAlert();
+initCart(ticketAlert);
+refreshSelectedStrip();

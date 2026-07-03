@@ -41,11 +41,13 @@ function initAlert() {
     const hide = () => {
         panel.classList.add(hiddenClass);
         panel.classList.remove('translate-y-0');
+        root.classList.remove('is-open');
     };
 
     const show = (message, title = 'Data belum lengkap') => {
         if (titleEl) titleEl.textContent = title;
         if (msgEl) msgEl.textContent = message;
+        root.classList.add('is-open');
         panel.classList.remove(hiddenClass);
         panel.classList.add('translate-y-0');
         if (timer) clearTimeout(timer);
@@ -87,16 +89,22 @@ function renderCart(items) {
     empty.classList.remove('flex');
     list.classList.remove('hidden');
     list.innerHTML = items.map((it, i) => {
+        const isTicket = (it.category || '') === 'Tiket';
         const img = it.image
             ? `<img src="/build/${escapeHtml(it.image)}" alt="${escapeHtml(it.name)}" class="h-16 w-16 shrink-0 rounded-xl object-cover ring-1 ring-mercury">`
-            : `<span class="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-white text-primary ring-1 ring-mercury"><i class="ri-shirt-fill text-2xl"></i></span>`;
+            : (isTicket
+                ? `<span class="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-white text-primary ring-1 ring-mercury"><i class="ri-ticket-2-fill text-2xl"></i></span>`
+                : `<span class="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-white text-primary ring-1 ring-mercury"><i class="ri-shirt-fill text-2xl"></i></span>`);
         const feeText = it.fee > 0 ? ` <span class="text-primary">(+${formatRupiah(it.fee)} kustom)</span>` : '';
+        const detailLine = isTicket
+            ? escapeHtml(it.name)
+            : `${escapeHtml(it.category)} · ${escapeHtml(it.sleeve)} · Ukuran ${escapeHtml(it.size)}${feeText}`;
         return `
             <div class="relative flex items-center gap-3 rounded-2xl bg-skull p-3 pr-10 ring-1 ring-mercury">
                 ${img}
                 <div class="min-w-0 flex-1">
-                    <div class="truncate text-xs font-bold text-foreground">${escapeHtml(it.name)}</div>
-                    <div class="mt-0.5 text-[10px] text-onyx">${escapeHtml(it.category)} · ${escapeHtml(it.sleeve)} · Ukuran ${escapeHtml(it.size)}${feeText}</div>
+                    <div class="truncate text-xs font-bold text-foreground">${isTicket ? escapeHtml(it.category) : escapeHtml(it.name)}</div>
+                    <div class="mt-0.5 text-[10px] text-onyx">${detailLine}</div>
                     <div class="mt-1 inline-flex items-center gap-2">
                         <span class="rounded-md bg-white px-1.5 py-0.5 text-[10px] font-semibold text-foreground ring-1 ring-mercury">x${it.qty}</span>
                         <span class="text-[11px] font-bold text-primary">${formatRupiah((parseInt(it.price, 10) || 0) + (parseInt(it.fee, 10) || 0))}</span>
@@ -146,6 +154,10 @@ function getTotals() {
     return { subtotal: sub, total: sub };
 }
 
+function isTicketOnlyCart(items) {
+    return items.length > 0 && items.every((it) => (it.category || '') === 'Tiket');
+}
+
 function getSelectedPaymentType() {
     const el = document.querySelector('input[name="payment_type"]:checked');
     return el ? el.value : 'dp';
@@ -162,6 +174,12 @@ function updatePayCTA() {
     if (amountEl) amountEl.textContent = formatRupiah(amount);
 }
 
+function initPaymentType() {
+    document.querySelectorAll('input[name="payment_type"]').forEach((el) => {
+        el.addEventListener('change', updatePayCTA);
+    });
+}
+
 function setPayButtonsDisabled(disabled) {
     const submitBtn = document.querySelector('form button[type="submit"]');
     if (submitBtn) {
@@ -169,12 +187,6 @@ function setPayButtonsDisabled(disabled) {
         submitBtn.classList.toggle('opacity-50', disabled);
         submitBtn.classList.toggle('pointer-events-none', disabled);
     }
-}
-
-function initPaymentType() {
-    document.querySelectorAll('input[name="payment_type"]').forEach((el) => {
-        el.addEventListener('change', updatePayCTA);
-    });
 }
 
 function initAddressCounter() {
@@ -233,6 +245,33 @@ function initShipping() {
     applyShippingState();
 }
 
+function applyCartTypeUI(items) {
+    const ticketOnly = isTicketOnlyCart(items);
+    const shippingSection = document.querySelector('[data-shipping-section]');
+    const paymentTypeSection = document.querySelector('[data-payment-type-section]');
+    const shippingDivider = document.querySelector('[data-shipping-divider]');
+    const paymentTypeDivider = document.querySelector('[data-payment-type-divider]');
+    const bankTransferSection = document.querySelector('[data-bank-transfer-section]');
+    if (shippingSection) shippingSection.classList.toggle('hidden', ticketOnly);
+    if (paymentTypeSection) paymentTypeSection.classList.toggle('hidden', ticketOnly);
+    if (shippingDivider) shippingDivider.classList.toggle('hidden', ticketOnly);
+    if (paymentTypeDivider) paymentTypeDivider.classList.toggle('hidden', ticketOnly);
+    if (bankTransferSection) bankTransferSection.classList.toggle('hidden', ticketOnly);
+
+    if (ticketOnly) {
+        const fullRadio = document.querySelector('input[name="payment_type"][value="full"]');
+        if (fullRadio) fullRadio.checked = true;
+        const pickupRadio = document.querySelector('input[name="shipping_method"][value="pickup"]');
+        if (pickupRadio) pickupRadio.checked = true;
+        const qrisRadio = document.querySelector('input[name="payment_method"][value^="qris"]');
+        if (qrisRadio) qrisRadio.checked = true;
+        setFieldError('pickup_location', '');
+        setFieldError('address', '');
+    }
+
+    return ticketOnly;
+}
+
 function setFieldError(name, message) {
     const input = document.querySelector(`[data-field="${name}"]`);
     const err = document.querySelector(`[data-error="${name}"]`);
@@ -250,7 +289,7 @@ function setFieldError(name, message) {
     }
 }
 
-function validateForm() {
+function validateForm(items) {
     const get = (n) => document.querySelector(`[data-field="${n}"]`)?.value.trim() || '';
     const errors = {};
 
@@ -266,14 +305,16 @@ function validateForm() {
     if (!phone) errors.phone = 'No. WhatsApp wajib diisi.';
     else if (!/^[0-9]{8,15}$/.test(phone)) errors.phone = 'Gunakan angka saja, 8–15 digit.';
 
-    const shipping = getSelectedShipping();
-    if (shipping === 'kirim') {
-        const address = get('address');
-        if (!address) errors.address = 'Alamat lengkap wajib diisi untuk pengiriman.';
-        else if (address.length < 10) errors.address = 'Alamat terlalu singkat, mohon lebih detail.';
-    } else if (shipping === 'pickup') {
-        const loc = get('pickup_location');
-        if (!loc) errors.pickup_location = 'Pilih kota pengambilan dulu.';
+    if (!isTicketOnlyCart(items)) {
+        const shipping = getSelectedShipping();
+        if (shipping === 'kirim') {
+            const address = get('address');
+            if (!address) errors.address = 'Alamat lengkap wajib diisi untuk pengiriman.';
+            else if (address.length < 10) errors.address = 'Alamat terlalu singkat, mohon lebih detail.';
+        } else if (shipping === 'pickup') {
+            const loc = get('pickup_location');
+            if (!loc) errors.pickup_location = 'Pilih kota pengambilan dulu.';
+        }
     }
 
     ['name', 'email', 'phone', 'address', 'pickup_location'].forEach((f) => setFieldError(f, errors[f] || ''));
@@ -296,7 +337,7 @@ function initForm(alert, getCart) {
             alert.show('Keranjangmu masih kosong. Tambahkan merchandise dulu sebelum checkout.', 'Keranjang kosong');
             return;
         }
-        if (!validateForm()) {
+        if (!validateForm(items)) {
             e.preventDefault();
             alert.show('Mohon periksa kembali data pemesan yang ditandai merah.');
             const firstError = form.querySelector('.border-red-500');
@@ -324,6 +365,7 @@ function removeCartItem(index) {
     saveCart(cart);
     renderCart(cart);
     syncHiddenInputs(cart);
+    applyCartTypeUI(cart);
     updatePayCTA();
     setPayButtonsDisabled(cart.length === 0);
     if (cart.length === 0) {
@@ -334,10 +376,11 @@ function removeCartItem(index) {
 const alert = initAlert();
 renderCart(cart);
 syncHiddenInputs(cart);
+applyCartTypeUI(cart);
+initShipping();
+initPaymentType();
 updatePayCTA();
 setPayButtonsDisabled(cart.length === 0);
-initPaymentType();
-initShipping();
 initAddressCounter();
 initForm(alert, getCart);
 

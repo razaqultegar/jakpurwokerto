@@ -1,3 +1,10 @@
+@php
+    $state = $merch['state'] ?? [];
+    $isAfterEnd = $state['is_after_end'] ?? false;
+@endphp
+
+@unless ($isAfterEnd)
+<hr class="section-divider">
 <section class="section" data-merch-options>
     <div class="section-header-between">
         <div class="flex items-center gap-2">
@@ -88,3 +95,4 @@
         </div>
     </div>
 </section>
+@endunless

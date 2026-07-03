@@ -79,17 +79,16 @@ class MerchandiseController extends Controller
         ]);
     }
 
-    private function countSold(string $slug): int
+    private function countSold(string $slug)
     {
         $sold = 0;
-        // Sejajar dengan dashboard: semua pesanan yang pembayarannya sudah diterima
-        // (verified/paid/shipped/completed) terhitung sebagai stok terjual.
+
         Order::whereIn('status', ['verified', 'paid', 'shipped', 'completed'])
             ->select(['item'])
             ->chunk(200, function ($orders) use (&$sold, $slug) {
                 foreach ($orders as $order) {
                     foreach ($order->item ?? [] as $line) {
-                        if (($line['slug'] ?? null) === $slug) {
+                        if (($line['slug'] ?? null) === $slug && ($line['category'] ?? null) !== 'Tiket') {
                             $sold += (int) ($line['qty'] ?? 0);
                         }
                     }

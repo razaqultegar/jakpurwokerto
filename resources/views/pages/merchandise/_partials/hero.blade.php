@@ -1,4 +1,8 @@
 <section class="relative isolate overflow-hidden bg-foreground">
+    @php
+        $state = $merch['state'] ?? [];
+        $isAfterEnd = $state['is_after_end'] ?? false;
+    @endphp
     <div class="relative aspect-square w-full overflow-hidden">
         <div class="swiper hero-swiper h-full w-full" data-hero-swiper>
             <div class="swiper-wrapper">
@@ -19,10 +23,12 @@
                 <button type="button" class="icon-btn-glass" data-share-open>
                     <i class="ri-share-forward-line text-lg"></i>
                 </button>
+                @unless ($isAfterEnd)
                 <button type="button" class="icon-btn-glass relative" data-cart-open>
                     <i class="ri-shopping-cart-2-line text-lg"></i>
                     <span class="absolute -right-1 -top-1 hidden h-4 min-w-4 items-center justify-center rounded-full bg-yellow-300 px-1 text-[9px] font-black leading-none text-primary ring-2 ring-white" data-cart-count>0</span>
                 </button>
+                @endunless
             </div>
         </div>
         <div class="absolute left-4 top-4 z-10 mt-14 flex flex-col gap-1.5">

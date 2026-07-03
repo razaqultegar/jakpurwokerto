@@ -22,7 +22,7 @@
                 </div>
                 <div>
                     <div class="text-sm font-bold text-foreground">Keranjang masih kosong</div>
-                    <p class="mt-1 text-[11px] leading-relaxed text-onyx">Pilih kategori dan ukuran jersey, lalu tambahkan ke keranjang.</p>
+                    <p class="mt-1 text-[11px] leading-relaxed text-onyx">{{ $emptyMessage }}</p>
                 </div>
             </div>
             <ul class="hidden flex-col gap-2.5" data-cart-list></ul>
