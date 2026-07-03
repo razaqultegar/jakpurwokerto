@@ -15,6 +15,29 @@
     </section>
     <hr class="section-divider">
     <section class="mb-6 p-4">
+        <div class="mb-3 flex items-center justify-between">
+            <h3 class="text-base font-bold text-foreground">Tiket</h3>
+            <a href="{{ route('ticket.show', 'the-7ourney') }}" class="text-[11px] font-semibold text-primary">Lihat detail</a>
+        </div>
+        <div class="overflow-hidden rounded-[24px] border border-mercury bg-gradient-to-br from-primary/10 via-white to-purple-50 p-4 shadow-sm">
+            <div class="flex items-start justify-between gap-3">
+                <div>
+                    <p class="text-[10px] font-semibold uppercase tracking-[0.24em] text-primary">THE 7OURNEY</p>
+                    <h4 class="mt-1 text-base font-black text-foreground">Beli tiket untuk merayakan perjalanan 7 tahun bersama.</h4>
+                    <p class="mt-2 text-[12px] leading-relaxed text-onyx">Nikmati pengalaman acara penuh hiburan, momen kebersamaan, dan akses spesial yang disusun untuk keluarga besar The Jakmania Biro Purwokerto.</p>
+                </div>
+                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary/15 text-primary">
+                    <i class="ri-ticket-2-line text-2xl"></i>
+                </div>
+            </div>
+            <a href="{{ route('ticket.show', 'the-7ourney') }}" class="mt-4 inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-[11px] font-semibold text-white">
+                <i class="ri-shopping-bag-line"></i>
+                Beli Tiket
+            </a>
+        </div>
+    </section>
+    <hr class="section-divider">
+    <section class="mb-6 p-4">
         <h3 class="text-base font-bold text-foreground mb-3">Merchandise</h3>
         @include('pages.home._partials.merchandise')
     </section>

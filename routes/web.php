@@ -4,9 +4,13 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MerchandiseController;
+use App\Http\Controllers\TicketController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/tiket/{slug}', [TicketController::class, 'show'])->name('ticket.show');
+Route::get('/merchandise/{slug}', [MerchandiseController::class, 'show'])->name('merchandise.show');
+
 Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout');
 Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
 Route::get('/pembayaran/{orderId}', [CheckoutController::class, 'payment'])->name('checkout.payment');
@@ -17,6 +21,8 @@ Route::post('/pelunasan/{orderId}/bukti', [CheckoutController::class, 'uploadSet
 
 Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
+    Route::get('/ticket', [AdminController::class, 'ticket'])->name('ticket');
+    Route::get('/merchandise', [AdminController::class, 'merchandise'])->name('merchandise');
     Route::get('/orders/data', [AdminController::class, 'ordersData'])->name('orders.data');
     Route::get('/orders/export', [AdminController::class, 'exportOrders'])->name('orders.export');
     Route::get('/orders/{order}', [AdminController::class, 'showOrder'])->name('orders.show');
@@ -30,4 +36,3 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::delete('/orders/{order}', [AdminController::class, 'destroyOrder'])->name('orders.destroy');
 });
 
-Route::get('/{slug}', [MerchandiseController::class, 'show'])->name('merchandise.show');
