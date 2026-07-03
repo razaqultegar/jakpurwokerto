@@ -18,7 +18,6 @@ abstract class Controller extends BaseController
         'the-7ourney' => 300,
     ];
 
-    // Status di mana pembayaran tiket sudah dianggap diterima admin.
     protected const CHECKIN_ELIGIBLE_STATUSES = ['verified', 'paid', 'shipped', 'completed'];
 
     protected function isTicketOrder(Order $order): bool
@@ -28,10 +27,6 @@ abstract class Controller extends BaseController
         return $items->isNotEmpty() && $items->every(fn ($line) => ($line['category'] ?? null) === 'Tiket');
     }
 
-    /**
-     * Terbitkan kode check-in (e-ticket) begitu pembayaran tiket diterima admin.
-     * Dipanggil setiap kali status pesanan berubah; no-op jika bukan tiket atau kode sudah ada.
-     */
     protected function ensureCheckinCode(Order $order): void
     {
         if ($order->checkin_code || ! $this->isTicketOrder($order)) {
@@ -49,9 +44,6 @@ abstract class Controller extends BaseController
         $order->update(['checkin_code' => $code]);
     }
 
-    /**
-     * QR code check-in sebagai data URI (base64 PNG) siap ditempel di <img> pada PDF invoice.
-     */
     protected function generateQrDataUri(string $data, int $size = 220): string
     {
         $qrCode = new QrCode(data: $data, size: $size, margin: 8);
@@ -145,10 +137,6 @@ abstract class Controller extends BaseController
         ];
     }
 
-    /**
-     * Statistik kartu sesuai konteks halaman (dashboard/tiket/merchandise) agar
-     * respons AJAX aksi (verifikasi, batal, dll.) tidak menimpa kartu dengan data global.
-     */
     protected function statsFor(?string $category): array
     {
         return match ($category) {
@@ -333,15 +321,13 @@ abstract class Controller extends BaseController
         $rawPhone = preg_replace('/\D+/', '', (string) $order->customer_phone);
         $waPhone = $rawPhone !== '' ? (str_starts_with($rawPhone, '0') ? '62'.substr($rawPhone, 1) : (str_starts_with($rawPhone, '62') ? $rawPhone : '62'.$rawPhone)) : '';
         $phoneDisplay = $rawPhone !== '' ? '+62'.ltrim(preg_replace('/^62/', '', $rawPhone), '0') : '-';
-
-        // Items
         $itemsHtml = '';
+
         foreach ($order->item ?? [] as $line) {
             $qty = (int) ($line['qty'] ?? 0);
             $price = (int) ($line['price'] ?? 0);
             $fee = (int) ($line['fee'] ?? 0);
             $lineTotal = ($price + $fee) * $qty;
-            // Placeholder '-' (mis. size tiket yang tidak berlaku) & duplikat kategori/varian disaring.
             $variantParts = array_filter(
                 [$line['category'] ?? '', $line['sleeve'] ?? '', $line['size'] ?? ''],
                 fn ($v) => $v !== '' && $v !== '-'
@@ -363,10 +349,8 @@ abstract class Controller extends BaseController
                 .'</div>';
         }
 
-        // Bukti transfer: baris per-slot (lihat + tambah/ganti).
         $proofRows = $this->renderProofRows($order);
 
-        // Field row helper
         $field = fn ($label, $value, $icon = null) => '<div class="flex gap-3">'
             .($icon ? '<div class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-skull text-onyx ring-1 ring-mercury"><i class="'.e($icon).' text-base"></i></div>' : '')
             .'<div class="min-w-0 flex-1">'
@@ -375,7 +359,6 @@ abstract class Controller extends BaseController
             .'</div>'
             .'</div>';
 
-        // Pengiriman block (kirim vs pickup specifics)
         if ($order->shipping_method === 'kirim') {
             $resiValue = $order->shipping_tracking
                 ? '<span class="font-mono font-bold text-foreground">'.e($order->shipping_tracking).'</span>'
@@ -387,7 +370,6 @@ abstract class Controller extends BaseController
             $city = PickupLocation::findByKey($order->pickup_location);
             $cityName = $city?->name ?? ucfirst($order->pickup_location ?: '-');
 
-            // Titik temu diisi per-pesanan saat ditandai siap diambil.
             $addr = (string) ($order->pickup_address ?? '');
             $contactName = (string) ($order->pickup_contact_name ?? '');
             $contactPhone = (string) ($order->pickup_contact_phone ?? '');
@@ -405,10 +387,7 @@ abstract class Controller extends BaseController
             $shipNoteHtml = $field('Catatan', 'Alamat & kontak pengambilan diatur per pesanan dan dikirim ke pembeli saat ditandai siap diambil.', 'ri-information-2-line');
         }
 
-        // ===== Build HTML =====
         return '<div class="detail-modal text-left" data-order="'.e($order->order_id).'">'
-
-            // Hero header
             .'<div class="detail-hero">'
             .'<div class="detail-hero__bg"></div>'
             .'<div class="relative flex flex-col gap-4 pr-12">'
@@ -417,7 +396,7 @@ abstract class Controller extends BaseController
             .'<span class="detail-chip detail-chip--status '.$statusMeta['class'].'"><i class="'.$statusMeta['icon'].'"></i> '.$statusMeta['label'].'</span>'
             .'<a href="'.e(url('admin/orders/'.$order->order_id.'/invoice')).'" target="_blank" class="detail-chip detail-chip--glass"><i class="ri-file-pdf-2-line"></i> Unduh Invoice</a>'
             .($order->checkin_code
-                ? '<a href="'.e(url('admin/checkin/'.$order->checkin_code)).'" target="_blank" class="detail-chip '.($order->checked_in_at ? 'bg-emerald-100 text-emerald-700' : 'detail-chip--glass').'"><i class="ri-qr-scan-2-line"></i> '.($order->checked_in_at ? 'Sudah Check-in' : 'Belum Check-in').'</a>'
+                ? '<a href="'.e(route('checkin.index', ['code' => $order->checkin_code])).'" target="_blank" class="detail-chip '.($order->checked_in_at ? 'bg-emerald-100 text-emerald-700' : 'detail-chip--glass').'"><i class="ri-qr-scan-2-line"></i> '.($order->checked_in_at ? 'Sudah Check-in' : 'Belum Check-in').'</a>'
                 : '')
             .'</div>'
             .'<div class="flex items-center gap-3">'
@@ -432,11 +411,7 @@ abstract class Controller extends BaseController
             .'</div>'
             .'</div>'
             .'</div>'
-
-            // Duplicate pending orders warning (above customer/shipping)
             .$this->renderDuplicateCard($order)
-
-            // Kontak pelanggan, dan pengiriman (disembunyikan untuk pesanan tiket karena selalu ambil di tempat tanpa titik temu).
             .'<div class="mt-3 grid grid-cols-1 gap-3'.($isTicketOrder ? '' : ' sm:grid-cols-2').'">'
             .'<div class="detail-card">'
             .'<div class="detail-card__title"><i class="ri-user-3-line"></i> Pelanggan</div>'
@@ -452,7 +427,6 @@ abstract class Controller extends BaseController
                 'ri-phone-line')
             .'</div>'
             .'</div>'
-
             .($isTicketOrder ? '' :
             '<div class="detail-card">'
             .'<div class="detail-card__title"><i class="'.$shipIcon.'"></i> Pengiriman</div>'
@@ -462,8 +436,6 @@ abstract class Controller extends BaseController
             .'</div>'
             .'</div>')
             .'</div>'
-
-            // Items
             .'<div class="detail-card mt-3">'
             .'<div class="detail-card__title"><i class="ri-shopping-bag-3-line"></i> Item Pesanan</div>'
             .'<div class="flex flex-col gap-2">'.$itemsHtml.'</div>'
@@ -472,8 +444,6 @@ abstract class Controller extends BaseController
             .'<span class="text-base font-black text-foreground">'.$rupiah($order->subtotal).'</span>'
             .'</div>'
             .'</div>'
-
-            // Payment summary
             .'<div class="detail-card mt-3">'
             .'<div class="detail-card__title"><i class="ri-wallet-3-line"></i> Pembayaran</div>'
             .'<div class="grid grid-cols-1 gap-3 sm:grid-cols-3">'
@@ -494,7 +464,6 @@ abstract class Controller extends BaseController
             .($order->payment_type === 'dp' ? $this->renderSettlementBlock($order, $rupiah) : '')
             .$proofRows
             .'</div>'
-
             .'</div>';
     }
 
@@ -529,10 +498,6 @@ abstract class Controller extends BaseController
             .'</div>';
     }
 
-    /**
-     * Daftar bukti transfer (per-slot) di modal detail: lihat + tambah/ganti.
-     * Pesanan DP memiliki 2 slot: bukti transfer awal & bukti pelunasan.
-     */
     protected function renderProofRows(Order $order): string
     {
         $row = function (string $type, string $label, ?string $path, $uploadedAt) use ($order): string {
@@ -542,7 +507,6 @@ abstract class Controller extends BaseController
                 ? 'Diunggah '.$uploadedAt->locale('id')->translatedFormat('d M Y · H:i').' WIB'
                 : 'Sudah diunggah';
 
-            // Ikon + status kiri.
             if ($has) {
                 $iconWrap = 'bg-emerald-50 text-emerald-600 ring-1 ring-emerald-200';
                 $icon = 'ri-image-2-line';
@@ -553,7 +517,6 @@ abstract class Controller extends BaseController
                 $statusHtml = '<div class="mt-0.5 inline-flex items-center gap-1 text-[11px] font-semibold text-amber-600"><i class="ri-error-warning-line text-[12px]"></i> Belum ada bukti</div>';
             }
 
-            // Tombol kanan.
             $viewBtn = $has
                 ? '<a href="'.e(asset('storage/'.$path)).'" target="_blank" rel="noopener" class="inline-flex h-8 items-center gap-1 rounded-lg border border-mercury bg-white px-2.5 text-[11px] font-bold text-foreground transition hover:border-primary hover:text-primary"><i class="ri-eye-line text-[13px]"></i> Lihat</a>'
                 : '';
@@ -650,7 +613,6 @@ abstract class Controller extends BaseController
                 .'</button>';
         }
 
-        // Verifikasi bukti pelunasan dari pembeli (self-service).
         if ($order->payment_type === 'dp' && $order->dp_settlement_proof && ! $order->dp_settlement_verified_at
             && $order->status === 'verified') {
             $items .= '<button type="button" role="menuitem" data-action="settlement-verify" data-order="'.$orderId.'" class="dropdown-item dropdown-item--settle">'
@@ -658,7 +620,6 @@ abstract class Controller extends BaseController
                 .'</button>';
         }
 
-        // Tandai lunas manual (DP tanpa bukti dari pembeli).
         if ($order->payment_type === 'dp' && ! $order->dp_settlement_proof && ! $order->dp_settlement_verified_at
             && $order->status === 'verified') {
             $items .= '<button type="button" role="menuitem" data-action="status" data-status="paid" data-order="'.$orderId.'" class="dropdown-item dropdown-item--settle">'
@@ -666,7 +627,6 @@ abstract class Controller extends BaseController
                 .'</button>';
         }
 
-        // Data titik temu pickup diisi & disimpan per-pesanan.
         $pickupAttrs = '';
         if ($order->shipping_method === 'pickup') {
             $pickupAttrs = ' data-pickup-address="'.e($order->pickup_address ?? '').'"'
@@ -674,14 +634,12 @@ abstract class Controller extends BaseController
                 .' data-pickup-contact-phone="'.e($order->pickup_contact_phone ?? '').'"';
         }
 
-        // Koreksi nomor resi setelah pesanan kirim ditandai dikirim.
         if ($order->shipping_method === 'kirim' && $order->status === 'shipped') {
             $items .= '<button type="button" role="menuitem" data-action="shipping" data-mode="edit" data-order="'.$orderId.'" data-tracking="'.e($order->shipping_tracking ?? '').'" class="dropdown-item dropdown-item--resi">'
                 .'<i class="ri-barcode-line"></i><span>Ubah Nomor Resi</span>'
                 .'</button>';
         }
 
-        // Koreksi titik temu setelah pesanan pickup ditandai siap diambil.
         if ($order->shipping_method === 'pickup' && $order->status === 'shipped') {
             $items .= '<button type="button" role="menuitem" data-action="pickup" data-mode="edit" data-order="'.$orderId.'"'.$pickupAttrs.' class="dropdown-item dropdown-item--resi">'
                 .'<i class="ri-map-pin-2-line"></i><span>Ubah Info Pengambilan</span>'
@@ -689,14 +647,11 @@ abstract class Controller extends BaseController
         }
 
         if ($order->status === 'paid') {
-            // Tiket pakai alur check-in QR di venue, bukan penjadwalan pengambilan.
             if ($order->shipping_method === 'pickup' && ! $this->isTicketOrder($order)) {
-                // Pickup: buka modal titik temu → simpan alamat & kontak + tandai siap diambil sekaligus.
                 $items .= '<button type="button" role="menuitem" data-action="pickup" data-mode="ship" data-order="'.$orderId.'"'.$pickupAttrs.' class="dropdown-item dropdown-item--ship">'
                     .'<i class="ri-store-2-line"></i><span>Tandai Siap Diambil</span>'
                     .'</button>';
             } elseif ($order->shipping_method !== 'pickup') {
-                // Kirim: buka modal resi → simpan resi + tandai dikirim sekaligus.
                 $items .= '<button type="button" role="menuitem" data-action="shipping" data-mode="ship" data-order="'.$orderId.'" data-tracking="'.e($order->shipping_tracking ?? '').'" class="dropdown-item dropdown-item--ship">'
                     .'<i class="ri-truck-line"></i><span>Tandai Dikirim</span>'
                     .'</button>';

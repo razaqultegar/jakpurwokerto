@@ -1,10 +1,10 @@
 <?php
 
-use App\Http\Controllers\Admin\CheckinController as AdminCheckinController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\MerchandiseController as AdminMerchandiseController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\TicketController as AdminTicketController;
+use App\Http\Controllers\CheckinScanController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MerchandiseController;
@@ -27,6 +27,7 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', AdminDashboardController::class)->name('dashboard');
     Route::get('/ticket', AdminTicketController::class)->name('ticket');
     Route::get('/merchandise', AdminMerchandiseController::class)->name('merchandise');
+
     Route::get('/orders/data', [AdminOrderController::class, 'data'])->name('orders.data');
     Route::get('/orders/export', [AdminOrderController::class, 'export'])->name('orders.export');
     Route::get('/orders/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
@@ -39,11 +40,18 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::post('/orders/{order}/settlement-verify', [AdminOrderController::class, 'verifySettlement'])->name('orders.settlement-verify');
     Route::post('/orders/{order}/sync-payment', [AdminOrderController::class, 'syncPayment'])->name('orders.sync-payment');
     Route::delete('/orders/{order}', [AdminOrderController::class, 'destroy'])->name('orders.destroy');
+});
 
-    Route::get('/checkin', [AdminCheckinController::class, 'index'])->name('checkin.index');
-    Route::post('/checkin', [AdminCheckinController::class, 'lookup'])->name('checkin.lookup');
-    Route::get('/checkin/{code}', [AdminCheckinController::class, 'show'])->name('checkin.show');
-    Route::post('/checkin/{code}/confirm', [AdminCheckinController::class, 'confirm'])->name('checkin.confirm');
-    Route::post('/checkin/{code}/undo', [AdminCheckinController::class, 'undo'])->name('checkin.undo');
+Route::prefix('checkin')->name('checkin.')->group(function () {
+    Route::get('/', [CheckinScanController::class, 'pinForm'])->name('pin');
+    Route::post('/', [CheckinScanController::class, 'verifyPin'])->name('pin.verify');
+    Route::post('/keluar', [CheckinScanController::class, 'logout'])->name('logout');
+
+    Route::middleware('checkin.pin')->group(function () {
+        Route::get('/scan', [CheckinScanController::class, 'index'])->name('index');
+        Route::post('/lookup', [CheckinScanController::class, 'lookup'])->name('lookup');
+        Route::post('/{code}/confirm', [CheckinScanController::class, 'confirm'])->name('confirm');
+        Route::post('/{code}/undo', [CheckinScanController::class, 'undo'])->name('undo');
+    });
 });
 

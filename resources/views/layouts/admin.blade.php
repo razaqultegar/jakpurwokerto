@@ -35,10 +35,6 @@
                         <i class="ri-shirt-line"></i>
                         Merchandise
                     </a>
-                    <a href="{{ route('admin.checkin.index') }}" class="flex items-center gap-2 rounded-md px-3 py-2 {{ request()->routeIs('admin.checkin*') ? 'bg-gray-800 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
-                        <i class="ri-qr-scan-2-line"></i>
-                        Check-in Tiket
-                    </a>
                 </nav>
                 <div class="border-t border-gray-800 px-3 py-3">
                     <form action="{{ route('logout') }}" method="post">

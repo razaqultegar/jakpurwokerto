@@ -14,10 +14,6 @@ class OrderPresenter
         'kirim' => 'Kirim (Kurir)',
     ];
 
-    /**
-     * Susun array pesanan yang dikonsumsi template invoice PDF (pdf.order-invoice).
-     * Dibangun mandiri dari model Order agar bisa dipakai di luar CheckoutController.
-     */
     public static function invoiceData(Order $order): array
     {
         $pickup = PickupLocation::findByKey($order->pickup_location);
@@ -40,7 +36,6 @@ class OrderPresenter
                 'pickup_location' => $order->pickup_location,
                 'pickup_location_label' => $pickup?->name
                     ?? ($order->pickup_location ? ucfirst($order->pickup_location) : null),
-                // Titik temu disimpan per-pesanan.
                 'pickup_address' => $order->pickup_address,
                 'pickup_contact_name' => $order->pickup_contact_name,
                 'pickup_contact_phone' => $order->pickup_contact_phone,
@@ -60,7 +55,7 @@ class OrderPresenter
             'admin_whatsapp' => self::ADMIN_WHATSAPP,
             'checkin_code' => $order->checkin_code,
             'checkin_url' => $order->checkin_code
-                ? route('admin.checkin.show', ['code' => $order->checkin_code])
+                ? route('checkin.index', ['code' => $order->checkin_code])
                 : null,
             'checked_in_at' => $order->checked_in_at,
         ];
