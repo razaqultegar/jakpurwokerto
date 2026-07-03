@@ -7,7 +7,7 @@ use App\Models\PickupLocation;
 
 class OrderPresenter
 {
-    private const ADMIN_WHATSAPP = '6282298001051';
+    private const ADMIN_WHATSAPP = '628975851952';
 
     private const SHIPPING_LABELS = [
         'pickup' => 'Ambil di Tempat',
@@ -53,11 +53,12 @@ class OrderPresenter
                 $order->payment_data ?? []
             ),
             'admin_whatsapp' => self::ADMIN_WHATSAPP,
-            'checkin_code' => $order->checkin_code,
-            'checkin_url' => $order->checkin_code
-                ? route('checkin.index', ['code' => $order->checkin_code])
-                : null,
-            'checked_in_at' => $order->checked_in_at,
+            'tickets' => $order->tickets->map(fn ($ticket) => [
+                'code' => $ticket->code,
+                'unit_index' => $ticket->unit_index,
+                'url' => route('checkin.index', ['code' => $ticket->code]),
+                'checked_in_at' => $ticket->checked_in_at,
+            ])->all(),
         ];
     }
 }

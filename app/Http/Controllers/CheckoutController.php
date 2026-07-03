@@ -60,7 +60,7 @@ class CheckoutController extends Controller
                 'merchant' => 'a.n. Febrian Dwi Adha',
                 'image' => 'medias/payments/qris.jpeg',
             ],
-            'admin_whatsapp' => '6282298001051',
+            'admin_whatsapp' => '628975851952',
         ];
     }
 

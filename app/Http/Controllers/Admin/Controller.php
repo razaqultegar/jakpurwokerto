@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller as BaseController;
 use App\Models\Order;
+use App\Models\OrderTicket;
 use App\Models\PickupLocation;
 use Carbon\Carbon;
 use Endroid\QrCode\QrCode;
@@ -27,9 +28,16 @@ abstract class Controller extends BaseController
         return $items->isNotEmpty() && $items->every(fn ($line) => ($line['category'] ?? null) === 'Tiket');
     }
 
-    protected function ensureCheckinCode(Order $order): void
+    protected function ticketUnitCount(Order $order): int
     {
-        if ($order->checkin_code || ! $this->isTicketOrder($order)) {
+        return collect($order->item ?? [])
+            ->filter(fn ($line) => ($line['category'] ?? null) === 'Tiket')
+            ->sum(fn ($line) => (int) ($line['qty'] ?? 0));
+    }
+
+    protected function ensureCheckinCodes(Order $order): void
+    {
+        if (! $this->isTicketOrder($order)) {
             return;
         }
 
@@ -37,11 +45,19 @@ abstract class Controller extends BaseController
             return;
         }
 
-        do {
-            $code = strtoupper(Str::random(10));
-        } while (Order::where('checkin_code', $code)->exists());
+        $needed = $this->ticketUnitCount($order);
+        $existing = $order->tickets()->count();
 
-        $order->update(['checkin_code' => $code]);
+        for ($unitIndex = $existing + 1; $unitIndex <= $needed; $unitIndex++) {
+            do {
+                $code = strtoupper(Str::random(10));
+            } while (OrderTicket::where('code', $code)->exists());
+
+            $order->tickets()->create([
+                'code' => $code,
+                'unit_index' => $unitIndex,
+            ]);
+        }
     }
 
     protected function generateQrDataUri(string $data, int $size = 220): string
@@ -317,6 +333,7 @@ abstract class Controller extends BaseController
         $shipLabel = $order->shipping_method === 'pickup' ? 'Ambil di Tempat' : 'Dikirim';
 
         $isTicketOrder = $this->isTicketOrder($order);
+        $tickets = $isTicketOrder ? $order->tickets : collect();
 
         $rawPhone = preg_replace('/\D+/', '', (string) $order->customer_phone);
         $waPhone = $rawPhone !== '' ? (str_starts_with($rawPhone, '0') ? '62'.substr($rawPhone, 1) : (str_starts_with($rawPhone, '62') ? $rawPhone : '62'.$rawPhone)) : '';
@@ -395,8 +412,13 @@ abstract class Controller extends BaseController
             .'<span class="detail-chip detail-chip--glass">'.e($order->order_id).'</span>'
             .'<span class="detail-chip detail-chip--status '.$statusMeta['class'].'"><i class="'.$statusMeta['icon'].'"></i> '.$statusMeta['label'].'</span>'
             .'<a href="'.e(url('admin/orders/'.$order->order_id.'/invoice')).'" target="_blank" class="detail-chip detail-chip--glass"><i class="ri-file-pdf-2-line"></i> Unduh Invoice</a>'
-            .($order->checkin_code
-                ? '<a href="'.e(route('checkin.index', ['code' => $order->checkin_code])).'" target="_blank" class="detail-chip '.($order->checked_in_at ? 'bg-emerald-100 text-emerald-700' : 'detail-chip--glass').'"><i class="ri-qr-scan-2-line"></i> '.($order->checked_in_at ? 'Sudah Check-in' : 'Belum Check-in').'</a>'
+            .($tickets->isNotEmpty()
+                ? (function () use ($tickets) {
+                    $checkedIn = $tickets->filter(fn ($t) => $t->checked_in_at)->count();
+                    $allCheckedIn = $checkedIn === $tickets->count();
+
+                    return '<span class="detail-chip '.($allCheckedIn ? 'bg-emerald-100 text-emerald-700' : 'detail-chip--glass').'"><i class="ri-qr-scan-2-line"></i> '.$checkedIn.'/'.$tickets->count().' Sudah Check-in</span>';
+                })()
                 : '')
             .'</div>'
             .'<div class="flex items-center gap-3">'
@@ -439,6 +461,7 @@ abstract class Controller extends BaseController
             .'<div class="detail-card mt-3">'
             .'<div class="detail-card__title"><i class="ri-shopping-bag-3-line"></i> Item Pesanan</div>'
             .'<div class="flex flex-col gap-2">'.$itemsHtml.'</div>'
+            .($tickets->isNotEmpty() ? $this->renderTicketCodesList($tickets) : '')
             .'<div class="mt-3 flex items-center justify-between border-t border-mercury pt-2.5">'
             .'<span class="text-[11px] font-semibold uppercase tracking-wider text-onyx">Subtotal</span>'
             .'<span class="text-base font-black text-foreground">'.$rupiah($order->subtotal).'</span>'
@@ -464,6 +487,25 @@ abstract class Controller extends BaseController
             .($order->payment_type === 'dp' ? $this->renderSettlementBlock($order, $rupiah) : '')
             .$proofRows
             .'</div>'
+            .'</div>';
+    }
+
+    protected function renderTicketCodesList(Collection $tickets): string
+    {
+        $rows = '';
+        foreach ($tickets as $ticket) {
+            $checkedIn = (bool) $ticket->checked_in_at;
+            $rows .= '<a href="'.e(route('checkin.index', ['code' => $ticket->code])).'" target="_blank" class="flex items-center justify-between gap-2 rounded-lg bg-skull/40 px-3 py-2 ring-1 ring-mercury">'
+                .'<span class="font-mono text-[12px] font-bold text-foreground">Tiket '.$ticket->unit_index.' · '.e($ticket->code).'</span>'
+                .'<span class="inline-flex items-center gap-1 text-[11px] font-semibold '.($checkedIn ? 'text-emerald-700' : 'text-onyx').'">'
+                .'<i class="'.($checkedIn ? 'ri-checkbox-circle-fill' : 'ri-time-line').'"></i> '.($checkedIn ? 'Sudah Check-in' : 'Belum Check-in')
+                .'</span>'
+                .'</a>';
+        }
+
+        return '<div class="mt-3 flex flex-col gap-1.5 border-t border-mercury pt-2.5">'
+            .'<div class="mb-0.5 text-[10px] font-bold uppercase tracking-wider text-onyx">Kode Tiket</div>'
+            .$rows
             .'</div>';
     }
 

@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Order;
+use App\Models\OrderTicket;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cookie;
 
@@ -59,7 +59,12 @@ class CheckinScanController extends Controller
             'code' => ['required', 'string', 'max:100'],
         ]);
 
-        $code = strtoupper(trim(basename(parse_url($validated['code'], PHP_URL_PATH) ?: $validated['code'])));
+        $raw = $validated['code'];
+
+        parse_str(parse_url($raw, PHP_URL_QUERY) ?? '', $query);
+
+        $code = $query['code'] ?? basename(parse_url($raw, PHP_URL_PATH) ?: $raw);
+        $code = strtoupper(trim($code));
 
         return $this->ticketResponse($code);
     }
@@ -67,13 +72,13 @@ class CheckinScanController extends Controller
     public function confirm(string $code)
     {
         $code = strtoupper(trim($code));
-        $order = Order::where('checkin_code', $code)->first();
+        $ticket = OrderTicket::where('code', $code)->with('order')->first();
 
-        if (! $order || $order->status === 'cancelled' || $order->checked_in_at) {
+        if (! $ticket || ! $ticket->order || $ticket->order->status === 'cancelled' || $ticket->checked_in_at) {
             return $this->ticketResponse($code);
         }
 
-        $order->update(['checked_in_at' => now()]);
+        $ticket->update(['checked_in_at' => now()]);
 
         return $this->ticketResponse($code);
     }
@@ -81,10 +86,10 @@ class CheckinScanController extends Controller
     public function undo(string $code)
     {
         $code = strtoupper(trim($code));
-        $order = Order::where('checkin_code', $code)->first();
+        $ticket = OrderTicket::where('code', $code)->first();
 
-        if ($order && $order->checked_in_at) {
-            $order->update(['checked_in_at' => null]);
+        if ($ticket && $ticket->checked_in_at) {
+            $ticket->update(['checked_in_at' => null]);
         }
 
         return $this->ticketResponse($code);
@@ -92,9 +97,9 @@ class CheckinScanController extends Controller
 
     private function ticketResponse(string $code)
     {
-        $order = Order::where('checkin_code', $code)->first();
+        $ticket = OrderTicket::where('code', $code)->with('order')->first();
 
-        if (! $order) {
+        if (! $ticket || ! $ticket->order) {
             return response()->json([
                 'ok' => true,
                 'status' => 'not_found',
@@ -103,13 +108,15 @@ class CheckinScanController extends Controller
             ]);
         }
 
+        $order = $ticket->order;
+
         $status = 'valid';
         $message = 'Tiket valid — belum check-in.';
 
         if ($order->status === 'cancelled') {
             $status = 'cancelled';
             $message = 'Pesanan ini sudah dibatalkan, tiket tidak berlaku.';
-        } elseif ($order->checked_in_at) {
+        } elseif ($ticket->checked_in_at) {
             $status = 'checked_in';
             $message = 'Tiket ini sudah check-in.';
         }
@@ -123,9 +130,10 @@ class CheckinScanController extends Controller
                 'order_id' => $order->order_id,
                 'customer_name' => $order->customer_name,
                 'items_label' => collect($order->item ?? [])->pluck('name')->filter()->implode(', '),
-                'items_qty' => collect($order->item ?? [])->sum('qty'),
-                'checked_in_at' => $order->checked_in_at
-                    ? $order->checked_in_at->locale('id')->translatedFormat('d F Y, H:i').' WIB'
+                'unit_index' => $ticket->unit_index,
+                'total_units' => $order->tickets()->count(),
+                'checked_in_at' => $ticket->checked_in_at
+                    ? $ticket->checked_in_at->locale('id')->translatedFormat('d F Y, H:i').' WIB'
                     : null,
                 'can_confirm' => $status === 'valid',
                 'can_undo' => $status === 'checked_in',
