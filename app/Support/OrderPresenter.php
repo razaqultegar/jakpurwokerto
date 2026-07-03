@@ -7,7 +7,7 @@ use App\Models\PickupLocation;
 
 class OrderPresenter
 {
-    private const ADMIN_WHATSAPP = '6282298001051';
+    private const ADMIN_WHATSAPP = '628975851952';
 
     private const SHIPPING_LABELS = [
         'pickup' => 'Ambil di Tempat',

@@ -59,7 +59,12 @@ class CheckinScanController extends Controller
             'code' => ['required', 'string', 'max:100'],
         ]);
 
-        $code = strtoupper(trim(basename(parse_url($validated['code'], PHP_URL_PATH) ?: $validated['code'])));
+        $raw = $validated['code'];
+
+        parse_str(parse_url($raw, PHP_URL_QUERY) ?? '', $query);
+
+        $code = $query['code'] ?? basename(parse_url($raw, PHP_URL_PATH) ?: $raw);
+        $code = strtoupper(trim($code));
 
         return $this->ticketResponse($code);
     }
