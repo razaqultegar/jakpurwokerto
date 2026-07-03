@@ -233,10 +233,13 @@ class OrderController extends Controller
     {
         $data = OrderPresenter::invoiceData($order);
 
+        $data['tickets'] = collect($data['tickets'])
+            ->map(fn ($ticket) => $ticket + ['qr' => $this->generateQrDataUri($ticket['url'])])
+            ->all();
+
         $pdf = Pdf::loadView('pdf.order-invoice', [
             'order' => $data,
             'isTicketOrder' => $this->isTicketOrder($order),
-            'qrDataUri' => $data['checkin_url'] ? $this->generateQrDataUri($data['checkin_url']) : null,
         ])->setPaper('a4', 'portrait');
 
         return $pdf->download('invoice-'.$order->order_id.'.pdf');
@@ -324,7 +327,7 @@ class OrderController extends Controller
         $order->save();
 
         // Terbitkan e-tiket (QR check-in) begitu pembayaran tiket diterima admin.
-        $this->ensureCheckinCode($order);
+        $this->ensureCheckinCodes($order);
 
         return response()->json([
             'ok' => true,

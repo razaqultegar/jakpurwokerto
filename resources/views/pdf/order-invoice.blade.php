@@ -219,9 +219,10 @@
             </table>
         </div>
 
-        @if ($isTicketOrder && $qrDataUri)
+        @if ($isTicketOrder && !empty($order['tickets']))
+        @foreach ($order['tickets'] as $ticket)
         <div class="eticket-wrap">
-            <span class="eticket-flag">&#9733; E-Ticket &mdash; Tiket Masuk Elektronik</span>
+            <span class="eticket-flag">&#9733; E-Ticket {{ $loop->iteration }}/{{ count($order['tickets']) }} &mdash; Tiket Masuk Elektronik</span>
             <table class="eticket">
                 <tr>
                     <td class="eticket-main">
@@ -233,24 +234,25 @@
 
                         <div class="eticket-code-strip">
                             <div class="eticket-code-label">Kode Tiket</div>
-                            <div class="eticket-code-value">{{ $order['checkin_code'] }}</div>
+                            <div class="eticket-code-value">{{ $ticket['code'] }}</div>
                         </div>
 
-                        @if ($order['checked_in_at'])
+                        @if ($ticket['checked_in_at'])
                         <div>
-                            <span class="eticket-checked">&#10003; Sudah Check-in &middot; {{ $order['checked_in_at']->locale('id')->translatedFormat('d M Y, H:i') }} WIB</span>
+                            <span class="eticket-checked">&#10003; Sudah Check-in &middot; {{ $ticket['checked_in_at']->locale('id')->translatedFormat('d M Y, H:i') }} WIB</span>
                         </div>
                         @else
                         <div class="eticket-notice">Satu kode hanya berlaku untuk satu kali check-in. Simpan invoice ini hingga hari acara.</div>
                         @endif
                     </td>
                     <td class="eticket-stub">
-                        <img src="{{ $qrDataUri }}" alt="QR Check-in">
+                        <img src="{{ $ticket['qr'] }}" alt="QR Check-in">
                         <div class="eticket-scan-hint">Scan di venue</div>
                     </td>
                 </tr>
             </table>
         </div>
+        @endforeach
         @endif
 
         <div class="footer-note">

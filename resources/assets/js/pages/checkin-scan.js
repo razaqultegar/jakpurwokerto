@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (payload.order) {
             resultName.textContent = payload.order.customer_name;
-            resultItems.textContent = `${payload.order.items_label} · ${payload.order.items_qty} tiket`;
+            resultItems.textContent = `${payload.order.items_label} · Tiket ${payload.order.unit_index}/${payload.order.total_units}`;
             resultName.hidden = false;
             resultItems.hidden = false;
             btnConfirm.hidden = !payload.order.can_confirm;

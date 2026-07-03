@@ -34,8 +34,6 @@ class Order extends Model
         'status',
         'verified_at',
         'completed_at',
-        'checkin_code',
-        'checked_in_at',
     ];
 
     protected $casts = [
@@ -49,11 +47,15 @@ class Order extends Model
         'dp_settlement_uploaded_at' => 'datetime',
         'dp_settlement_verified_at' => 'datetime',
         'dp_settlement_reminders' => 'array',
-        'checked_in_at' => 'datetime',
     ];
 
     public function getRouteKeyName()
     {
         return 'order_id';
+    }
+
+    public function tickets()
+    {
+        return $this->hasMany(OrderTicket::class)->orderBy('unit_index');
     }
 }

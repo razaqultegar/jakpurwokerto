@@ -12,9 +12,6 @@ class PickupLocation extends Model
         'sort_order',
     ];
 
-    /**
-     * Daftar lokasi untuk dropdown checkout: [key => ['key' => ..., 'name' => ...]].
-     */
     public static function options(): array
     {
         return static::orderBy('sort_order')->orderBy('name')->get()
