@@ -69,7 +69,7 @@ class CheckinScanController extends Controller
         $code = strtoupper(trim($code));
         $order = Order::where('checkin_code', $code)->first();
 
-        if (!$order || $order->status === 'cancelled' || $order->checked_in_at) {
+        if (! $order || $order->status === 'cancelled' || $order->checked_in_at) {
             return $this->ticketResponse($code);
         }
 
@@ -94,7 +94,7 @@ class CheckinScanController extends Controller
     {
         $order = Order::where('checkin_code', $code)->first();
 
-        if (!$order) {
+        if (! $order) {
             return response()->json([
                 'ok' => true,
                 'status' => 'not_found',

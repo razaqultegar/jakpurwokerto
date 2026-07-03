@@ -65,7 +65,9 @@ class TicketController extends Controller
             ],
         ];
 
-        if (!isset($events[$slug])) abort(404);
+        if (! isset($events[$slug])) {
+            abort(404);
+        }
 
         $event = $events[$slug];
         $event['state'] = [

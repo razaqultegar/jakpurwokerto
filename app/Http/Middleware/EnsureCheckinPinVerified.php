@@ -16,6 +16,7 @@ class EnsureCheckinPinVerified
 
         if ($request->cookie('checkin_device') === hash('sha256', config('checkin.pin'))) {
             $request->session()->put('checkin_pin_verified', true);
+
             return $next($request);
         }
 

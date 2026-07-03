@@ -54,4 +54,3 @@ Route::prefix('checkin')->name('checkin.')->group(function () {
         Route::post('/{code}/undo', [CheckinScanController::class, 'undo'])->name('undo');
     });
 });
-
