@@ -24,6 +24,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const buildUrl = (template, orderId) => template.replace('__ORDER__', encodeURIComponent(orderId));
 
     const filterCategory = root?.dataset.filterCategory || '';
+    // Sertakan konteks kategori halaman (Tiket/Merchandise) di setiap aksi tulis,
+    // agar kartu statistik yang dikembalikan server tetap sinkron dengan halaman aktif.
+    const withCategory = (fd) => {
+        if (filterCategory) fd.append('filter_category', filterCategory);
+        return fd;
+    };
 
     const filters = {
         payment_type: '',
@@ -321,7 +327,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (syncSubmit) syncSubmit.disabled = true;
         try {
-            const fd = new FormData();
+            const fd = withCategory(new FormData());
             fd.append('amount_due', String(value));
             const res = await fetch(buildUrl(endpoints.syncPayment, syncState.orderId), { method: 'POST', headers, body: fd });
             let payload = null;
@@ -429,7 +435,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (shippingSubmit) shippingSubmit.disabled = true;
         try {
-            const fd = new FormData();
+            const fd = withCategory(new FormData());
             fd.append('tracking', value);
             if (isShip) fd.append('status', 'shipped');
             const res = await fetch(buildUrl(endpoint, shippingState.orderId), { method: 'POST', headers, body: fd });
@@ -535,7 +541,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (pickupSubmit) pickupSubmit.disabled = true;
         try {
-            const fd = new FormData();
+            const fd = withCategory(new FormData());
             fd.append('pickup_address', address);
             fd.append('pickup_contact_name', contactName);
             fd.append('pickup_contact_phone', contactPhone);
@@ -647,7 +653,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (proofSubmit) proofSubmit.disabled = true;
         try {
-            const fd = new FormData();
+            const fd = withCategory(new FormData());
             fd.append('proof', file);
             fd.append('type', proofState.type);
             const res = await fetch(buildUrl(endpoints.paymentProof, proofState.orderId), { method: 'POST', headers, body: fd });
@@ -756,7 +762,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!result.isConfirmed) return;
 
         try {
-            const fd = new FormData();
+            const fd = withCategory(new FormData());
             fd.append('status', status);
             const res = await fetch(buildUrl(endpoints.status, orderId), { method: 'POST', headers, body: fd });
             let payload = null;
@@ -789,7 +795,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!result.isConfirmed) return;
 
         try {
-            const res = await fetch(buildUrl(endpoints.settlementVerify, orderId), { method: 'POST', headers });
+            const res = await fetch(buildUrl(endpoints.settlementVerify, orderId), { method: 'POST', headers, body: withCategory(new FormData()) });
             let payload = null;
             try { payload = await res.json(); } catch (_) {}
             if (!res.ok || !payload?.ok) throw new Error(payload?.message || 'Gagal memverifikasi pelunasan.');
@@ -827,7 +833,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const res = await fetch(buildUrl(endpoints.delete, orderId), {
                 method: 'POST',
                 headers,
-                body: (() => { const fd = new FormData(); fd.append('_method', 'DELETE'); return fd; })(),
+                body: (() => { const fd = withCategory(new FormData()); fd.append('_method', 'DELETE'); return fd; })(),
             });
             let payload = null;
             try { payload = await res.json(); } catch (_) {}

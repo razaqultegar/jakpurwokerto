@@ -231,9 +231,12 @@ class OrderController extends Controller
 
     public function invoice(Order $order)
     {
+        $data = OrderPresenter::invoiceData($order);
+
         $pdf = Pdf::loadView('pdf.order-invoice', [
-            'order' => OrderPresenter::invoiceData($order),
+            'order' => $data,
             'isTicketOrder' => $this->isTicketOrder($order),
+            'qrDataUri' => $data['checkin_url'] ? $this->generateQrDataUri($data['checkin_url']) : null,
         ])->setPaper('a4', 'portrait');
 
         return $pdf->download('invoice-'.$order->order_id.'.pdf');
@@ -320,10 +323,13 @@ class OrderController extends Controller
         $order->completed_at = $next === 'completed' ? now() : ($next === 'pending' ? null : $order->completed_at);
         $order->save();
 
+        // Terbitkan e-tiket (QR check-in) begitu pembayaran tiket diterima admin.
+        $this->ensureCheckinCode($order);
+
         return response()->json([
             'ok' => true,
             'message' => $manualSettlement ? 'Pesanan ditandai lunas.' : 'Status pesanan diperbarui.',
-            'stats' => $this->orderStats(),
+            'stats' => $this->statsFor($request->input('filter_category')),
             'stockHtml' => $this->stockCardsHtml(),
         ]);
     }
@@ -362,7 +368,7 @@ class OrderController extends Controller
         return response()->json(['ok' => true, 'message' => 'Info pengambilan tersimpan.']);
     }
 
-    public function destroy(Order $order)
+    public function destroy(Request $request, Order $order)
     {
         $order->status = 'cancelled';
         $order->save();
@@ -370,7 +376,7 @@ class OrderController extends Controller
         return response()->json([
             'ok' => true,
             'message' => 'Pesanan dibatalkan.',
-            'stats' => $this->orderStats(),
+            'stats' => $this->statsFor($request->input('filter_category')),
             'stockHtml' => $this->stockCardsHtml(),
         ]);
     }
@@ -390,7 +396,7 @@ class OrderController extends Controller
         return response()->json([
             'ok' => true,
             'message' => 'Total pembayaran diperbarui.',
-            'stats' => $this->orderStats(),
+            'stats' => $this->statsFor($request->input('filter_category')),
             'order' => [
                 'order_id' => $order->order_id,
                 'amount_due' => (int) $order->amount_due,
@@ -429,7 +435,7 @@ class OrderController extends Controller
             return response()->json([
                 'ok' => true,
                 'message' => $replacing ? 'Bukti pelunasan berhasil diganti.' : 'Bukti pelunasan berhasil ditambahkan.',
-                'stats' => $this->orderStats(),
+                'stats' => $this->statsFor($request->input('filter_category')),
             ]);
         }
 
@@ -448,7 +454,7 @@ class OrderController extends Controller
         return response()->json([
             'ok' => true,
             'message' => $replacing ? 'Bukti transfer berhasil diganti.' : 'Bukti transfer berhasil ditambahkan.',
-            'stats' => $this->orderStats(),
+            'stats' => $this->statsFor($request->input('filter_category')),
         ]);
     }
 
@@ -481,7 +487,7 @@ class OrderController extends Controller
         return response()->json([
             'ok' => true,
             'message' => 'Bukti pelunasan tersimpan & terverifikasi.',
-            'stats' => $this->orderStats(),
+            'stats' => $this->statsFor($request->input('filter_category')),
             'stockHtml' => $this->stockCardsHtml(),
         ]);
     }
@@ -511,7 +517,7 @@ class OrderController extends Controller
         return response()->json([
             'ok' => true,
             'message' => 'Pelunasan DP terverifikasi.',
-            'stats' => $this->orderStats(),
+            'stats' => $this->statsFor($request->input('filter_category')),
             'stockHtml' => $this->stockCardsHtml(),
         ]);
     }

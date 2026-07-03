@@ -5,8 +5,11 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller as BaseController;
 use App\Models\Order;
 use App\Models\PickupLocation;
+use Endroid\QrCode\QrCode;
+use Endroid\QrCode\Writer\PngWriter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use Carbon\Carbon;
 
 abstract class Controller extends BaseController
@@ -15,11 +18,45 @@ abstract class Controller extends BaseController
         'the-7ourney' => 300,
     ];
 
+    // Status di mana pembayaran tiket sudah dianggap diterima admin.
+    protected const CHECKIN_ELIGIBLE_STATUSES = ['verified', 'paid', 'shipped', 'completed'];
+
     protected function isTicketOrder(Order $order): bool
     {
         $items = collect($order->item ?? []);
 
         return $items->isNotEmpty() && $items->every(fn ($line) => ($line['category'] ?? null) === 'Tiket');
+    }
+
+    /**
+     * Terbitkan kode check-in (e-ticket) begitu pembayaran tiket diterima admin.
+     * Dipanggil setiap kali status pesanan berubah; no-op jika bukan tiket atau kode sudah ada.
+     */
+    protected function ensureCheckinCode(Order $order): void
+    {
+        if ($order->checkin_code || ! $this->isTicketOrder($order)) {
+            return;
+        }
+
+        if (! in_array($order->status, self::CHECKIN_ELIGIBLE_STATUSES, true)) {
+            return;
+        }
+
+        do {
+            $code = strtoupper(Str::random(10));
+        } while (Order::where('checkin_code', $code)->exists());
+
+        $order->update(['checkin_code' => $code]);
+    }
+
+    /**
+     * QR code check-in sebagai data URI (base64 PNG) siap ditempel di <img> pada PDF invoice.
+     */
+    protected function generateQrDataUri(string $data, int $size = 220): string
+    {
+        $qrCode = new QrCode(data: $data, size: $size, margin: 8);
+
+        return (new PngWriter)->write($qrCode)->getDataUri();
     }
 
     protected function stockCards(): array
@@ -68,6 +105,57 @@ abstract class Controller extends BaseController
             'settled' => Order::whereIn('status', ['paid', 'shipped', 'completed'])->count(),
             'revenue' => Order::whereIn('status', $confirmed)->sum('amount_due'),
         ];
+    }
+
+    protected function ticketStats(): array
+    {
+        $base = Order::whereRaw("JSON_SEARCH(item, 'one', 'Tiket', NULL, '$[*].category') IS NOT NULL");
+        $confirmed = ['verified', 'paid', 'shipped', 'completed'];
+
+        return [
+            'total' => (clone $base)->count(),
+            'pending' => (clone $base)->where('status', 'pending')->count(),
+            'verified' => (clone $base)->where('status', 'verified')->count(),
+            'paid' => (clone $base)->where('status', 'paid')->count(),
+            'shipped' => (clone $base)->where('status', 'shipped')->count(),
+            'completed' => (clone $base)->where('status', 'completed')->count(),
+            'cancelled' => (clone $base)->where('status', 'cancelled')->count(),
+            'confirmed' => (clone $base)->whereIn('status', $confirmed)->count(),
+            'settled' => (clone $base)->whereIn('status', ['paid', 'shipped', 'completed'])->count(),
+            'revenue' => (clone $base)->whereIn('status', $confirmed)->sum('amount_due'),
+        ];
+    }
+
+    protected function merchandiseStats(): array
+    {
+        $base = Order::whereRaw("JSON_SEARCH(item, 'one', 'Tiket', NULL, '$[*].category') IS NULL");
+        $confirmed = ['verified', 'paid', 'shipped', 'completed'];
+
+        return [
+            'total' => (clone $base)->count(),
+            'pending' => (clone $base)->where('status', 'pending')->count(),
+            'verified' => (clone $base)->where('status', 'verified')->count(),
+            'paid' => (clone $base)->where('status', 'paid')->count(),
+            'shipped' => (clone $base)->where('status', 'shipped')->count(),
+            'completed' => (clone $base)->where('status', 'completed')->count(),
+            'cancelled' => (clone $base)->where('status', 'cancelled')->count(),
+            'confirmed' => (clone $base)->whereIn('status', $confirmed)->count(),
+            'settled' => (clone $base)->whereIn('status', ['paid', 'shipped', 'completed'])->count(),
+            'revenue' => (clone $base)->whereIn('status', $confirmed)->sum('amount_due'),
+        ];
+    }
+
+    /**
+     * Statistik kartu sesuai konteks halaman (dashboard/tiket/merchandise) agar
+     * respons AJAX aksi (verifikasi, batal, dll.) tidak menimpa kartu dengan data global.
+     */
+    protected function statsFor(?string $category): array
+    {
+        return match ($category) {
+            'Tiket' => $this->ticketStats(),
+            'Merchandise' => $this->merchandiseStats(),
+            default => $this->orderStats(),
+        };
     }
 
     protected function applyOrderFilters($query, Request $request)
@@ -328,6 +416,9 @@ abstract class Controller extends BaseController
             .'<span class="detail-chip detail-chip--glass">'.e($order->order_id).'</span>'
             .'<span class="detail-chip detail-chip--status '.$statusMeta['class'].'"><i class="'.$statusMeta['icon'].'"></i> '.$statusMeta['label'].'</span>'
             .'<a href="'.e(url('admin/orders/'.$order->order_id.'/invoice')).'" target="_blank" class="detail-chip detail-chip--glass"><i class="ri-file-pdf-2-line"></i> Unduh Invoice</a>'
+            .($order->checkin_code
+                ? '<a href="'.e(url('admin/checkin/'.$order->checkin_code)).'" target="_blank" class="detail-chip '.($order->checked_in_at ? 'bg-emerald-100 text-emerald-700' : 'detail-chip--glass').'"><i class="ri-qr-scan-2-line"></i> '.($order->checked_in_at ? 'Sudah Check-in' : 'Belum Check-in').'</a>'
+                : '')
             .'</div>'
             .'<div class="flex items-center gap-3">'
             .'<div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white text-lg font-black text-primary shadow-md">'.e($initials).'</div>'
@@ -598,12 +689,13 @@ abstract class Controller extends BaseController
         }
 
         if ($order->status === 'paid') {
-            if ($order->shipping_method === 'pickup') {
+            // Tiket pakai alur check-in QR di venue, bukan penjadwalan pengambilan.
+            if ($order->shipping_method === 'pickup' && ! $this->isTicketOrder($order)) {
                 // Pickup: buka modal titik temu → simpan alamat & kontak + tandai siap diambil sekaligus.
                 $items .= '<button type="button" role="menuitem" data-action="pickup" data-mode="ship" data-order="'.$orderId.'"'.$pickupAttrs.' class="dropdown-item dropdown-item--ship">'
                     .'<i class="ri-store-2-line"></i><span>Tandai Siap Diambil</span>'
                     .'</button>';
-            } else {
+            } elseif ($order->shipping_method !== 'pickup') {
                 // Kirim: buka modal resi → simpan resi + tandai dikirim sekaligus.
                 $items .= '<button type="button" role="menuitem" data-action="shipping" data-mode="ship" data-order="'.$orderId.'" data-tracking="'.e($order->shipping_tracking ?? '').'" class="dropdown-item dropdown-item--ship">'
                     .'<i class="ri-truck-line"></i><span>Tandai Dikirim</span>'
