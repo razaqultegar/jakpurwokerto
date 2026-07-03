@@ -55,6 +55,20 @@
             </button>
         </div>
     </div>
+    <div data-checkedin-alert hidden class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-6">
+        <div class="w-full max-w-xs rounded-2xl bg-white p-5 text-center shadow-xl">
+            <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-amber-50 text-amber-600 ring-1 ring-amber-200">
+                <i class="ri-checkbox-circle-fill text-3xl"></i>
+            </div>
+            <h2 class="mt-3 text-[15px] font-black text-foreground">Tiket Sudah Check-in</h2>
+            <p data-checkedin-alert-name class="mt-1 text-[13px] font-semibold text-foreground"></p>
+            <p data-checkedin-alert-message class="mt-1 text-[12px] text-onyx"></p>
+            <button type="button" data-checkedin-alert-continue class="mt-4 inline-flex h-11 w-full items-center justify-center gap-1.5 rounded-lg bg-primary text-[13px] font-bold text-white shadow-sm transition active:scale-95 hover:bg-primary-light">
+                <i class="ri-qr-scan-2-line"></i>
+                Lanjut Scan Berikutnya
+            </button>
+        </div>
+    </div>
 </div>
 @endsection
 

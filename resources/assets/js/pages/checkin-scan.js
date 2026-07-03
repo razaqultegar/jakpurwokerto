@@ -29,6 +29,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnUndo = root.querySelector('[data-action-undo]');
     const btnRescan = root.querySelector('[data-action-rescan]');
 
+    const checkedInAlert = root.querySelector('[data-checkedin-alert]');
+    const checkedInAlertName = root.querySelector('[data-checkedin-alert-name]');
+    const checkedInAlertMessage = root.querySelector('[data-checkedin-alert-message]');
+    const checkedInAlertContinue = root.querySelector('[data-checkedin-alert-continue]');
+
     const badgeStyles = {
         valid: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200 ri-shield-check-fill',
         checked_in: 'bg-amber-50 text-amber-800 ring-1 ring-amber-200 ri-checkbox-circle-fill',
@@ -68,6 +73,25 @@ document.addEventListener('DOMContentLoaded', () => {
             btnConfirm.hidden = true;
             btnUndo.hidden = true;
         }
+
+        if (payload.status === 'checked_in') {
+            showCheckedInAlert(payload);
+        }
+    };
+
+    const showCheckedInAlert = (payload) => {
+        checkedInAlertName.textContent = payload.order?.customer_name ?? '';
+        checkedInAlertMessage.textContent = payload.order?.checked_in_at
+            ? `Sudah check-in pada ${payload.order.checked_in_at}`
+            : payload.message;
+        checkedInAlert.hidden = false;
+        scanner?.pause();
+    };
+
+    const hideCheckedInAlert = () => {
+        checkedInAlert.hidden = true;
+        lastScanned = '';
+        scanner?.start().catch(() => {});
     };
 
     const resetResult = () => {
@@ -127,6 +151,9 @@ document.addEventListener('DOMContentLoaded', () => {
         resetResult();
         scanner?.start().catch(() => {});
     });
+    checkedInAlertContinue?.addEventListener('click', () => {
+        hideCheckedInAlert();
+    });
 
     const presetCode = new URLSearchParams(window.location.search).get('code');
     if (presetCode) {
@@ -139,6 +166,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let lastScannedAt = 0;
 
     const onDecode = (result) => {
+        if (checkedInAlert && !checkedInAlert.hidden) return;
+
         const text = (result?.data ?? result ?? '').toString().trim();
         if (!text) return;
 
