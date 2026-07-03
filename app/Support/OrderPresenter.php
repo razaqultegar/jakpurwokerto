@@ -15,15 +15,17 @@ class OrderPresenter
     ];
 
     /**
-     * Susun array pesanan yang dikonsumsi template email (emails.order-invoice).
+     * Susun array pesanan yang dikonsumsi template invoice PDF (pdf.order-invoice).
      * Dibangun mandiri dari model Order agar bisa dipakai di luar CheckoutController.
      */
-    public static function mailData(Order $order): array
+    public static function invoiceData(Order $order): array
     {
         $pickup = PickupLocation::findByKey($order->pickup_location);
 
         return [
             'id' => $order->order_id,
+            'created_at' => $order->created_at,
+            'status' => $order->status,
             'customer' => [
                 'name' => $order->customer_name,
                 'email' => $order->customer_email,

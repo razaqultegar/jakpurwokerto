@@ -2,13 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Mail\OrderInvoice;
 use App\Models\Order;
 use App\Models\PickupLocation;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -60,7 +57,7 @@ class CheckoutController extends Controller
             'qris' => [
                 'key' => 'qris',
                 'name' => 'QRIS',
-                'merchant' => 'a.n. Tsani Imaniyah',
+                'merchant' => 'a.n. Febrian Dwi Adha',
                 'image' => 'medias/payments/qris.jpeg',
             ],
             'admin_whatsapp' => '6282298001051',
@@ -293,16 +290,6 @@ class CheckoutController extends Controller
             'dp_settlement_verified_at' => null,
         ]);
 
-        try {
-            Mail::to($order->customer_email)
-                ->send(new OrderInvoice($this->buildOrderView($order), 'settlement-received'));
-        } catch (\Throwable $e) {
-            Log::error('Failed to send settlement email', [
-                'order_id' => $order->order_id,
-                'error' => $e->getMessage(),
-            ]);
-        }
-
         return redirect()->route('checkout.settlement', ['orderId' => strtolower($order->order_id)])
             ->with('proof_status', 'success')
             ->with('proof_message', 'Bukti pelunasan berhasil diunggah. Admin akan memverifikasi pembayaranmu.');
@@ -446,11 +433,8 @@ class CheckoutController extends Controller
             'payment_proof_uploaded_at' => now(),
         ]);
 
-        // Email invoice/pembayaran diterima dikirim saat admin memverifikasi pembayaran,
-        // bukan saat bukti diunggah. Lihat AdminController::updateStatus.
-
         return redirect()->route('checkout.success', ['orderId' => strtolower($order->order_id)])
             ->with('proof_status', 'success')
-            ->with('proof_message', 'Bukti transfer berhasil diunggah. Admin akan memverifikasi pembayaranmu dan invoice dikirim ke email.');
+            ->with('proof_message', 'Bukti transfer berhasil diunggah. Admin akan memverifikasi pembayaranmu.');
     }
 }
