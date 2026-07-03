@@ -28,7 +28,66 @@ class AdminController extends Controller
             'title' => 'Beranda',
             'stats' => $this->orderStats(),
             'stockCards' => $this->stockCards(),
+            'filterCategory' => null,
         ]);
+    }
+
+    public function ticket()
+    {
+        return view('pages.admin.dashboard', [
+            'title' => 'Pesanan Tiket',
+            'stats' => $this->ticketStats(),
+            'stockCards' => [],
+            'filterCategory' => 'Tiket',
+        ]);
+    }
+
+    public function merchandise()
+    {
+        return view('pages.admin.dashboard', [
+            'title' => 'Pesanan Merchandise',
+            'stats' => $this->merchandiseStats(),
+            'stockCards' => $this->stockCards(),
+            'filterCategory' => 'Merchandise',
+        ]);
+    }
+
+    private function ticketStats(): array
+    {
+        $base = Order::whereRaw("JSON_SEARCH(item, 'one', 'Tiket', NULL, '$[*].category') IS NOT NULL");
+        $confirmed = ['verified', 'paid', 'shipped', 'completed'];
+
+        return [
+            'total' => (clone $base)->count(),
+            'pending' => (clone $base)->where('status', 'pending')->count(),
+            'verified' => (clone $base)->where('status', 'verified')->count(),
+            'paid' => (clone $base)->where('status', 'paid')->count(),
+            'shipped' => (clone $base)->where('status', 'shipped')->count(),
+            'completed' => (clone $base)->where('status', 'completed')->count(),
+            'cancelled' => (clone $base)->where('status', 'cancelled')->count(),
+            'confirmed' => (clone $base)->whereIn('status', $confirmed)->count(),
+            'settled' => (clone $base)->whereIn('status', ['paid', 'shipped', 'completed'])->count(),
+            'revenue' => (clone $base)->whereIn('status', $confirmed)->sum('amount_due'),
+        ];
+    }
+
+    private function merchandiseStats(): array
+    {
+        $base = Order::whereRaw("JSON_SEARCH(item, 'one', 'Tiket', NULL, '$[*].category') IS NULL");
+        $confirmed = ['verified', 'paid', 'shipped', 'completed'];
+
+        return [
+            'total' => (clone $base)->count(),
+            'pending' => (clone $base)->where('status', 'pending')->count(),
+            'verified' => (clone $base)->where('status', 'verified')->count(),
+            'paid' => (clone $base)->where('status', 'paid')->count(),
+            'shipped' => (clone $base)->where('status', 'shipped')->count(),
+            'completed' => (clone $base)->where('status', 'completed')->count(),
+            'cancelled' => (clone $base)->where('status', 'cancelled')->count(),
+            'confirmed' => (clone $base)->whereIn('status', $confirmed)->count(),
+            'settled' => (clone $base)->whereIn('status', ['paid', 'shipped', 'completed'])->count(),
+            'revenue' => (clone $base)->whereIn('status', $confirmed)->sum('amount_due'),
+        ];
     }
 
     private function stockCards(): array
@@ -171,6 +230,13 @@ class AdminController extends Controller
         $shippingFilter = $request->input('filter_shipping_method');
         if (in_array($shippingFilter, ['kirim', 'pickup'], true)) {
             $query->where('shipping_method', $shippingFilter);
+        }
+
+        $categoryFilter = $request->input('filter_category');
+        if ($categoryFilter === 'Tiket') {
+            $query->whereRaw("JSON_SEARCH(item, 'one', 'Tiket', NULL, '$[*].category') IS NOT NULL");
+        } elseif ($categoryFilter === 'Merchandise') {
+            $query->whereRaw("JSON_SEARCH(item, 'one', 'Tiket', NULL, '$[*].category') IS NULL");
         }
 
         $dateFrom = $request->input('filter_date_from');
@@ -739,7 +805,7 @@ class AdminController extends Controller
             ->chunk(200, function ($orders) use (&$sold, $slug) {
                 foreach ($orders as $order) {
                     foreach ($order->item ?? [] as $line) {
-                        if (($line['slug'] ?? null) === $slug) {
+                        if (($line['slug'] ?? null) === $slug && ($line['category'] ?? null) !== 'Tiket') {
                             $sold += (int) ($line['qty'] ?? 0);
                         }
                     }

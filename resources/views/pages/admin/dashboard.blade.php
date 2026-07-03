@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('heading', 'Dashboard')
+@section('heading', $title ?? 'Dashboard')
 
 @push('styles')
 @vite([
@@ -14,9 +14,10 @@
 @section('content')
     <div class="mb-6">
         <h2 class="text-xl font-semibold text-gray-900">Selamat datang, {{ auth()->user()->name }}.</h2>
-        <p class="text-sm text-gray-600">Ringkasan aktivitas {{ config('app.name') }}.</p>
+        <p class="text-sm text-gray-600">Pilih menu <span class="font-semibold">Pesanan Tiket</span> atau <span class="font-semibold">Pesanan Merchandise</span> di sisi kiri untuk mengelola pesanan.</p>
     </div>
 
+    @if ($filterCategory)
     <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4" data-stats-root>
         <div class="rounded-xl border border-mercury bg-white p-4">
             <p class="text-[10px] font-semibold uppercase tracking-wider text-onyx">Total Pesanan</p>
@@ -55,18 +56,21 @@
         </div>
     </div>
 
+    @if (!empty($stockCards))
     <div class="mt-3 flex flex-col gap-3 empty:mt-0" data-stock-root>
         @include('pages.admin._partials.stock-cards', ['stockCards' => $stockCards])
     </div>
+    @endif
 
     <div class="mt-6">
         <div class="mb-3">
-            <h3 class="text-base font-bold text-foreground">Daftar Pesanan Merchandise</h3>
+            <h3 class="text-base font-bold text-foreground">{{ $filterCategory === 'Tiket' ? 'Daftar Pesanan Tiket' : ($filterCategory === 'Merchandise' ? 'Daftar Pesanan Merchandise' : 'Daftar Semua Pesanan') }}</h3>
             <p class="text-xs text-onyx">Kelola seluruh pesanan dari pelanggan.</p>
         </div>
 
         <div class="overflow-hidden rounded-xl border border-mercury bg-white shadow-sm"
             data-orders-root
+            data-filter-category="{{ $filterCategory ?? '' }}"
             data-data-url="{{ route('admin.orders.data') }}"
             data-export-url="{{ route('admin.orders.export') }}"
             data-detail-url="{{ url('admin/orders/__ORDER__') }}"
@@ -358,6 +362,7 @@
             </div>
         </div>
     </div>
+    @endif
 @endsection
 
 @push('scripts')

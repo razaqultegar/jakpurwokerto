@@ -23,6 +23,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const headers = { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' };
     const buildUrl = (template, orderId) => template.replace('__ORDER__', encodeURIComponent(orderId));
 
+    const filterCategory = root?.dataset.filterCategory || '';
+
     const filters = {
         payment_type: '',
         status: '',
@@ -43,6 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 d.filter_shipping_method = filters.shipping_method;
                 d.filter_date_from = filters.date_from;
                 d.filter_date_to = filters.date_to;
+                if (filterCategory) d.filter_category = filterCategory;
             },
         },
         scrollX: true,
@@ -145,6 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (filters.shipping_method) params.set('filter_shipping_method', filters.shipping_method);
         if (filters.date_from) params.set('filter_date_from', filters.date_from);
         if (filters.date_to) params.set('filter_date_to', filters.date_to);
+        if (filterCategory) params.set('filter_category', filterCategory);
         const qs = params.toString();
         window.location.href = endpoints.export + (qs ? '?' + qs : '');
     });

@@ -26,6 +26,12 @@
                     <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-2 rounded-md px-3 py-2 {{ request()->routeIs('admin.dashboard') ? 'bg-gray-800 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
                         <i class="ri-dashboard-line"></i> Dashboard
                     </a>
+                    <a href="{{ route('admin.ticket') }}" class="flex items-center gap-2 rounded-md px-3 py-2 {{ request()->routeIs('admin.ticket*') ? 'bg-gray-800 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
+                        <i class="ri-ticket-2-line"></i> Pesanan Tiket
+                    </a>
+                    <a href="{{ route('admin.merchandise') }}" class="flex items-center gap-2 rounded-md px-3 py-2 {{ request()->routeIs('admin.merchandise*') ? 'bg-gray-800 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
+                        <i class="ri-shirt-line"></i> Pesanan Merchandise
+                    </a>
                 </nav>
                 <div class="border-t border-gray-800 px-3 py-3">
                     <form action="{{ route('logout') }}" method="post">

@@ -58,10 +58,11 @@
                                     </thead>
                                     <tbody>
                                         @foreach ($items as $it)
+                                        @php $isTicketItem = ($it['category'] ?? '') === 'Tiket'; @endphp
                                         <tr>
                                             <td style="padding:10px 8px;border-bottom:1px solid #f0f0f0;font-size:13px;">
-                                                <div style="font-weight:bold;">{{ $it['name'] }}</div>
-                                                <div style="font-size:11px;color:#777;margin-top:2px;">{{ $it['category'] }} · {{ $it['sleeve'] }} · Ukuran {{ $it['size'] }}</div>
+                                                <div style="font-weight:bold;">{{ $isTicketItem ? $it['category'] : $it['name'] }}</div>
+                                                <div style="font-size:11px;color:#777;margin-top:2px;">{{ $isTicketItem ? $it['name'] : ($it['category'] . ' · ' . $it['sleeve'] . ' · Ukuran ' . $it['size']) }}</div>
                                             </td>
                                             <td align="center" style="padding:10px 8px;border-bottom:1px solid #f0f0f0;font-size:13px;">{{ $it['qty'] }}</td>
                                             <td align="right" style="padding:10px 8px;border-bottom:1px solid #f0f0f0;font-size:13px;">{{ $rupiah(($it['price'] + ($it['fee'] ?? 0)) * $it['qty']) }}</td>
