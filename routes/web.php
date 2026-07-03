@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\CheckinController as AdminCheckinController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\MerchandiseController as AdminMerchandiseController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
@@ -38,5 +39,11 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::post('/orders/{order}/settlement-verify', [AdminOrderController::class, 'verifySettlement'])->name('orders.settlement-verify');
     Route::post('/orders/{order}/sync-payment', [AdminOrderController::class, 'syncPayment'])->name('orders.sync-payment');
     Route::delete('/orders/{order}', [AdminOrderController::class, 'destroy'])->name('orders.destroy');
+
+    Route::get('/checkin', [AdminCheckinController::class, 'index'])->name('checkin.index');
+    Route::post('/checkin', [AdminCheckinController::class, 'lookup'])->name('checkin.lookup');
+    Route::get('/checkin/{code}', [AdminCheckinController::class, 'show'])->name('checkin.show');
+    Route::post('/checkin/{code}/confirm', [AdminCheckinController::class, 'confirm'])->name('checkin.confirm');
+    Route::post('/checkin/{code}/undo', [AdminCheckinController::class, 'undo'])->name('checkin.undo');
 });
 

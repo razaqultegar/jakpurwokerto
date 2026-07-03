@@ -58,6 +58,11 @@ class OrderPresenter
                 $order->payment_data ?? []
             ),
             'admin_whatsapp' => self::ADMIN_WHATSAPP,
+            'checkin_code' => $order->checkin_code,
+            'checkin_url' => $order->checkin_code
+                ? route('admin.checkin.show', ['code' => $order->checkin_code])
+                : null,
+            'checked_in_at' => $order->checked_in_at,
         ];
     }
 }
