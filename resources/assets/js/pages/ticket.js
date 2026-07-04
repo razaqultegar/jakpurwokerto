@@ -47,6 +47,39 @@ function initGallerySwiper() {
     });
 }
 
+function initDaySwiper(swiperSelector, tabSelector, indexAttr) {
+    const el = document.querySelector(swiperSelector);
+    if (!el) return;
+
+    const tabs = document.querySelectorAll(tabSelector);
+
+    const swiper = new Swiper(el, {
+        speed: 400,
+        autoHeight: true,
+        on: {
+            slideChange(s) {
+                tabs.forEach((tab, i) => {
+                    tab.classList.toggle('rundown-tab-active', i === s.activeIndex);
+                });
+            },
+        },
+    });
+
+    tabs.forEach((tab) => {
+        tab.addEventListener('click', () => {
+            swiper.slideTo(Number(tab.dataset[indexAttr]));
+        });
+    });
+}
+
+function initRundownSwiper() {
+    initDaySwiper('[data-rundown-swiper]', '[data-rundown-tab]', 'rundownIndex');
+}
+
+function initMapsSwiper() {
+    initDaySwiper('[data-maps-swiper]', '[data-maps-tab]', 'mapsIndex');
+}
+
 function initShare() {
     const root = document.querySelector('[data-share]');
     if (!root) return;
@@ -452,6 +485,8 @@ function initQuantity() {
 
 initHeroSwiper();
 initGallerySwiper();
+initRundownSwiper();
+initMapsSwiper();
 initTicketPicker();
 initShare();
 initQuantity();

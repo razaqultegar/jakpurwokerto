@@ -334,6 +334,8 @@ abstract class Controller extends BaseController
 
         $isTicketOrder = $this->isTicketOrder($order);
         $tickets = $isTicketOrder ? $order->tickets : collect();
+        $ticketsCheckedIn = $tickets->filter(fn ($t) => $t->checked_in_at)->count();
+        $ticketsAllCheckedIn = $tickets->isNotEmpty() && $ticketsCheckedIn === $tickets->count();
 
         $rawPhone = preg_replace('/\D+/', '', (string) $order->customer_phone);
         $waPhone = $rawPhone !== '' ? (str_starts_with($rawPhone, '0') ? '62'.substr($rawPhone, 1) : (str_starts_with($rawPhone, '62') ? $rawPhone : '62'.$rawPhone)) : '';
@@ -411,15 +413,6 @@ abstract class Controller extends BaseController
             .'<div class="flex flex-wrap items-center gap-2">'
             .'<span class="detail-chip detail-chip--glass">'.e($order->order_id).'</span>'
             .'<span class="detail-chip detail-chip--status '.$statusMeta['class'].'"><i class="'.$statusMeta['icon'].'"></i> '.$statusMeta['label'].'</span>'
-            .'<a href="'.e(url('admin/orders/'.$order->order_id.'/invoice')).'" target="_blank" class="detail-chip detail-chip--glass"><i class="ri-file-pdf-2-line"></i> Unduh Invoice</a>'
-            .($tickets->isNotEmpty()
-                ? (function () use ($tickets) {
-                    $checkedIn = $tickets->filter(fn ($t) => $t->checked_in_at)->count();
-                    $allCheckedIn = $checkedIn === $tickets->count();
-
-                    return '<span class="detail-chip '.($allCheckedIn ? 'bg-emerald-100 text-emerald-700' : 'detail-chip--glass').'"><i class="ri-qr-scan-2-line"></i> '.$checkedIn.'/'.$tickets->count().' Sudah Check-in</span>';
-                })()
-                : '')
             .'</div>'
             .'<div class="flex items-center gap-3">'
             .'<div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white text-lg font-black text-primary shadow-md">'.e($initials).'</div>'
@@ -432,6 +425,18 @@ abstract class Controller extends BaseController
             .'</div>'
             .'</div>'
             .'</div>'
+            .'</div>'
+            .'<div class="mt-3 grid gap-2'.($tickets->isNotEmpty() ? ' grid-cols-2' : ' grid-cols-1').'">'
+            .'<a href="'.e(url('admin/orders/'.$order->order_id.'/invoice')).'" target="_blank" class="detail-action">'
+            .'<i class="ri-file-pdf-2-line text-lg text-primary"></i>'
+            .'<span>Unduh Invoice</span>'
+            .'</a>'
+            .($tickets->isNotEmpty()
+                ? '<div class="detail-action cursor-default hover:border-mercury hover:bg-white hover:text-foreground">'
+                    .'<i class="ri-qr-scan-2-line text-lg '.($ticketsAllCheckedIn ? 'text-emerald-600' : 'text-primary').'"></i>'
+                    .'<span>'.$ticketsCheckedIn.'/'.$tickets->count().' Check-in</span>'
+                    .'</div>'
+                : '')
             .'</div>'
             .$this->renderDuplicateCard($order)
             .'<div class="mt-3 grid grid-cols-1 gap-3'.($isTicketOrder ? '' : ' sm:grid-cols-2').'">'
@@ -461,12 +466,12 @@ abstract class Controller extends BaseController
             .'<div class="detail-card mt-3">'
             .'<div class="detail-card__title"><i class="ri-shopping-bag-3-line"></i> Item Pesanan</div>'
             .'<div class="flex flex-col gap-2">'.$itemsHtml.'</div>'
-            .($tickets->isNotEmpty() ? $this->renderTicketCodesList($tickets) : '')
             .'<div class="mt-3 flex items-center justify-between border-t border-mercury pt-2.5">'
             .'<span class="text-[11px] font-semibold uppercase tracking-wider text-onyx">Subtotal</span>'
             .'<span class="text-base font-black text-foreground">'.$rupiah($order->subtotal).'</span>'
             .'</div>'
             .'</div>'
+            .($tickets->isNotEmpty() ? $this->renderTicketCheckinCard($tickets, $ticketsCheckedIn, $ticketsAllCheckedIn) : '')
             .'<div class="detail-card mt-3">'
             .'<div class="detail-card__title"><i class="ri-wallet-3-line"></i> Pembayaran</div>'
             .'<div class="grid grid-cols-1 gap-3 sm:grid-cols-3">'
@@ -490,22 +495,34 @@ abstract class Controller extends BaseController
             .'</div>';
     }
 
-    protected function renderTicketCodesList(Collection $tickets): string
+    protected function renderTicketCheckinCard(Collection $tickets, int $checkedIn, bool $allCheckedIn): string
     {
+        $total = $tickets->count();
+        $percent = $total > 0 ? (int) round(($checkedIn / $total) * 100) : 0;
+
         $rows = '';
         foreach ($tickets as $ticket) {
-            $checkedIn = (bool) $ticket->checked_in_at;
-            $rows .= '<a href="'.e(route('checkin.index', ['code' => $ticket->code])).'" target="_blank" class="flex items-center justify-between gap-2 rounded-lg bg-skull/40 px-3 py-2 ring-1 ring-mercury">'
+            $isChecked = (bool) $ticket->checked_in_at;
+            $rows .= '<a href="'.e(route('checkin.index', ['code' => $ticket->code])).'" target="_blank" class="flex items-center justify-between gap-2 rounded-lg bg-skull/40 px-3 py-2 ring-1 ring-mercury transition hover:ring-primary/40">'
                 .'<span class="font-mono text-[12px] font-bold text-foreground">Tiket '.$ticket->unit_index.' · '.e($ticket->code).'</span>'
-                .'<span class="inline-flex items-center gap-1 text-[11px] font-semibold '.($checkedIn ? 'text-emerald-700' : 'text-onyx').'">'
-                .'<i class="'.($checkedIn ? 'ri-checkbox-circle-fill' : 'ri-time-line').'"></i> '.($checkedIn ? 'Sudah Check-in' : 'Belum Check-in')
+                .'<span class="inline-flex items-center gap-1 text-[11px] font-semibold '.($isChecked ? 'text-emerald-700' : 'text-onyx').'">'
+                .'<i class="'.($isChecked ? 'ri-checkbox-circle-fill' : 'ri-time-line').'"></i> '.($isChecked ? 'Sudah Check-in' : 'Belum Check-in')
                 .'</span>'
                 .'</a>';
         }
 
-        return '<div class="mt-3 flex flex-col gap-1.5 border-t border-mercury pt-2.5">'
-            .'<div class="mb-0.5 text-[10px] font-bold uppercase tracking-wider text-onyx">Kode Tiket</div>'
+        return '<div class="detail-card mt-3">'
+            .'<div class="detail-card__title"><i class="ri-qr-scan-2-line"></i> E-Tiket &amp; Check-in</div>'
+            .'<div class="flex items-center justify-between gap-3">'
+            .'<span class="text-[12px] font-semibold text-foreground">'.$checkedIn.' dari '.$total.' tiket sudah check-in</span>'
+            .'<span class="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold '.($allCheckedIn ? 'bg-emerald-100 text-emerald-700' : 'bg-skull text-onyx').'">'.$percent.'%</span>'
+            .'</div>'
+            .'<div class="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-skull">'
+            .'<div class="h-full rounded-full '.($allCheckedIn ? 'bg-emerald-500' : 'bg-primary').'" style="width:'.$percent.'%"></div>'
+            .'</div>'
+            .'<div class="mt-3 flex flex-col gap-1.5">'
             .$rows
+            .'</div>'
             .'</div>';
     }
 
