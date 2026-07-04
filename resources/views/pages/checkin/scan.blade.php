@@ -69,6 +69,30 @@
             </button>
         </div>
     </div>
+
+    <div data-confirm-alert hidden class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-6">
+        <div class="w-full max-w-xs rounded-2xl bg-white p-5 text-center shadow-xl">
+            <div data-confirm-alert-iconwrap class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 ring-1 ring-emerald-200">
+                <i data-confirm-alert-icon class="ri-shield-check-fill text-3xl"></i>
+            </div>
+            <h2 data-confirm-alert-title class="mt-3 text-[15px] font-black text-foreground">Tiket Valid</h2>
+            <p data-confirm-alert-name class="mt-1 text-[13px] font-semibold text-foreground"></p>
+            <p data-confirm-alert-message class="mt-1 text-[12px] text-onyx"></p>
+            <div data-confirm-alert-actions class="mt-4 flex flex-col gap-2">
+                <button type="button" data-confirm-alert-confirm class="inline-flex h-11 w-full items-center justify-center gap-1.5 rounded-lg bg-primary text-[13px] font-bold text-white shadow-sm transition active:scale-95 hover:bg-primary-light">
+                    <i class="ri-checkbox-circle-line"></i>
+                    Konfirmasi Check-in
+                </button>
+                <button type="button" data-confirm-alert-cancel class="inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-lg border border-mercury bg-white text-[12px] font-semibold text-foreground transition hover:bg-skull">
+                    Batal
+                </button>
+            </div>
+            <button type="button" data-confirm-alert-continue hidden class="mt-2 inline-flex h-11 w-full items-center justify-center gap-1.5 rounded-lg bg-primary text-[13px] font-bold text-white shadow-sm transition active:scale-95 hover:bg-primary-light">
+                <i class="ri-qr-scan-2-line"></i>
+                Lanjut Scan Berikutnya
+            </button>
+        </div>
+    </div>
 </div>
 @endsection
 

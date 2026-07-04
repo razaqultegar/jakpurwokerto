@@ -20,17 +20,17 @@
     <div class="mt-4 grid grid-cols-2 gap-2.5">
         <div class="rounded-2xl bg-skull p-3 ring-1 ring-mercury">
             <div class="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-wider text-onyx">
+                <i class="ri-sun-line text-primary"></i>
+                Hari
+            </div>
+            <div class="mt-1 text-xs font-bold text-foreground">{{ $event['day'] }}</div>
+        </div>
+        <div class="rounded-2xl bg-skull p-3 ring-1 ring-mercury">
+            <div class="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-wider text-onyx">
                 <i class="ri-calendar-line text-primary"></i>
                 Tanggal
             </div>
             <div class="mt-1 text-xs font-bold text-foreground">{{ $event['date'] }}</div>
-        </div>
-        <div class="rounded-2xl bg-skull p-3 ring-1 ring-mercury">
-            <div class="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-wider text-onyx">
-                <i class="ri-map-pin-line text-primary"></i>
-                Lokasi
-            </div>
-            <div class="mt-1 text-xs font-bold text-foreground">{{ $event['venue'] }}</div>
         </div>
     </div>
 </section>

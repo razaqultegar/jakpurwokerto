@@ -34,6 +34,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const checkedInAlertMessage = root.querySelector('[data-checkedin-alert-message]');
     const checkedInAlertContinue = root.querySelector('[data-checkedin-alert-continue]');
 
+    const confirmAlert = root.querySelector('[data-confirm-alert]');
+    const confirmAlertIconwrap = root.querySelector('[data-confirm-alert-iconwrap]');
+    const confirmAlertIcon = root.querySelector('[data-confirm-alert-icon]');
+    const confirmAlertTitle = root.querySelector('[data-confirm-alert-title]');
+    const confirmAlertName = root.querySelector('[data-confirm-alert-name]');
+    const confirmAlertMessage = root.querySelector('[data-confirm-alert-message]');
+    const confirmAlertActions = root.querySelector('[data-confirm-alert-actions]');
+    const confirmAlertConfirmBtn = root.querySelector('[data-confirm-alert-confirm]');
+    const confirmAlertCancelBtn = root.querySelector('[data-confirm-alert-cancel]');
+    const confirmAlertContinueBtn = root.querySelector('[data-confirm-alert-continue]');
+
     const badgeStyles = {
         valid: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200 ri-shield-check-fill',
         checked_in: 'bg-amber-50 text-amber-800 ring-1 ring-amber-200 ri-checkbox-circle-fill',
@@ -73,9 +84,19 @@ document.addEventListener('DOMContentLoaded', () => {
             btnConfirm.hidden = true;
             btnUndo.hidden = true;
         }
+    };
+
+    // Handles a *fresh* scan (camera decode, manual entry, preset code) — this is
+    // where we decide whether to interrupt with a popup, as opposed to renderResult()
+    // which just syncs the background card for any API response (including manual
+    // confirm/undo clicks on that card).
+    const handleScanResult = (payload) => {
+        renderResult(payload);
 
         if (payload.status === 'checked_in') {
             showCheckedInAlert(payload);
+        } else if (payload.status === 'valid') {
+            showConfirmAlert(payload);
         }
     };
 
@@ -93,6 +114,50 @@ document.addEventListener('DOMContentLoaded', () => {
         lastScanned = '';
         scanner?.start().catch(() => {});
     };
+
+    const showConfirmAlert = (payload) => {
+        confirmAlertIconwrap.className = 'mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 ring-1 ring-emerald-200';
+        confirmAlertIcon.className = 'ri-shield-check-fill text-3xl';
+        confirmAlertTitle.textContent = 'Tiket Valid';
+        confirmAlertName.textContent = payload.order?.customer_name ?? '';
+        confirmAlertMessage.textContent = payload.order
+            ? `${payload.order.items_label} · Tiket ${payload.order.unit_index}/${payload.order.total_units}`
+            : payload.message;
+        confirmAlertActions.hidden = false;
+        confirmAlertContinueBtn.hidden = true;
+        confirmAlert.hidden = false;
+        scanner?.pause();
+    };
+
+    const showConfirmSuccess = (payload) => {
+        confirmAlertIconwrap.className = 'mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 ring-1 ring-emerald-200';
+        confirmAlertIcon.className = 'ri-checkbox-circle-fill text-3xl';
+        confirmAlertTitle.textContent = 'Check-in Berhasil';
+        confirmAlertName.textContent = payload.order?.customer_name ?? '';
+        confirmAlertMessage.textContent = payload.order?.order_completed
+            ? `${payload.message} Semua tiket sudah check-in — pesanan ditandai selesai.`
+            : payload.message;
+        confirmAlertActions.hidden = true;
+        confirmAlertContinueBtn.hidden = false;
+    };
+
+    const hideConfirmAlert = () => {
+        confirmAlert.hidden = true;
+        lastScanned = '';
+        scanner?.start().catch(() => {});
+    };
+
+    const confirmFromAlert = () => withBusy(async () => {
+        if (!currentCode) return;
+        try {
+            const res = await fetch(buildUrl(confirmUrlTpl, currentCode), { method: 'POST', headers });
+            const payload = await res.json();
+            if (payload?.ok) {
+                renderResult(payload);
+                showConfirmSuccess(payload);
+            }
+        } catch (_) {}
+    });
 
     const resetResult = () => {
         currentCode = null;
@@ -120,7 +185,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             const payload = await res.json();
-            if (payload?.ok) renderResult(payload);
+            if (payload?.ok) handleScanResult(payload);
         } catch (_) {
             //
         }
@@ -154,6 +219,9 @@ document.addEventListener('DOMContentLoaded', () => {
     checkedInAlertContinue?.addEventListener('click', () => {
         hideCheckedInAlert();
     });
+    confirmAlertConfirmBtn?.addEventListener('click', () => confirmFromAlert());
+    confirmAlertCancelBtn?.addEventListener('click', () => hideConfirmAlert());
+    confirmAlertContinueBtn?.addEventListener('click', () => hideConfirmAlert());
 
     const presetCode = new URLSearchParams(window.location.search).get('code');
     if (presetCode) {
@@ -167,6 +235,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const onDecode = (result) => {
         if (checkedInAlert && !checkedInAlert.hidden) return;
+        if (confirmAlert && !confirmAlert.hidden) return;
 
         const text = (result?.data ?? result ?? '').toString().trim();
         if (!text) return;

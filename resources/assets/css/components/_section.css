@@ -26,4 +26,12 @@
     .section-meta {
         @apply text-[10px] text-onyx;
     }
+
+    .rundown-tab {
+        @apply rounded-full bg-skull px-3 py-1.5 text-[11px] font-bold text-onyx transition;
+    }
+
+    .rundown-tab-active {
+        @apply bg-primary text-white;
+    }
 }

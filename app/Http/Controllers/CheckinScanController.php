@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Order;
 use App\Models\OrderTicket;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cookie;
@@ -79,6 +80,7 @@ class CheckinScanController extends Controller
         }
 
         $ticket->update(['checked_in_at' => now()]);
+        $this->syncOrderCompletion($ticket->order);
 
         return $this->ticketResponse($code);
     }
@@ -86,13 +88,34 @@ class CheckinScanController extends Controller
     public function undo(string $code)
     {
         $code = strtoupper(trim($code));
-        $ticket = OrderTicket::where('code', $code)->first();
+        $ticket = OrderTicket::where('code', $code)->with('order')->first();
 
         if ($ticket && $ticket->checked_in_at) {
             $ticket->update(['checked_in_at' => null]);
+
+            if ($ticket->order) {
+                $this->syncOrderCompletion($ticket->order);
+            }
         }
 
         return $this->ticketResponse($code);
+    }
+
+    private function syncOrderCompletion(Order $order): void
+    {
+        $tickets = $order->tickets()->get();
+
+        if ($tickets->isEmpty()) {
+            return;
+        }
+
+        $allCheckedIn = $tickets->every(fn ($ticket) => $ticket->checked_in_at !== null);
+
+        if ($allCheckedIn && $order->status !== 'completed') {
+            $order->update(['status' => 'completed', 'completed_at' => now()]);
+        } elseif (! $allCheckedIn && $order->status === 'completed') {
+            $order->update(['status' => 'paid', 'completed_at' => null]);
+        }
     }
 
     private function ticketResponse(string $code)
@@ -132,6 +155,7 @@ class CheckinScanController extends Controller
                 'items_label' => collect($order->item ?? [])->pluck('name')->filter()->implode(', '),
                 'unit_index' => $ticket->unit_index,
                 'total_units' => $order->tickets()->count(),
+                'order_completed' => $order->status === 'completed',
                 'checked_in_at' => $ticket->checked_in_at
                     ? $ticket->checked_in_at->locale('id')->translatedFormat('d F Y, H:i').' WIB'
                     : null,
