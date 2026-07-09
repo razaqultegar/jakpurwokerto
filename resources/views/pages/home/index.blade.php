@@ -43,8 +43,11 @@
     </section>
     <hr class="section-divider">
     <section class="mb-6 p-4">
-        <h3 class="text-base font-bold text-foreground mb-3">Berita</h3>
-        @include('pages.home._partials.berita')
+        <div class="mb-3 flex items-center justify-between">
+            <h3 class="text-base font-bold text-foreground">Berita</h3>
+            <a href="{{ route('article.index') }}" class="text-[11px] font-semibold text-primary">Lihat semua</a>
+        </div>
+        @include('pages.home._partials.article')
     </section>
 @endsection
 
