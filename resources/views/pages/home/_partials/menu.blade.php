@@ -4,7 +4,7 @@
         ['label' => 'Statistik', 'color' => 'bg-yellow-100', 'text' => 'text-yellow-600', 'icon' => 'ri-bar-chart-line', 'badge' => 'SEGERA'],
         ['label' => 'Tiket', 'color' => 'bg-purple-100', 'text' => 'text-purple-600', 'icon' => 'ri-ticket-2-line', 'href' => route('ticket.show', 'the-7ourney')],
         ['label' => 'Merchandise', 'color' => 'bg-blue-100', 'text' => 'text-blue-600', 'icon' => 'ri-t-shirt-line', 'href' => route('merchandise.show', 'the-7ourney')],
-        ['label' => 'Berita', 'color' => 'bg-primary/15', 'text' => 'text-primary', 'icon' => 'ri-newspaper-line', 'badge' => 'SEGERA'],
+        ['label' => 'Berita', 'color' => 'bg-primary/15', 'text' => 'text-primary', 'icon' => 'ri-newspaper-line', 'href' => route('article.index')],
         ['label' => 'Tour', 'color' => 'bg-orange-100', 'text' => 'text-orange-600', 'icon' => 'ri-bus-line', 'badge' => 'SEGERA'],
         ['label' => 'Donasi', 'color' => 'bg-green-100', 'text' => 'text-green-600', 'icon' => 'ri-hand-heart-line', 'badge' => 'SEGERA'],
     ];

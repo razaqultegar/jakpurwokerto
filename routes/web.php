@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\MerchandiseController as AdminMerchandiseController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\TicketController as AdminTicketController;
+use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\CheckinScanController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\HomeController;
@@ -14,6 +15,8 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/tiket/{slug}', [TicketController::class, 'show'])->name('ticket.show');
 Route::get('/merchandise/{slug}', [MerchandiseController::class, 'show'])->name('merchandise.show');
+Route::get('/berita', [ArticleController::class, 'index'])->name('article.index');
+Route::get('/berita/{slug}', [ArticleController::class, 'show'])->name('article.show');
 
 Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout');
 Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
