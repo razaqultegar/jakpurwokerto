@@ -11,16 +11,21 @@ function initHeroSwiper() {
 
     new Swiper(el, {
         loop: total > 1,
+        speed: 500,
         grabCursor: true,
         allowTouchMove: total > 1,
+        autoplay: total > 1 ? { delay: 4000, disableOnInteraction: false } : false,
         navigation: total > 1 ? {
             nextEl: '.hero-swiper-next',
             prevEl: '.hero-swiper-prev',
         } : false,
         pagination: total > 1 ? {
             el: '.hero-swiper-pagination',
-            type: 'bullets',
             clickable: true,
+            bulletClass: 'hero-bullet',
+            bulletActiveClass: 'hero-bullet-active',
+            renderBullet: (_, className) =>
+                `<span class="${className}"></span>`,
         } : false,
         on: {
             slideChange(swiper) {
