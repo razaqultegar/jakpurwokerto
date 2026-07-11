@@ -7,6 +7,7 @@
         "dev": "vite"
     },
     "dependencies": {
+        "apexcharts": "^5.16.0",
         "axios": "^1.16.1",
         "datatables.net": "^2.3.8",
         "datatables.net-dt": "^2.3.8",

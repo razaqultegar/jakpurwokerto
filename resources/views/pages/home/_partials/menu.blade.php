@@ -1,7 +1,7 @@
 @php
     $menus = [
-        ['label' => 'Komunitas', 'color' => 'bg-pink-100', 'text' => 'text-pink-600', 'icon' => 'ri-team-line', 'badge' => 'BARU', 'action' => 'komunitas'],
-        ['label' => 'Statistik', 'color' => 'bg-yellow-100', 'text' => 'text-yellow-600', 'icon' => 'ri-bar-chart-line', 'badge' => 'SEGERA'],
+        ['label' => 'Komunitas', 'color' => 'bg-pink-100', 'text' => 'text-pink-600', 'icon' => 'ri-team-line', 'badge' => 'SEGERA', 'action' => 'komunitas'],
+        ['label' => 'Statistik', 'color' => 'bg-sky-100', 'text' => 'text-sky-600', 'icon' => 'ri-bar-chart-grouped-line', 'href' => route('home.stats')],
         ['label' => 'Tiket', 'color' => 'bg-purple-100', 'text' => 'text-purple-600', 'icon' => 'ri-ticket-2-line', 'href' => route('ticket.show', 'the-7ourney')],
         ['label' => 'Merchandise', 'color' => 'bg-blue-100', 'text' => 'text-blue-600', 'icon' => 'ri-t-shirt-line', 'href' => route('merchandise.show', 'the-7ourney')],
         ['label' => 'Berita', 'color' => 'bg-primary/15', 'text' => 'text-primary', 'icon' => 'ri-newspaper-line', 'href' => route('article.index')],
