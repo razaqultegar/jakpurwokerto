@@ -130,6 +130,8 @@ class MemberController extends Controller
         $imported = 0;
         $skipped  = 0;
         $errors   = [];
+        $warnings = 0;
+        $duplicates = 0;
 
         // Mulai dari baris ke-3 (index 2) — lewati 2 baris header bertingkat
         for ($i = 2; $i < count($rows); $i++) {
@@ -142,8 +144,15 @@ class MemberController extends Controller
             }
 
             try {
-                $this->upsertMemberFromRow($row);
+                $result = $this->upsertMemberFromRow($row);
                 $imported++;
+
+                if ($result['status'] === 'warning') {
+                    $warnings++;
+                }
+                if ($result['duplicate_kta']) {
+                    $duplicates++;
+                }
             } catch (\Throwable $e) {
                 $skipped++;
                 $errors[] = "Baris ".($i + 1).": ".$e->getMessage();
@@ -151,10 +160,12 @@ class MemberController extends Controller
         }
 
         return response()->json([
-            'message'  => "Impor selesai. {$imported} anggota diproses, {$skipped} dilewati.",
-            'imported' => $imported,
-            'skipped'  => $skipped,
-            'errors'   => $errors,
+            'message'   => "Impor selesai. {$imported} anggota diproses, {$skipped} dilewati.",
+            'imported'  => $imported,
+            'skipped'   => $skipped,
+            'warnings'  => $warnings,
+            'duplicates' => $duplicates,
+            'errors'    => $errors,
         ]);
     }
 
@@ -183,7 +194,7 @@ class MemberController extends Controller
      * R(17): NO. TELEPON/WHATSAPP, S(18): ALAMAT EMAIL,
      * T(19): UKURAN KAOS, U(20): STATUS, V(21): WAKTU REGISTRASI.
      */
-    private function upsertMemberFromRow(array $row): Member
+    private function upsertMemberFromRow(array $row): array
     {
         $registrationNumber = $this->cellString($row, 2);
         $cardNumber         = $this->cellString($row, 3);
@@ -253,6 +264,13 @@ class MemberController extends Controller
             'registered_at'       => $registeredAt ?? Carbon::now(),
         ], fn ($v) => $v !== null && $v !== '');
 
+        // Validasi data
+        $validationResult = $this->validateMemberData($row, $data, $cardNumber);
+
+        // Set import status dan notes
+        $data['import_status'] = $validationResult['status'];
+        $data['import_notes'] = $validationResult['notes'];
+
         if ($member) {
             $prevStatus = $member->status;
             $member->update($data);
@@ -300,7 +318,91 @@ class MemberController extends Controller
             ]);
         }
 
-        return $member;
+        return [
+            'status' => $validationResult['status'],
+            'duplicate_kta' => $validationResult['duplicate_kta'],
+        ];
+    }
+
+    /**
+     * Validasi data anggota untuk import
+     */
+    private function validateMemberData(array $row, array $data, ?string $cardNumber): array
+    {
+        $notes = [];
+        $status = 'valid';
+        $duplicateKta = false;
+
+        // Validasi duplikasi KTA
+        if ($cardNumber) {
+            $query = Member::where('card_number', $cardNumber);
+            if (!empty($data['id'])) {
+                $query->whereNotIn('id', [$data['id']]);
+            }
+            $existingKta = $query->first();
+
+            if ($existingKta) {
+                $duplicateKta = true;
+                $notes[] = "Duplikasi No. KTA dengan anggota: {$existingKta->name} ({$existingKta->registration_number})";
+                $status = 'warning';
+            }
+        }
+
+        // Validasi data kosong - hitung persentase field kosong
+        $requiredFields = [
+            'name', 'gender', 'dob', 'pob', 'nik', 'phone', 'email',
+            'address_street', 'district_id', 'regency_id', 'province_id',
+            'blood_type', 'shirt_size', 'registration_number', 'card_number'
+        ];
+
+        $emptyFields = 0;
+        $totalFields = count($requiredFields);
+
+        foreach ($requiredFields as $field) {
+            if (empty($data[$field])) {
+                $emptyFields++;
+            }
+        }
+
+        $emptyPercentage = ($emptyFields / $totalFields) * 100;
+
+        // Jika lebih dari 40% data kosong, tandai sebagai warning
+        if ($emptyPercentage > 40) {
+            $emptyFieldNames = [];
+            $fieldLabels = [
+                'name' => 'Nama',
+                'gender' => 'Jenis Kelamin',
+                'dob' => 'Tanggal Lahir',
+                'pob' => 'Tempat Lahir',
+                'nik' => 'NIK',
+                'phone' => 'Telepon',
+                'email' => 'Email',
+                'address_street' => 'Alamat',
+                'district_id' => 'Kecamatan',
+                'regency_id' => 'Kabupaten',
+                'province_id' => 'Provinsi',
+                'blood_type' => 'Golongan Darah',
+                'shirt_size' => 'Ukuran Kaos',
+                'registration_number' => 'No. Registrasi',
+                'card_number' => 'No. KTA'
+            ];
+
+            foreach ($requiredFields as $field) {
+                if (empty($data[$field]) && isset($fieldLabels[$field])) {
+                    $emptyFieldNames[] = $fieldLabels[$field];
+                }
+            }
+
+            $notes[] = "Data tidak lengkap ({$emptyFields}/{$totalFields} field kosong): " . implode(', ', $emptyFieldNames);
+            $status = 'warning';
+        }
+
+        return [
+            'status' => $status,
+            'notes' => implode(' | ', $notes),
+            'duplicate_kta' => $duplicateKta,
+            'empty_fields_percentage' => round($emptyPercentage, 2)
+        ];
     }
 
     private function composeAddress(Member $m): string
