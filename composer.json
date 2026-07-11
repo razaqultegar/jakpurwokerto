@@ -15,7 +15,7 @@
         "laravel/fortify": "^1.37",
         "laravel/framework": "^13.7",
         "laravel/tinker": "^3.0",
-        "phpoffice/phpspreadsheet": "^5.7"
+        "phpoffice/phpspreadsheet": "^5.8"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

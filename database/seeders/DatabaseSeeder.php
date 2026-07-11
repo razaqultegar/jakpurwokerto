@@ -13,6 +13,10 @@ class DatabaseSeeder extends Seeder
 
     public function run()
     {
+        $this->call([
+            RegionSeeder::class,
+        ]);
+
         User::updateOrCreate(
             ['email' => 'admin@jakpurwokerto.or.id'],
             [
