@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\MemberController as AdminMemberController;
 use App\Http\Controllers\Admin\MerchandiseController as AdminMerchandiseController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\TicketController as AdminTicketController;
@@ -30,6 +31,10 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', AdminDashboardController::class)->name('dashboard');
     Route::get('/ticket', AdminTicketController::class)->name('ticket');
     Route::get('/merchandise', AdminMerchandiseController::class)->name('merchandise');
+    Route::get('/anggota', [AdminMemberController::class, 'index'])->name('members');
+    Route::get('/anggota/data', [AdminMemberController::class, 'data'])->name('members.data');
+    Route::post('/anggota/import', [AdminMemberController::class, 'import'])->name('members.import');
+    Route::get('/anggota/template', [AdminMemberController::class, 'downloadTemplate'])->name('members.template');
 
     Route::get('/orders/data', [AdminOrderController::class, 'data'])->name('orders.data');
     Route::get('/orders/export', [AdminOrderController::class, 'export'])->name('orders.export');
