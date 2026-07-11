@@ -6,7 +6,6 @@ use App\Models\District;
 use App\Models\Province;
 use App\Models\Regency;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Carbon;
 use PhpOffice\PhpSpreadsheet\Reader\Xlsx as XlsxReader;
 
 class RegionSeeder extends Seeder
@@ -21,7 +20,7 @@ class RegionSeeder extends Seeder
             return;
         }
 
-        $reader = new XlsxReader();
+        $reader = new XlsxReader;
         $reader->setReadDataOnly(true);
         $spreadsheet = $reader->load($file);
 

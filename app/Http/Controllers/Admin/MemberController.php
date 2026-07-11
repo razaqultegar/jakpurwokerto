@@ -19,17 +19,17 @@ class MemberController extends Controller
     public function index()
     {
         return view('pages.admin.members.index', [
-            'title'   => 'Anggota',
+            'title' => 'Anggota',
             'heading' => 'Manajemen Anggota',
         ]);
     }
 
     public function data(Request $request)
     {
-        $draw      = (int) $request->input('draw', 1);
-        $start     = (int) $request->input('start', 0);
-        $length    = (int) $request->input('length', 10);
-        $search    = trim((string) $request->input('search.value', ''));
+        $draw = (int) $request->input('draw', 1);
+        $start = (int) $request->input('start', 0);
+        $length = (int) $request->input('length', 10);
+        $search = trim((string) $request->input('search.value', ''));
 
         $columns = [
             0 => 'registration_number',
@@ -42,10 +42,10 @@ class MemberController extends Controller
         ];
 
         $orderColIdx = (int) $request->input('order.0.column', 2);
-        $orderDir    = $request->input('order.0.dir', 'asc') === 'desc' ? 'desc' : 'asc';
-        $orderCol    = $columns[$orderColIdx] ?? 'name';
+        $orderDir = $request->input('order.0.dir', 'asc') === 'desc' ? 'desc' : 'asc';
+        $orderCol = $columns[$orderColIdx] ?? 'name';
 
-        $base  = Member::query()->with(['province', 'regency', 'district']);
+        $base = Member::query()->with(['province', 'regency', 'district']);
         $total = (clone $base)->count();
 
         if ($search !== '') {
@@ -71,22 +71,22 @@ class MemberController extends Controller
 
         $data = $rows->map(fn (Member $m) => [
             'registration_number' => $m->registration_number ?? '-',
-            'card_number'         => $m->card_number ?? '-',
-            'name'                => $m->name ?? '-',
-            'gender'              => $m->gender ?? '-',
-            'pob'                 => $m->pob ?: '-',
-            'dob'                 => $m->dob?->format('d M Y') ?: '-',
-            'age'                 => $m->dob?->age,
-            'address'             => $this->composeAddress($m),
-            'status'              => $m->status ?? '-',
-            'valid_until'         => $m->valid_until?->format('d M Y') ?: '-',
+            'card_number' => $m->card_number ?? '-',
+            'name' => $m->name ?? '-',
+            'gender' => $m->gender ?? '-',
+            'pob' => $m->pob ?: '-',
+            'dob' => $m->dob?->format('d M Y') ?: '-',
+            'age' => $m->dob?->age,
+            'address' => $this->composeAddress($m),
+            'status' => $m->status ?? '-',
+            'valid_until' => $m->valid_until?->format('d M Y') ?: '-',
         ]);
 
         return response()->json([
-            'draw'            => $draw,
-            'recordsTotal'    => $total,
+            'draw' => $draw,
+            'recordsTotal' => $total,
             'recordsFiltered' => $filtered,
-            'data'            => $data,
+            'data' => $data,
         ]);
     }
 
@@ -110,7 +110,7 @@ class MemberController extends Controller
         $sheet = $spreadsheet->getSheetByName('MASTER DATA')
             ?? $spreadsheet->getActiveSheet();
 
-        $rows    = $sheet->toArray(null, true, true, false);
+        $rows = $sheet->toArray(null, true, true, false);
 
         // Cari baris data pertama yang memiliki NAMA LENGKAP (kolom H = idx 7)
         $firstDataRow = null;
@@ -128,8 +128,8 @@ class MemberController extends Controller
         }
 
         $imported = 0;
-        $skipped  = 0;
-        $errors   = [];
+        $skipped = 0;
+        $errors = [];
         $warnings = 0;
         $duplicates = 0;
 
@@ -140,6 +140,7 @@ class MemberController extends Controller
             $name = trim((string) $this->cellString($row, 7));   // H: NAMA LENGKAP
             if ($name === '') {
                 $skipped++;
+
                 continue;
             }
 
@@ -155,17 +156,17 @@ class MemberController extends Controller
                 }
             } catch (\Throwable $e) {
                 $skipped++;
-                $errors[] = "Baris ".($i + 1).": ".$e->getMessage();
+                $errors[] = 'Baris '.($i + 1).': '.$e->getMessage();
             }
         }
 
         return response()->json([
-            'message'   => "Impor selesai. {$imported} anggota diproses, {$skipped} dilewati.",
-            'imported'  => $imported,
-            'skipped'   => $skipped,
-            'warnings'  => $warnings,
+            'message' => "Impor selesai. {$imported} anggota diproses, {$skipped} dilewati.",
+            'imported' => $imported,
+            'skipped' => $skipped,
+            'warnings' => $warnings,
             'duplicates' => $duplicates,
-            'errors'    => $errors,
+            'errors' => $errors,
         ]);
     }
 
@@ -197,28 +198,28 @@ class MemberController extends Controller
     private function upsertMemberFromRow(array $row): array
     {
         $registrationNumber = $this->cellString($row, 2);
-        $cardNumber         = $this->cellString($row, 3);
-        $name               = $this->cellString($row, 7);
-        $nik                = $this->cellString($row, 6);
-        $pob                = $this->cellString($row, 8);
-        $dob                = $this->cellDate($row, 9);
-        $gender             = $this->cellString($row, 10);
-        $bloodType          = $this->cellString($row, 11);
-        $addressStreet      = $this->cellString($row, 12);
-        $phone              = $this->cellString($row, 17);
-        $email              = $this->cellString($row, 18);
-        $shirtSize          = $this->cellString($row, 19);
-        $status             = $this->cellString($row, 20) ?: 'Dalam Proses';
-        $registeredAt       = $this->cellDate($row, 21, true);
-        $validFrom          = $this->cellDate($row, 4);
-        $validUntil         = $this->cellDate($row, 5);
+        $cardNumber = $this->cellString($row, 3);
+        $name = $this->cellString($row, 7);
+        $nik = $this->cellString($row, 6);
+        $pob = $this->cellString($row, 8);
+        $dob = $this->cellDate($row, 9);
+        $gender = $this->cellString($row, 10);
+        $bloodType = $this->cellString($row, 11);
+        $addressStreet = $this->cellString($row, 12);
+        $phone = $this->cellString($row, 17);
+        $email = $this->cellString($row, 18);
+        $shirtSize = $this->cellString($row, 19);
+        $status = $this->cellString($row, 20) ?: 'Dalam Proses';
+        $registeredAt = $this->cellDate($row, 21, true);
+        $validFrom = $this->cellDate($row, 4);
+        $validUntil = $this->cellDate($row, 5);
 
-        $type   = $this->cellString($row, 0) ?: 'Baru';
+        $type = $this->cellString($row, 0) ?: 'Baru';
         $sector = $this->cellString($row, 1);
 
         // Wilayah lookup (berdasarkan nama) — simpan sebagai FK bila ditemukan
         $districtName = $this->cellString($row, 14);
-        $regencyName  = $this->cellString($row, 15);
+        $regencyName = $this->cellString($row, 15);
         $provinceName = $this->cellString($row, 16);
 
         $regionIds = $this->resolveRegionIds($provinceName, $regencyName, $districtName);
@@ -244,24 +245,24 @@ class MemberController extends Controller
 
         $data = array_filter([
             'registration_number' => $registrationNumber,
-            'card_number'         => $cardNumber,
-            'nik'                 => $nik,
-            'name'                => $name,
-            'pob'                 => $pob,
-            'dob'                 => $dob,
-            'gender'              => $gender,
-            'blood_type'          => $bloodType,
-            'shirt_size'          => $shirtSize,
-            'address_street'      => $addressStreet,
-            'district_id'         => $regionIds['district_id'] ?? null,
-            'regency_id'          => $regionIds['regency_id'] ?? null,
-            'province_id'         => $regionIds['province_id'] ?? null,
-            'phone'               => $phone,
-            'email'               => $email,
-            'status'              => $status,
-            'valid_from'          => $validFrom,
-            'valid_until'         => $validUntil,
-            'registered_at'       => $registeredAt ?? Carbon::now(),
+            'card_number' => $cardNumber,
+            'nik' => $nik,
+            'name' => $name,
+            'pob' => $pob,
+            'dob' => $dob,
+            'gender' => $gender,
+            'blood_type' => $bloodType,
+            'shirt_size' => $shirtSize,
+            'address_street' => $addressStreet,
+            'district_id' => $regionIds['district_id'] ?? null,
+            'regency_id' => $regionIds['regency_id'] ?? null,
+            'province_id' => $regionIds['province_id'] ?? null,
+            'phone' => $phone,
+            'email' => $email,
+            'status' => $status,
+            'valid_from' => $validFrom,
+            'valid_until' => $validUntil,
+            'registered_at' => $registeredAt ?? Carbon::now(),
         ], fn ($v) => $v !== null && $v !== '');
 
         // Validasi data
@@ -278,19 +279,19 @@ class MemberController extends Controller
             // Catat log bila status berubah pada re-impor
             if ($prevStatus !== $status) {
                 MemberStatusLog::create([
-                    'member_id'   => $member->id,
+                    'member_id' => $member->id,
                     'from_status' => $prevStatus,
-                    'to_status'   => $status,
-                    'reason'      => 'Perubahan saat impor ulang',
+                    'to_status' => $status,
+                    'reason' => 'Perubahan saat impor ulang',
                 ]);
             }
         } else {
             $member = Member::create($data);
             MemberStatusLog::create([
-                'member_id'   => $member->id,
+                'member_id' => $member->id,
                 'from_status' => null,
-                'to_status'   => $status,
-                'reason'      => 'Impor awal via template',
+                'to_status' => $status,
+                'reason' => 'Impor awal via template',
             ]);
         }
 
@@ -309,12 +310,12 @@ class MemberController extends Controller
 
         if ($regChanged) {
             MemberRegistration::create([
-                'member_id'         => $member->id,
+                'member_id' => $member->id,
                 'registration_type' => $type,
-                'sector'            => $sector,
-                'registered_at'     => $registeredAt ?? Carbon::now(),
-                'valid_from'        => $validFrom,
-                'valid_until'       => $validUntil,
+                'sector' => $sector,
+                'registered_at' => $registeredAt ?? Carbon::now(),
+                'valid_from' => $validFrom,
+                'valid_until' => $validUntil,
             ]);
         }
 
@@ -336,7 +337,7 @@ class MemberController extends Controller
         // Validasi duplikasi KTA
         if ($cardNumber) {
             $query = Member::where('card_number', $cardNumber);
-            if (!empty($data['id'])) {
+            if (! empty($data['id'])) {
                 $query->whereNotIn('id', [$data['id']]);
             }
             $existingKta = $query->first();
@@ -352,7 +353,7 @@ class MemberController extends Controller
         $requiredFields = [
             'name', 'gender', 'dob', 'pob', 'nik', 'phone', 'email',
             'address_street', 'district_id', 'regency_id', 'province_id',
-            'blood_type', 'shirt_size', 'registration_number', 'card_number'
+            'blood_type', 'shirt_size', 'registration_number', 'card_number',
         ];
 
         $emptyFields = 0;
@@ -384,7 +385,7 @@ class MemberController extends Controller
                 'blood_type' => 'Golongan Darah',
                 'shirt_size' => 'Ukuran Kaos',
                 'registration_number' => 'No. Registrasi',
-                'card_number' => 'No. KTA'
+                'card_number' => 'No. KTA',
             ];
 
             foreach ($requiredFields as $field) {
@@ -393,7 +394,7 @@ class MemberController extends Controller
                 }
             }
 
-            $notes[] = "Data tidak lengkap ({$emptyFields}/{$totalFields} field kosong): " . implode(', ', $emptyFieldNames);
+            $notes[] = "Data tidak lengkap ({$emptyFields}/{$totalFields} field kosong): ".implode(', ', $emptyFieldNames);
             $status = 'warning';
         }
 
@@ -401,7 +402,7 @@ class MemberController extends Controller
             'status' => $status,
             'notes' => implode(' | ', $notes),
             'duplicate_kta' => $duplicateKta,
-            'empty_fields_percentage' => round($emptyPercentage, 2)
+            'empty_fields_percentage' => round($emptyPercentage, 2),
         ];
     }
 

@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Province extends Model
 {
     public $incrementing = false;
+
     protected $keyType = 'int';
 
     protected $fillable = ['id', 'name'];

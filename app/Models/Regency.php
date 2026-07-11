@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Regency extends Model
 {
     public $incrementing = false;
+
     protected $keyType = 'int';
 
     protected $fillable = ['id', 'province_id', 'name'];

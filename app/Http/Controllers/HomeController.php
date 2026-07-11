@@ -51,9 +51,9 @@ class HomeController extends Controller
             ->toArray();
 
         $monthly = MemberRegistration::select(
-                DB::raw("DATE_FORMAT(registered_at, '%b %Y') as label"),
-                DB::raw('COUNT(*) as total')
-            )
+            DB::raw("DATE_FORMAT(registered_at, '%b %Y') as label"),
+            DB::raw('COUNT(*) as total')
+        )
             ->where('registered_at', '>=', Carbon::now()->subMonths(5)->startOfMonth())
             ->groupBy('label')
             ->orderByRaw('MIN(registered_at)')
@@ -72,8 +72,9 @@ class HomeController extends Controller
 
         $members = Member::select('dob')->get();
         foreach ($members as $m) {
-            if (!$m->dob) {
+            if (! $m->dob) {
                 $ageCategories['Tidak Diketahui']++;
+
                 continue;
             }
             $age = $m->dob->age;

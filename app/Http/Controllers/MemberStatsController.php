@@ -37,9 +37,9 @@ class MemberStatsController extends Controller
 
         // Monthly registrations (last 6 months)
         $monthlyRegistrations = MemberRegistration::select(
-                DB::raw("DATE_FORMAT(registered_at, '%Y-%m') as month"),
-                DB::raw('count(*) as total')
-            )
+            DB::raw("DATE_FORMAT(registered_at, '%Y-%m') as month"),
+            DB::raw('count(*) as total')
+        )
             ->whereNotNull('registered_at')
             ->where('registered_at', '>=', Carbon::now()->subMonths(5)->startOfMonth())
             ->groupBy('month')
@@ -65,12 +65,12 @@ class MemberStatsController extends Controller
             ->pluck('total', 'registration_type');
 
         return response()->json([
-            'total'    => $totalMembers,
-            'status'   => $statusCounts,
-            'gender'   => $genderCounts,
-            'sector'   => $sectorCounts,
-            'monthly'  => $months,
-            'types'    => $typeCounts,
+            'total' => $totalMembers,
+            'status' => $statusCounts,
+            'gender' => $genderCounts,
+            'sector' => $sectorCounts,
+            'monthly' => $months,
+            'types' => $typeCounts,
         ]);
     }
 }

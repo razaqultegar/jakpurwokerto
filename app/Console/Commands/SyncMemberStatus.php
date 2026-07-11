@@ -28,10 +28,10 @@ class SyncMemberStatus extends Command
             $member->save();
 
             MemberStatusLog::create([
-                'member_id'   => $member->id,
+                'member_id' => $member->id,
                 'from_status' => 'Aktif',
-                'to_status'   => 'Tidak Aktif',
-                'reason'      => 'KTA kadaluwarsa otomatis (valid_until: '.$member->valid_until->format('Y-m-d').')',
+                'to_status' => 'Tidak Aktif',
+                'reason' => 'KTA kadaluwarsa otomatis (valid_until: '.$member->valid_until->format('Y-m-d').')',
             ]);
             $count++;
         }

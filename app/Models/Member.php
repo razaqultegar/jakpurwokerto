@@ -33,10 +33,10 @@ class Member extends Model
     protected function casts(): array
     {
         return [
-            'dob'          => 'date',
-            'valid_from'   => 'date',
-            'valid_until'  => 'date',
-            'registered_at'=> 'datetime',
+            'dob' => 'date',
+            'valid_from' => 'date',
+            'valid_until' => 'date',
+            'registered_at' => 'datetime',
         ];
     }
 

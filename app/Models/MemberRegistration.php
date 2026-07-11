@@ -21,9 +21,9 @@ class MemberRegistration extends Model
     protected function casts(): array
     {
         return [
-            'valid_from'   => 'date',
-            'valid_until'  => 'date',
-            'registered_at'=> 'datetime',
+            'valid_from' => 'date',
+            'valid_until' => 'date',
+            'registered_at' => 'datetime',
         ];
     }
 
