@@ -21,8 +21,8 @@ class MerchandiseController extends Controller
             'discount_percent' => 22,
             'sold' => 0,
             'stock_limit' => 300,
-            'po_start' => '2026-05-20T19:28:00+07:00',
-            'po_end' => '2026-06-20T23:59:59+07:00',
+            'po_start' => '2026-07-28T12:00:00+07:00',
+            'po_end' => '2026-08-07T23:59:59+07:00',
             'estimated_ship' => '15 Juli 2026',
             'gallery' => [
                 'medias/the-7ourney/artboard1.jpg',
