@@ -78,8 +78,8 @@ class CheckoutController extends Controller
         $isTicketOnly = ! empty($rawItems) && collect($rawItems)->every(fn ($it) => ($it['category'] ?? null) === 'Tiket');
 
         if (! $isTicketOnly) {
-            $poStartStr = '2026-05-20T19:28:00+07:00';
-            $poEndStr = '2026-06-20T23:59:59+07:00';
+            $poStartStr = '2026-07-28T12:00:00+07:00';
+            $poEndStr = '2026-08-07T23:59:59+07:00';
             $now = now();
             $poStart = Carbon::parse($poStartStr);
             $poEnd = Carbon::parse($poEndStr);
