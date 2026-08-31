@@ -29,7 +29,7 @@
                     </span>
                 </div>
                 <div class="p-3">
-                    <span class="text-[10px] text-onyx">{{ \Carbon\Carbon::parse($article['published_at'])->translatedFormat('d M Y, H:i') }} WIB</span>
+                    <span class="text-[10px] text-onyx">{{ \Carbon\Carbon::parse($article['published_at'])->translatedFormat('d F Y - H.i') }} WIB</span>
                     <h4 class="mt-1 text-sm font-bold leading-snug text-foreground">{{ $article['title'] }}</h4>
                     <p class="mt-1 line-clamp-2 text-[11px] leading-relaxed text-onyx">{{ $article['excerpt'] }}</p>
                 </div>
@@ -40,7 +40,7 @@
                     <img src="{{ asset('build/' . $article['image']) }}" alt="{{ $article['title'] }}" class="h-full w-full object-cover" loading="lazy">
                 </div>
                 <div class="min-w-0 flex-1">
-                    <span class="text-[10px] text-onyx">{{ \Carbon\Carbon::parse($article['published_at'])->translatedFormat('d M Y, H:i') }} WIB</span>
+                    <span class="text-[10px] text-onyx">{{ \Carbon\Carbon::parse($article['published_at'])->translatedFormat('d F Y - H.i') }} WIB</span>
                     <h4 class="mt-1 line-clamp-2 text-xs font-bold leading-snug text-foreground">{{ $article['title'] }}</h4>
                     <p class="mt-1 line-clamp-2 text-[11px] leading-relaxed text-onyx">{{ $article['excerpt'] }}</p>
                 </div>

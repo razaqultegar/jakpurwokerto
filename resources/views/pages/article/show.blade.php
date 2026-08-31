@@ -49,7 +49,7 @@
                     <img src="{{ asset('build/' . $item['image']) }}" alt="{{ $item['title'] }}" class="h-full w-full object-cover" loading="lazy">
                 </div>
                 <div class="min-w-0 flex-1">
-                    <span class="text-[10px] text-onyx">{{ \Carbon\Carbon::parse($item['published_at'])->translatedFormat('d M Y, H:i') }} WIB</span>
+                    <span class="text-[10px] text-onyx">{{ \Carbon\Carbon::parse($item['published_at'])->translatedFormat('d F Y - H.i') }} WIB</span>
                     <p class="mt-1 line-clamp-2 text-xs font-bold leading-snug text-foreground">{{ $item['title'] }}</p>
                 </div>
                 <i class="ri-arrow-right-s-line shrink-0 text-lg text-onyx"></i>
