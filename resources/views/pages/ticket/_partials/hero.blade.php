@@ -19,17 +19,13 @@
                 <button type="button" class="icon-btn-glass" data-share-open>
                     <i class="ri-share-forward-line text-lg"></i>
                 </button>
+                @unless ($event['state']['is_closed'] ?? false)
                 <button type="button" class="icon-btn-glass relative" data-cart-open>
                     <i class="ri-shopping-cart-2-line text-lg"></i>
                     <span class="absolute -right-1 -top-1 hidden h-4 min-w-4 items-center justify-center rounded-full bg-yellow-300 px-1 text-[9px] font-black leading-none text-primary ring-2 ring-white" data-cart-count>0</span>
                 </button>
+                @endunless
             </div>
-        </div>
-        <div class="absolute left-4 top-4 z-10 mt-14 flex flex-col gap-1.5">
-            <span class="badge bg-yellow-300 text-primary uppercase tracking-wider shadow-lg">
-                <i class="ri-flashlight-fill"></i>
-                {{ $event['badge'] }}
-            </span>
         </div>
         <button type="button" class="hero-swiper-prev absolute left-3 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/25 text-white ring-1 ring-white/30 backdrop-blur-md transition hover:bg-white/40">
             <i class="ri-arrow-left-s-line text-xl"></i>

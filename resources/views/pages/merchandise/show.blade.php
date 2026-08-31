@@ -36,7 +36,13 @@
             @endforeach
         </div>
     </section>
-    @unless ($merch['state']['is_before_start'] || $merch['state']['is_after_end'])
+    @if ($merch['state']['is_closed'] ?? false)
+    @include('pages._shared.orders-closed', [
+        'title' => 'Pemesanan Merchandise Ditutup Sementara',
+        'message' => 'Saat ini pemesanan merchandise ' . $merch['name'] . ' sedang ditutup oleh admin. Silakan cek kembali nanti.',
+        'waText' => 'Halo Admin, saya ingin tanya kapan pemesanan merchandise ' . $merch['name'] . ' dibuka kembali.',
+    ])
+    @elseif (! $merch['state']['is_before_start'] && ! $merch['state']['is_after_end'])
     @include('pages._shared.product-cta', [
         'prefix' => 'merch',
         'waTitle' => 'Tanya seputar produk',
@@ -45,14 +51,14 @@
         'alertTitle' => 'Pilih ukuran dulu',
         'alertMessage' => 'Silakan pilih ukuran jersey terlebih dahulu sebelum melanjutkan.',
     ])
-    @endunless
+    @endif
     @include('pages.merchandise._partials.size-guide')
     @include('pages._shared.share-sheet', [
         'shareUrl' => url()->current(),
         'shareText' => ($merch['name'] ?? 'Merchandise') . ' - ' . ($merch['tagline'] ?? ''),
         'shareSubtitle' => 'Ajak teman lihat merchandise ini',
     ])
-    @unless ($merch['state']['is_after_end'] ?? false)
+    @unless (($merch['state']['is_after_end'] ?? false) || ($merch['state']['is_closed'] ?? false))
     @include('pages._shared.cart-drawer', [
         'emptyMessage' => 'Pilih kategori dan ukuran jersey, lalu tambahkan ke keranjang.',
     ])

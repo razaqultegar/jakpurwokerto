@@ -22,6 +22,7 @@
     @include('pages.ticket._partials.maps')
     @include('pages.ticket._partials.rundown')
     @include('pages.ticket._partials.faq')
+    @unless ($event['state']['is_closed'] ?? false)
     @include('pages._shared.product-cta', [
         'prefix' => 'ticket',
         'waTitle' => 'Tanya seputar tiket',
@@ -30,14 +31,17 @@
         'alertTitle' => 'Tiket belum tersedia',
         'alertMessage' => 'Silakan cek kembali ketersediaan tiket sebelum melanjutkan.',
     ])
+    @endunless
     @include('pages._shared.share-sheet', [
         'shareUrl' => url()->current(),
         'shareText' => ($event['name'] ?? 'Tiket') . ' - ' . ($event['subtitle'] ?? ''),
         'shareSubtitle' => 'Ajak teman beli tiket ini',
     ])
+    @unless ($event['state']['is_closed'] ?? false)
     @include('pages._shared.cart-drawer', [
         'emptyMessage' => 'Atur jumlah tiket, lalu tambahkan ke keranjang.',
     ])
+    @endunless
 @endsection
 
 @push('scripts')

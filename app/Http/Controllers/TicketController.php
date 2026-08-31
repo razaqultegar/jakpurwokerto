@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Setting;
+
 class TicketController extends Controller
 {
     public function show(string $slug)
@@ -9,7 +11,6 @@ class TicketController extends Controller
         $events = [
             'the-7ourney' => [
                 'slug' => 'the-7ourney',
-                'badge' => 'Tiket Sudah Dibuka',
                 'name' => 'THE 7OURNEY',
                 'subtitle' => 'Acara komunitas, hiburan, dan momen berkesan untuk keluarga besar The Jakmania Biro Purwokerto.',
                 'day' => 'Sabtu - Minggu',
@@ -86,8 +87,10 @@ class TicketController extends Controller
         }
 
         $event = $events[$slug];
+        $ordersOpen = Setting::bool('ticket_orders_open', true);
         $event['state'] = [
-            'is_active' => true,
+            'is_active' => $ordersOpen,
+            'is_closed' => ! $ordersOpen,
         ];
 
         return view('pages.ticket.show', [

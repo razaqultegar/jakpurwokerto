@@ -21,11 +21,15 @@
         $state = $merch['state'];
         $isSoldOut = $state['is_sold_out'];
         $isBeforeStart = $state['is_before_start'];
-        $isAfterEnd = $state['is_after_end'];
+        $isClosed = $state['is_closed'] ?? false;
+        $isAfterEnd = $state['is_after_end'] || $isClosed;
 
         if ($isSoldOut) {
             $countdownLabel = 'Stok telah habis';
             $countdownStatus = 'Habis';
+        } elseif ($isClosed) {
+            $countdownLabel = 'Pemesanan ditutup sementara';
+            $countdownStatus = 'Ditutup';
         } elseif ($isAfterEnd) {
             $countdownLabel = 'Pre-Order telah ditutup';
             $countdownStatus = 'Ditutup';
@@ -57,7 +61,7 @@
         </div>
     </div>
     @endunless
-    <div class="relative mt-4 overflow-hidden rounded-2xl p-4 text-white shadow-lg" data-countdown data-start="{{ $merch['po_start'] }}" data-end="{{ $merch['po_end'] }}" style="background: {{ $countdownGradient }};">
+    <div class="relative mt-4 overflow-hidden rounded-2xl p-4 text-white shadow-lg" data-countdown @if ($isClosed) data-frozen="true" @endif data-start="{{ $merch['po_start'] }}" data-end="{{ $merch['po_end'] }}" style="background: {{ $countdownGradient }};">
         <div class="pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full {{ $isSoldOut || $isAfterEnd ? 'bg-white/10' : 'bg-yellow-300/15' }} blur-2xl"></div>
         <div class="pointer-events-none absolute -bottom-8 -left-4 h-24 w-24 rounded-full {{ $isSoldOut || $isAfterEnd ? 'bg-white/10' : 'bg-primary/30' }} blur-2xl"></div>
         <div class="relative mb-3 flex items-center justify-between">

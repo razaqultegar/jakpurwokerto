@@ -1,5 +1,48 @@
 @php $isTicket = $filterCategory === 'Tiket'; @endphp
 @if ($filterCategory)
+
+@if (session('status'))
+<div class="mb-4 flex items-start gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-3 text-[12px] font-medium text-emerald-800">
+    <i class="ri-checkbox-circle-line mt-[1px] text-base text-emerald-600"></i>
+    <span class="leading-relaxed">{{ session('status') }}</span>
+</div>
+@endif
+
+@isset($orderScope)
+@php $ordersOpen = $ordersOpen ?? true; @endphp
+<div class="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border {{ $ordersOpen ? 'border-emerald-200 bg-emerald-50/60' : 'border-red-200 bg-red-50/60' }} p-4">
+    <div class="flex items-center gap-3">
+        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg {{ $ordersOpen ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600' }}">
+            <i class="{{ $ordersOpen ? 'ri-lock-unlock-line' : 'ri-lock-line' }} text-xl"></i>
+        </div>
+        <div class="min-w-0">
+            <p class="text-[13px] font-bold text-foreground">
+                {{ $isTicket ? 'Pemesanan Tiket' : 'Pemesanan Merchandise' }}
+                <span class="ml-1 inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wider {{ $ordersOpen ? 'bg-emerald-600 text-white' : 'bg-red-600 text-white' }}">
+                    {{ $ordersOpen ? 'Dibuka' : 'Ditutup' }}
+                </span>
+            </p>
+            <p class="text-[11px] text-onyx">
+                {{ $ordersOpen
+                    ? 'Pengunjung dapat memesan dari halaman publik.'
+                    : 'Tombol beli & keranjang disembunyikan, checkout ditolak.' }}
+            </p>
+        </div>
+    </div>
+    <form action="{{ route('admin.settings.order-toggle') }}" method="post"
+        onsubmit="return confirm('{{ $ordersOpen ? 'Tutup' : 'Buka' }} pemesanan {{ $isTicket ? 'tiket' : 'merchandise' }} sekarang?');">
+        @csrf
+        <input type="hidden" name="scope" value="{{ $orderScope }}">
+        <input type="hidden" name="open" value="{{ $ordersOpen ? '0' : '1' }}">
+        <button type="submit"
+            class="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg px-4 text-[13px] font-bold text-white shadow-sm transition {{ $ordersOpen ? 'bg-red-600 hover:bg-red-700' : 'bg-emerald-600 hover:bg-emerald-700' }}">
+            <i class="{{ $ordersOpen ? 'ri-lock-line' : 'ri-lock-unlock-line' }}"></i>
+            {{ $ordersOpen ? 'Tutup Pemesanan' : 'Buka Pemesanan' }}
+        </button>
+    </form>
+</div>
+@endisset
+
 <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4" data-stats-root>
     <div class="rounded-xl border border-mercury bg-white p-4">
         <p class="text-[10px] font-semibold uppercase tracking-wider text-onyx">Total Pesanan</p>

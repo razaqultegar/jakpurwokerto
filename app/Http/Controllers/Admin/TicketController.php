@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Models\Setting;
+
 class TicketController extends Controller
 {
     public function __invoke()
@@ -11,6 +13,8 @@ class TicketController extends Controller
             'stats' => $this->ticketStats(),
             'stockCards' => [],
             'filterCategory' => 'Tiket',
+            'orderScope' => 'ticket',
+            'ordersOpen' => Setting::bool('ticket_orders_open', true),
         ]);
     }
 }

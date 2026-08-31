@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Models\PickupLocation;
+use App\Models\Setting;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -76,6 +77,14 @@ class CheckoutController extends Controller
     {
         $rawItems = $request->input('items', []);
         $isTicketOnly = ! empty($rawItems) && collect($rawItems)->every(fn ($it) => ($it['category'] ?? null) === 'Tiket');
+
+        if ($isTicketOnly && ! Setting::bool('ticket_orders_open', true)) {
+            return back()->withErrors(['checkout' => 'Pemesanan tiket sedang ditutup sementara.'])->withInput();
+        }
+
+        if (! $isTicketOnly && ! Setting::bool('merchandise_orders_open', true)) {
+            return back()->withErrors(['checkout' => 'Pemesanan merchandise sedang ditutup sementara.'])->withInput();
+        }
 
         if (! $isTicketOnly) {
             $poStartStr = '2026-07-28T12:00:00+07:00';

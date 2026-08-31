@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
+use App\Models\Setting;
 use Carbon\Carbon;
 
 class MerchandiseController extends Controller
@@ -60,7 +61,8 @@ class MerchandiseController extends Controller
         $isSoldOut = $stockLimit > 0 && $remaining <= 0;
         $isBeforeStart = $now->lt($poStart);
         $isAfterEnd = $now->gt($poEnd);
-        $isActive = ! $isBeforeStart && ! $isAfterEnd && ! $isSoldOut;
+        $isClosed = ! Setting::bool('merchandise_orders_open', true);
+        $isActive = ! $isBeforeStart && ! $isAfterEnd && ! $isSoldOut && ! $isClosed;
 
         $merchandise['state'] = [
             'stock_remaining' => $remaining,
@@ -70,6 +72,7 @@ class MerchandiseController extends Controller
             'is_sold_out' => $isSoldOut,
             'is_before_start' => $isBeforeStart,
             'is_after_end' => $isAfterEnd,
+            'is_closed' => $isClosed,
             'is_active' => $isActive,
         ];
 

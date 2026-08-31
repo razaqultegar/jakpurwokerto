@@ -2,7 +2,7 @@
     $defaultTicket = collect($event['tickets'])->firstWhere('featured', true) ?? ($event['tickets'][0] ?? null);
 @endphp
 
-@if ($defaultTicket)
+@if ($defaultTicket && ! ($event['state']['is_closed'] ?? false))
 <hr class="section-divider">
 <section class="section" data-ticket-options data-default-ticket data-ticket-key="{{ $defaultTicket['key'] }}" data-ticket-name="{{ $defaultTicket['name'] }}" data-ticket-price="{{ $defaultTicket['price'] }}" data-ticket-desc="{{ $defaultTicket['desc'] }}" data-ticket-note="{{ $defaultTicket['note'] }}">
     <div class="section-header-between mb-3">

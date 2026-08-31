@@ -1,6 +1,9 @@
 const pad = (n) => String(n).padStart(2, '0');
 
 export function initCountdown(root) {
+    // Admin has closed ordering: keep the server-rendered label/status, no ticking.
+    if (root.dataset.frozen === 'true') return;
+
     const startAt = new Date(root.dataset.start).getTime();
     const endAt = new Date(root.dataset.end).getTime();
 

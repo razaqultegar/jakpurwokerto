@@ -1,6 +1,6 @@
 @php
     $state = $merch['state'] ?? [];
-    $isAfterEnd = $state['is_after_end'] ?? false;
+    $isAfterEnd = ($state['is_after_end'] ?? false) || ($state['is_closed'] ?? false);
 @endphp
 
 @unless ($isAfterEnd)

@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Models\Setting;
+
 class MerchandiseController extends Controller
 {
     public function __invoke()
@@ -11,6 +13,8 @@ class MerchandiseController extends Controller
             'stats' => $this->merchandiseStats(),
             'stockCards' => $this->stockCards(),
             'filterCategory' => 'Merchandise',
+            'orderScope' => 'merchandise',
+            'ordersOpen' => Setting::bool('merchandise_orders_open', true),
         ]);
     }
 }

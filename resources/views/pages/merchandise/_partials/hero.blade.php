@@ -1,7 +1,7 @@
 <section class="relative isolate overflow-hidden bg-foreground">
     @php
         $state = $merch['state'] ?? [];
-        $isAfterEnd = $state['is_after_end'] ?? false;
+        $isAfterEnd = ($state['is_after_end'] ?? false) || ($state['is_closed'] ?? false);
     @endphp
     <div class="relative aspect-square w-full overflow-hidden">
         <div class="swiper hero-swiper h-full w-full" data-hero-swiper>

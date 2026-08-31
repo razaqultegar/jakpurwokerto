@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\MemberController as AdminMemberController;
 use App\Http\Controllers\Admin\MerchandiseController as AdminMerchandiseController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
+use App\Http\Controllers\Admin\SettingController as AdminSettingController;
 use App\Http\Controllers\Admin\TicketController as AdminTicketController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\CheckinScanController;
@@ -39,6 +40,8 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::get('/anggota/data', [AdminMemberController::class, 'data'])->name('members.data');
     Route::post('/anggota/import', [AdminMemberController::class, 'import'])->name('members.import');
     Route::get('/anggota/template', [AdminMemberController::class, 'downloadTemplate'])->name('members.template');
+
+    Route::post('/settings/order-toggle', [AdminSettingController::class, 'toggleOrders'])->name('settings.order-toggle');
 
     Route::get('/orders/data', [AdminOrderController::class, 'data'])->name('orders.data');
     Route::get('/orders/export', [AdminOrderController::class, 'export'])->name('orders.export');
