@@ -16,7 +16,7 @@
         </div>
         <div class="px-4 pt-4 pb-5">
             <div class="mb-4 flex items-center justify-center gap-2">
-                <span class="text-[11px] text-onyx">Pekan 34</span>
+                <span class="text-[11px] text-onyx">Laga Pramusim</span>
             </div>
             <div class="flex items-center justify-between gap-2">
                 <div class="flex flex-1 flex-col items-center gap-2">
@@ -28,19 +28,19 @@
                 <div class="flex flex-col items-center gap-2">
                     <div class="rounded-lg bg-primary-tint px-4 py-2 text-center">
                         <div class="text-xl font-black tracking-wider text-primary">
-                            <span>3</span>
+                            <span>4</span>
                             <span class="mx-1 text-onyx">-</span>
                             <span>0</span>
                         </div>
                         <div class="text-[10px] text-onyx">Skor Akhir</div>
                     </div>
-                    <div class="mt-1 text-[10px] text-onyx">Sab, 23 Mei</div>
+                    <div class="mt-1 text-[10px] text-onyx">Sab, 29 Agu</div>
                 </div>
                 <div class="flex flex-1 flex-col items-center gap-2">
                     <div class="flex h-16 w-16 items-center justify-center rounded-full bg-white p-1.5 shadow-md ring-2 ring-gray-200">
-                        <img src="https://upload.wikimedia.org/wikipedia/min/1/1e/Semen_Padang_FC.png" alt="Semen Padang" class="h-full w-full object-contain">
+                        <img src="https://upload.wikimedia.org/wikipedia/en/8/88/Brisbane_Roar_FC_logo.svg" alt="Brisbane Roar" class="h-full w-full object-contain">
                     </div>
-                    <span class="text-xs font-semibold text-foreground">Semen Padang</span>
+                    <span class="text-xs font-semibold text-foreground">Brisbane Roar</span>
                 </div>
             </div>
             <div class="mt-4 flex items-center justify-center gap-1.5 text-[11px] text-onyx">
@@ -50,13 +50,13 @@
             <div class="mt-4 overflow-hidden rounded-2xl bg-linear-to-br from-primary via-primary-light to-primary-lighter p-[1.5px]">
                 <div class="relative flex items-center gap-3 rounded-[14px] bg-white px-3 py-3">
                     <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-tint">
-                        <i class="ri-calendar-check-line text-xl text-primary"></i>
+                        <i class="ri-flag-2-line text-xl text-primary"></i>
                     </span>
                     <div class="min-w-0 flex-1">
-                        <p class="text-[11px] font-black uppercase tracking-wide text-primary">Musim Telah Berakhir</p>
-                        <p class="mt-0.5 text-[11px] leading-snug text-onyx">Sampai jumpa di musim depan, Jakmania! <span aria-hidden="true">🧡</span></p>
+                        <p class="text-[11px] font-black uppercase tracking-wide text-primary">Menyambut Musim Baru</p>
+                        <p class="mt-0.5 text-[11px] leading-snug text-onyx">Persija siap tempur di musim baru. Ayo dukung terus, Jakmania! <span aria-hidden="true">🧡</span></p>
                     </div>
-                    <span class="hidden shrink-0 rounded-full bg-primary px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white sm:inline-flex">2025/26</span>
+                    <span class="hidden shrink-0 rounded-full bg-primary px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white sm:inline-flex">2026/27</span>
                 </div>
             </div>
         </div>

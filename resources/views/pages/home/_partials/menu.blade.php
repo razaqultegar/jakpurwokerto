@@ -7,6 +7,7 @@
         ['label' => 'Berita', 'color' => 'bg-primary/15', 'text' => 'text-primary', 'icon' => 'ri-newspaper-line', 'href' => route('article.index')],
         ['label' => 'Tour', 'color' => 'bg-orange-100', 'text' => 'text-orange-600', 'icon' => 'ri-bus-line', 'badge' => 'SEGERA'],
         ['label' => 'Donasi', 'color' => 'bg-green-100', 'text' => 'text-green-600', 'icon' => 'ri-hand-heart-line', 'badge' => 'SEGERA'],
+        ['label' => 'Keuangan', 'color' => 'bg-teal-100', 'text' => 'text-teal-600', 'icon' => 'ri-wallet-3-line', 'badge' => 'SEGERA'],
     ];
 
     $komunitasItems = [

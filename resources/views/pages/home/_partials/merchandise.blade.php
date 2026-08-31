@@ -6,7 +6,6 @@
         <a href="{{ route('merchandise.show', 'the-7ourney') }}" class="relative h-32 w-28 shrink-0 overflow-hidden rounded-xl bg-white/15 ring-1 ring-white/20 backdrop-blur-sm">
             <img src="{{ asset('build/medias/the-7ourney/artboard1.jpg') }}" alt="Jersey the 7ourney" class="h-full w-full object-cover" loading="lazy">
             <span class="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-linear-to-t from-black/50 to-transparent"></span>
-            <span class="absolute bottom-1 left-1 rounded-full bg-white/85 px-1.5 py-0.5 text-[9px] font-bold text-primary backdrop-blur-sm">Baru</span>
         </a>
         <div class="flex flex-1 flex-col">
             <span class="text-[10px] font-medium uppercase tracking-wider text-white/80">Edisi Spesial</span>
